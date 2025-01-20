@@ -71,13 +71,12 @@
 (setq package-archive-priorities '(("gnu"    . 90)
                                    ("nongnu" . 80)
                                    ("melpa"  . 10)))
-;; It runs `package-quickstart-refresh'
+;; Enable `package-quickstart-refresh'
 (setq package-quickstart t)
 
-;; (package-activate-all)
-;; (package-initialize)
-;; (unless (file-exists-p package-user-dir)
-;;   (package-refresh-contents))
+(package-activate-all)
+(unless (file-exists-p package-user-dir)
+  (package-refresh-contents))
 
 (setq use-package-always-ensure t)
 (setq use-package-expand-minimally t)
@@ -96,9 +95,18 @@
 
   (setq mouse-yank-at-point t)
 
+  ;; TODO `completion-preview-mode' in Emacs 30.
   (setq completions-detailed t)
+  (setq completion-styles '(basic flex))
   (setq completion-category-overrides
         '((file (styles . (partial-completion)))))
+  (setq completion-auto-select t
+        completion-auto-help 'visible ;; Display *Completions* upon first request
+        completions-sort 'historical
+        completions-format 'one-column)
+  (setq completion-ignore-case t
+        read-buffer-completion-ignore-case t
+        read-file-name-completion-ignore-case t)
   (setq read-extended-command-predicate #'command-completion-default-include-p)
 
   (setq suggest-key-bindings 999)
@@ -124,15 +132,15 @@
 (use-package emacs
   :ensure nil
   :hook
-  (window-setup . global-display-line-numbers-mode)
-  (window-setup . global-display-fill-column-indicator-mode)
-  (window-setup . pixel-scroll-precision-mode)
-  (window-setup . delete-selection-mode)
+  (emacs-startup . global-display-line-numbers-mode)
+  (emacs-startup . global-display-fill-column-indicator-mode)
+  (emacs-startup . pixel-scroll-precision-mode)
+  (emacs-startup . delete-selection-mode)
   (prog-mode . show-paren-local-mode)
   (prog-mode . electric-indent-local-mode)
   (prog-mode . electric-pair-local-mode)
-  (window-setup . window-divider-mode)
-  (window-setup . blink-cursor-mode)
+  (emacs-startup . window-divider-mode)
+  (emacs-startup . blink-cursor-mode)
   :config
   (setq show-paren-context-when-offscreen 'overlay)
   (setq-default cursor-type 'bar))
@@ -203,7 +211,7 @@
 
 (use-package repeat
   :ensure nil
-  :hook (window-setup . repeat-mode))
+  :hook (emacs-startup . repeat-mode))
 
 (use-package hl-line
   :ensure nil
@@ -211,3 +219,10 @@
   (prog-mode . hl-line-mode)
   (text-mode . hl-line-mode)
   (package-menu-mode . hl-line-mode))
+
+(use-package which-key
+  :hook (window-setup . which-key-mode))
+
+(use-package macrostep
+  :bind (:map emacs-lisp-mode-map
+              ("C-c e" . macrostep-expand)))
