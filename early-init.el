@@ -1,5 +1,7 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8; fill-column: 80 -*-
 
+(setq debug-on-error t)
+
 ;; (setq inhibit-default-init t)
 ;; (setq inhibit-startup-screen t)
 
