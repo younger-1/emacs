@@ -23,10 +23,19 @@
 ;; Heiti SC
 (set-fontset-font t 'han "黑体-简" nil 'append)
 
-;; (load-theme 'deeper-blue t)
-;; (load-theme 'wombat t)
-;; (load-theme 'modus-vivendi)
-(load-theme 'modus-operandi)
+;; (load-theme 'deeper-blue)
+;; (load-theme 'wombat)
+(progn
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-mixed-fonts t
+        modus-themes-variable-pitch-ui nil
+        modus-themes-prompts '(background)
+        modus-themes-headings '((1 . (1.4))
+                                (2 . (1.2))
+                                (3 . (1.1))))
+  ;; (load-theme 'modus-vivendi)
+  (load-theme 'modus-operandi))
 
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
@@ -46,11 +55,17 @@
   (dir-locals-set-directory-class (file-truename dir) 'read-only))
 
 ;; http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
+(keymap-global-set "C-x ," (defun xy/open-init-file ()
+                             "打开emacs配置文件"
+                             (interactive)
+                             (find-file user-init-file)))
 (keymap-global-set "<backtab>" #'back-to-indentation)
 (keymap-global-set "C-x C-b" #'ibuffer)
 (keymap-global-set "C-M-<backspace>" #'backward-kill-sexp)
 (keymap-global-set "C-x k" #'kill-current-buffer)
 (keymap-global-set "C-x O" #'switch-to-minibuffer)
+;; Or you should practice more by using `C-]' for `abort-recursive-edit'
+;; @see (info "(emacs) Quitting")
 (keymap-global-set "C-g" (defun xy/keyboard-quit-dwim ()
                            "Do-What-I-Mean behaviour for a general `keyboard-quit'."
                            (interactive)
