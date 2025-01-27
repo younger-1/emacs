@@ -56,15 +56,11 @@
   (dir-locals-set-directory-class (file-truename dir) 'read-only))
 
 ;; http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
+(keymap-global-set "C-;" "C-x C-;")
 (keymap-global-set "C-x ," (defun xy/open-init-file ()
                              "打开emacs配置文件"
                              (interactive)
                              (find-file user-init-file)))
-(keymap-global-set "<backtab>" #'back-to-indentation)
-(keymap-global-set "C-x C-b" #'ibuffer)
-(keymap-global-set "C-M-<backspace>" #'backward-kill-sexp)
-(keymap-global-set "C-x k" #'kill-current-buffer)
-(keymap-global-set "C-x O" #'switch-to-minibuffer)
 ;; Or you should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
 (keymap-global-set "C-g" (defun xy/keyboard-quit-dwim ()
@@ -89,6 +85,7 @@
                                    ("melpa"  . 10)))
 ;; Enable `package-quickstart-refresh'
 (setq package-quickstart t)
+(setq package-install-upgrade-built-in t)
 
 (package-activate-all)
 (unless (file-exists-p package-user-dir)
@@ -109,15 +106,14 @@
   ;; (setq word-wrap t)
   (setq word-wrap-by-category t)
 
-  (setq mouse-yank-at-point t)
-
   ;; TODO `completion-preview-mode' in Emacs 30.
   (setq completions-detailed t)
-  (setq completion-styles '(basic flex))
-  (setq completion-category-overrides
-        '((file (styles . (partial-completion)))))
+  (setq completion-styles '(basic flex)) ;; @see `completion-styles-alist' for available style
+  (setq completion-category-overrides ;; @see `completion-category-defaults' for available category
+        '((file (styles partial-completion))))
   (setq completion-auto-select t
         completion-auto-help 'visible ;; Display *Completions* upon first request
+        completion-no-auto-exit t
         ;; completions-sort 'historical
         completions-format 'one-column)
   (setq completion-ignore-case t
@@ -133,38 +129,59 @@
         auto-save-default nil
         create-lockfiles nil)
 
-  (setq frame-title-format
-        '((:eval (if (buffer-file-name)
-                     (abbreviate-file-name (buffer-file-name))
-                   "%b"))))
-
   ;; `simple.el'
   (setq kill-do-not-save-duplicates t)
+  (setq save-interprogram-paste-before-kill t)
   (setq what-cursor-show-names t) ;; For `C-x ='
   (setq set-mark-command-repeat-pop t)
   ;; `files.el'
   (setq confirm-kill-emacs #'yes-or-no-p)
-  ;; `vc-hooks'
+  (setq require-final-newline t)
+  (setq backup-by-copying t)
+  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
+  ;; `paren.el'
+  (setq show-paren-context-when-offscreen 'overlay)
+  ;; `mouse.el'
+  (setq mouse-yank-at-point t)
+  ;; `vc-hooks.el'
   (setq vc-follow-symlinks t)
   ;; `C-code'
+  (setq-default cursor-type 'bar)
   (setq read-process-output-max (* 64 1024)) ;; 64k
-  (setq use-short-answers t))
+  (setq use-short-answers t)
+  ;; (setq visible-bell t)
+  (setq frame-title-format
+        '((:eval (if (buffer-file-name)
+                     (abbreviate-file-name (buffer-file-name))
+                   "%b")))))
 
 (use-package emacs
   :ensure nil
   :hook
-  (emacs-startup . global-display-line-numbers-mode)
-  ;; (emacs-startup . global-display-fill-column-indicator-mode)
-  (emacs-startup . pixel-scroll-precision-mode)
-  (emacs-startup . delete-selection-mode)
   (prog-mode . show-paren-local-mode)
   (prog-mode . electric-indent-local-mode)
   (prog-mode . electric-pair-local-mode)
+  (emacs-startup . global-display-line-numbers-mode)
+  (emacs-startup . pixel-scroll-precision-mode)
+  (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
   (emacs-startup . blink-cursor-mode)
-  :config
-  (setq show-paren-context-when-offscreen 'overlay)
-  (setq-default cursor-type 'bar))
+  ;; (emacs-startup . global-tab-line-mode)
+  ;; (emacs-startup . global-display-fill-column-indicator-mode)
+  :bind
+  ("<backtab>" . #'back-to-indentation)
+  ("C-x C-b" . #'ibuffer)
+  ("C-x k" . #'kill-current-buffer)
+  ("C-x O" . #'switch-to-minibuffer)
+  ("M-/" . #'hippie-expand))
+
+(use-package lisp-mode
+  :ensure nil
+  ;; BUG: this macro expand to bad thing
+  ;; :hook (before-save . #'check-parens)
+  :bind (:map lisp-mode-shared-map
+              ("C-M-<backspace>" . #'backward-kill-sexp)
+              ("C-h e c" . #'check-parens)))
 
 (use-package icomplete
   :ensure nil
@@ -311,10 +328,13 @@
 (use-package recentf
   :ensure nil
   :defer 1
-  :bind ("C-x R" . recentf-open-files)
+  :bind
+  ("C-x f" . recentf-open)
+  ("C-x R" . recentf-open-files)
   :config
   (recentf-mode)
-  (setq recentf-max-saved-items 500))
+  (setq recentf-max-saved-items 500
+        recentf-max-menu-items 25))
 
 (use-package autorevert
   :ensure nil
@@ -371,15 +391,16 @@
   (text-mode . hl-line-mode)
   (package-menu-mode . hl-line-mode))
 
+(use-package ediff
+  :ensure nil
+  :defer t
+  :config
+  (setq ediff-window-setup-function #'ediff-setup-windows-plain
+        ediff-split-window-function #'split-window-horizontally
+        ediff-merge-split-window-function #'split-window-horizontally))
+
 (use-package which-key
   :hook (window-setup . which-key-mode))
-
-(use-package lisp-mode
-  :ensure nil
-  ;; BUG: this macro expand to bad thing
-  ;; :hook (before-save . #'check-parens)
-  :bind (:map lisp-mode-shared-map
-              ("C-h e c" . #'check-parens)))
 
 (use-package macrostep
   :bind (:map lisp-mode-shared-map
