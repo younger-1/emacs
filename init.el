@@ -129,6 +129,8 @@
         auto-save-default nil
         create-lockfiles nil)
 
+  (setq dired-listing-switches "-alh")
+
   ;; `simple.el'
   (setq kill-do-not-save-duplicates t)
   (setq save-interprogram-paste-before-kill t)
@@ -143,6 +145,8 @@
   (setq show-paren-context-when-offscreen 'overlay)
   ;; `mouse.el'
   (setq mouse-yank-at-point t)
+  ;; `paragraphs.el'
+  (setq sentence-end-double-space nil) ;; Don't assume that sentences should have two spaces after periods. This ain't a typewriter
   ;; `vc-hooks.el'
   (setq vc-follow-symlinks t)
   ;; `C-code'
@@ -161,6 +165,7 @@
   (prog-mode . show-paren-local-mode)
   (prog-mode . electric-indent-local-mode)
   (prog-mode . electric-pair-local-mode)
+  (prog-mode . subword-mode)
   (emacs-startup . global-display-line-numbers-mode)
   (emacs-startup . pixel-scroll-precision-mode)
   (emacs-startup . delete-selection-mode)
@@ -168,6 +173,8 @@
   (emacs-startup . blink-cursor-mode)
   ;; (emacs-startup . global-tab-line-mode)
   ;; (emacs-startup . global-display-fill-column-indicator-mode)
+  (before-save . delete-trailing-whitespace)
+  ;; (after-save . executable-make-buffer-file-executable-if-script-p) ;; Only work if buffer begin with "#!"
   :bind
   ("<backtab>" . #'back-to-indentation)
   ("C-x C-b" . #'ibuffer)
@@ -177,8 +184,11 @@
 
 (use-package lisp-mode
   :ensure nil
-  ;; BUG: this macro expand to bad thing
-  ;; :hook (before-save . #'check-parens)
+  :init
+  (defun xy/check-parens-before-save ()
+    (add-hook 'before-save-hook #'check-parens 0 :local))
+  (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
+  (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
   :bind (:map lisp-mode-shared-map
               ("C-M-<backspace>" . #'backward-kill-sexp)
               ("C-h e c" . #'check-parens)))
