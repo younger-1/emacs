@@ -9,11 +9,65 @@
 
 (set-default-coding-systems 'utf-8)
 
-(if (eq system-type 'windows-nt)
-    (set-face-attribute 'default nil :height 120)
-  (set-face-attribute 'default nil :height 140))
+;; For finer granularity, use `system-type' or `system-configuration' directly.
+(defconst xy/win-p
+  (eq system-type 'windows-nt) ;; 'cygwin 'ms-dos
+  "Are we running on a MS-Window system?")
+(defconst xy/linux-p
+  (eq system-type 'gnu/linux) ;; 'berkeley-unix 'gnu 'gnu/kfreebsd
+  "Are we running on a GNU/Linux system?")
+(defconst xy/mac-p
+  (eq system-type 'darwin)
+  "Are we running on a Mac system?")
 
-(set-face-attribute 'default nil :family "Hack Nerd Font")
+(defconst xy/font-size (if xy/win-p 120 140))
+(defconst xy/font-name "Hack Nerd Font")
+(set-face-attribute 'default nil :height xy/font-size :family xy/font-name)
+
+(defun xy/set-default-face-advanced ()
+  "It's useful for setting faces that may get overwritten by switch themes."
+  ;; Set the default monospaced font
+  (set-face-attribute 'default nil
+                      :slant  'normal
+                      :weight 'normal
+                      :width  'normal
+                      :family xy/font-name
+                      :height xy/font-size)
+  ;; Set an alternative monospaced font. Can be the same as above.
+  ;; It should have the same character width as the default font
+  (set-face-attribute 'fixed-pitch nil
+                      :slant  'normal
+                      :weight 'normal
+                      :width  'normal
+                      :height 1.0)
+  ;; Set an alternative monospaced font, preferably with serifs (optional)
+  ;; It should have the same character width as the other two fonts above
+  (set-face-attribute 'fixed-pitch-serif nil
+                      :slant  'normal
+                      :weight 'normal
+                      :width  'normal
+                      :height 1.0)
+  ;; Set the proportional font (toggle by "M-x variable-pitch-mode")
+  (set-face-attribute 'variable-pitch nil
+                      :slant  'normal
+                      :weight 'normal
+                      :width  'normal
+                      :height 1.0)
+  ;; Set the fonts for the active mode line
+  (set-face-attribute 'mode-line nil
+                      :slant  'normal
+                      :weight 'normal
+                      :width  'normal
+                      :height 0.9)
+  ;; Set the fonts for the inactive mode line
+  (set-face-attribute 'mode-line-inactive nil
+                      :slant  'normal
+                      :weight 'normal
+                      :width  'normal
+                      :height 0.8))
+
+(add-hook 'xy/after-enable-theme-hook #'xy/set-default-face-advanced)
+
 (when (fboundp 'set-fontset-font)
   ;; LXGW WenKai Mono
   (set-fontset-font t 'han "霞鹜文楷等宽" nil 'append)
@@ -38,6 +92,25 @@
   ;; (load-theme 'modus-vivendi)
   (load-theme 'modus-operandi))
 
+(defun xy/load-theme (theme &optional no-confirm no-enable)
+  "Load a single theme interactively. Without prefix argument, disable all other enabled themes."
+  (interactive (eval (cadr (interactive-form 'load-theme))))
+  (if (called-interactively-p)
+      (message "[xy]: load theme: %s" theme))
+  (unless current-prefix-arg
+    (mapc #'disable-theme custom-enabled-themes))
+  (funcall-interactively 'load-theme theme :no-confirm no-enable))
+
+(global-set-key (kbd "C-h C-t") #'xy/load-theme)
+(global-set-key (kbd "C-h M-t") #'disable-theme)
+
+(defvar xy/after-enable-theme-hook nil
+  "Normal hook run after enabling a theme.")
+(defun xy/after-enable-theme (&rest _args)
+  "Run `xy/after-enable-theme-hook'."
+  (run-hooks 'xy/after-enable-theme-hook))
+(advice-add 'enable-theme :after #'xy/after-enable-theme)
+
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
 (put 'scroll-left 'disabled nil)
@@ -61,6 +134,10 @@
                              "打开emacs配置文件"
                              (interactive)
                              (find-file user-init-file)))
+(keymap-global-set "C-x ." (defun xy/open-init-dir ()
+                             "打开emacs配置目录"
+                             (interactive)
+                             (dired user-emacs-directory)))
 ;; Or you should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
 (keymap-global-set "C-g" (defun xy/keyboard-quit-dwim ()
@@ -75,7 +152,33 @@
                              (abort-recursive-edit))
                             (t
                              (keyboard-quit)))))
-(keymap-global-set "C-;" "C-x C-;")
+(keymap-global-set "<f12>" #'modus-themes-toggle)
+
+;; Make "C-z" available as a prefix key in the same manner as "C-x" and "C-c".
+;; To avoid clashes, new keybindings introduced by Emacs Onboard will usually
+;; begin with the prefix "C-z" (with only a few exceptions).
+(global-unset-key (kbd "C-z"))
+
+(define-prefix-command 'ctl-z-map nil "Additional prefix key C-z")
+(global-set-key (kbd "C-z") 'ctl-z-map)
+
+(define-prefix-command 'ctl-z-c-map nil "Commonly used commands")
+(define-key ctl-z-map (kbd "c") 'ctl-z-c-map)
+
+(define-prefix-command 'ctl-z-e-map nil "Emacs built-ins")
+(define-key ctl-z-map (kbd "e") 'ctl-z-e-map)
+
+(define-prefix-command 'ctl-z-o-map nil "Org-mode")
+(define-key ctl-z-map (kbd "o") 'ctl-z-o-map)
+
+(define-prefix-command 'ctl-z-s-map nil "Scratch buffers")
+(define-key ctl-z-map (kbd "s") 'ctl-z-s-map)
+
+(define-prefix-command 'ctl-z-w-map nil "Web-related")
+(define-key ctl-z-map (kbd "w") 'ctl-z-w-map)
+
+(define-prefix-command 'ctl-z-x-map nil "Global REPL bindings")
+(define-key ctl-z-map (kbd "x") 'ctl-z-x-map)
 
 (setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
                          ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
@@ -86,6 +189,7 @@
 ;; Enable `package-quickstart-refresh'
 (setq package-quickstart t)
 (setq package-install-upgrade-built-in t)
+;; (setq package-native-compile t)
 
 (package-activate-all)
 (unless (file-exists-p package-user-dir)
@@ -120,6 +224,7 @@
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t)
   (setq read-extended-command-predicate #'command-completion-default-include-p)
+  (setq history-delete-duplicates t)
 
   (setq suggest-key-bindings 999)
   (setq eval-expression-print-length 30)
@@ -150,9 +255,12 @@
   ;; `vc-hooks.el'
   (setq vc-follow-symlinks t)
   ;; `C-code'
-  (setq-default cursor-type 'bar)
-  (setq read-process-output-max (* 64 1024)) ;; 64k
   (setq use-short-answers t)
+  ;; (fset 'yes-or-no-p 'y-or-n-p)
+  (setq-default cursor-type 'bar)
+  (setq large-file-warning-threshold (* 64 1024 1024)) ;; 10m -> 64m
+  (setq read-process-output-max (* 1024 1024)) ;; 4k -> 1m
+  (setq undo-outer-limit (* 120 1024 1024)) ;; 24m -> 120m
   ;; (setq visible-bell t)
   (setq frame-title-format
         '((:eval (if (buffer-file-name)
@@ -171,6 +279,8 @@
   (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
   (emacs-startup . blink-cursor-mode)
+  ;; (emacs-startup . tab-bar-mode)
+  ;; (emacs-startup . tab-bar-history-mode)
   ;; (emacs-startup . global-tab-line-mode)
   ;; (emacs-startup . global-display-fill-column-indicator-mode)
   (before-save . delete-trailing-whitespace)
