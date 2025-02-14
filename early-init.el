@@ -1,20 +1,6 @@
-;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8; fill-column: 80 -*-
+;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
 
 (setq debug-on-error t)
-
-;; (setq inhibit-default-init t)
-;; (setq inhibit-startup-screen t)
-
-(setq frame-inhibit-implied-resize t)
-(setq frame-resize-pixelwise t)
-
-(setq default-frame-alist '((fullscreen . maximized)
-                            (menu-bar-lines . 1)
-                            (tool-bar-lines . 0)
-                            (vertical-scroll-bars . nil)
-                            (horizontal-scroll-bars . nil)
-                            (alpha . 100)
-                            (alpha-background . 80)))
 
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)

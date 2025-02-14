@@ -1,25 +1,59 @@
-;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8; fill-column: 80 -*-
+;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
+
+;; (set-default-coding-systems 'utf-8)
+(prefer-coding-system 'utf-8)
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
   (load-file custom-file))
 
-(setq user-full-name    "Xavier Young"
-      user-mail-address "younger321@foxmail.com")
-
-(set-default-coding-systems 'utf-8)
-
 ;; For finer granularity, use `system-type' or `system-configuration' directly.
-(defconst xy/win-p
-  (eq system-type 'windows-nt) ;; 'cygwin 'ms-dos
-  "Are we running on a MS-Window system?")
 (defconst xy/linux-p
-  (eq system-type 'gnu/linux) ;; 'berkeley-unix 'gnu 'gnu/kfreebsd
+  (eq system-type 'gnu/linux) ; 'berkeley-unix 'gnu 'gnu/kfreebsd
   "Are we running on a GNU/Linux system?")
+(defconst xy/win-p
+  (eq system-type 'windows-nt) ; 'cygwin 'ms-dos
+  "Are we running on a MS-Window system?")
 (defconst xy/mac-p
   (eq system-type 'darwin)
   "Are we running on a Mac system?")
 
+;;; theme
+;; (load-theme 'deeper-blue)
+;; (load-theme 'wombat)
+(progn
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-mixed-fonts t
+        modus-themes-variable-pitch-ui nil
+        modus-themes-prompts '(background)
+        modus-themes-headings '((1 . (1.4))
+                                (2 . (1.2))
+                                (3 . (1.1))))
+  ;; (load-theme 'modus-vivendi)
+  (load-theme 'modus-operandi)
+  (keymap-global-set "<f12>" #'modus-themes-toggle))
+
+(defun xy/load-theme (theme &optional no-confirm no-enable)
+  "Load a single theme interactively. Without prefix argument, disable all other enabled themes."
+  (interactive (eval (cadr (interactive-form 'load-theme))))
+  (if (called-interactively-p)
+      (message "[xy]: load theme: %s" theme))
+  (unless current-prefix-arg
+    (mapc #'disable-theme custom-enabled-themes))
+  (funcall-interactively 'load-theme theme :no-confirm no-enable))
+
+(global-set-key (kbd "C-h C-t") #'xy/load-theme)
+(global-set-key (kbd "C-h M-t") #'disable-theme)
+
+(defvar xy/after-enable-theme-hook nil
+  "Normal hook run after enabling a theme.")
+(defun xy/after-enable-theme (&rest _args)
+  "Run `xy/after-enable-theme-hook'."
+  (run-hooks 'xy/after-enable-theme-hook))
+(advice-add 'enable-theme :after #'xy/after-enable-theme)
+
+;;; font
 (defconst xy/font-size (if xy/win-p 120 140))
 (defconst xy/font-name "Hack Nerd Font")
 (set-face-attribute 'default nil :height xy/font-size :family xy/font-name)
@@ -78,64 +112,13 @@
   ;; Heiti SC
   (set-fontset-font t 'han "黑体-简" nil 'append))
 
-;; (load-theme 'deeper-blue)
-;; (load-theme 'wombat)
-(progn
-  (setq modus-themes-italic-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-mixed-fonts t
-        modus-themes-variable-pitch-ui nil
-        modus-themes-prompts '(background)
-        modus-themes-headings '((1 . (1.4))
-                                (2 . (1.2))
-                                (3 . (1.1))))
-  ;; (load-theme 'modus-vivendi)
-  (load-theme 'modus-operandi))
-
-(defun xy/load-theme (theme &optional no-confirm no-enable)
-  "Load a single theme interactively. Without prefix argument, disable all other enabled themes."
-  (interactive (eval (cadr (interactive-form 'load-theme))))
-  (if (called-interactively-p)
-      (message "[xy]: load theme: %s" theme))
-  (unless current-prefix-arg
-    (mapc #'disable-theme custom-enabled-themes))
-  (funcall-interactively 'load-theme theme :no-confirm no-enable))
-
-(global-set-key (kbd "C-h C-t") #'xy/load-theme)
-(global-set-key (kbd "C-h M-t") #'disable-theme)
-
-(defvar xy/after-enable-theme-hook nil
-  "Normal hook run after enabling a theme.")
-(defun xy/after-enable-theme (&rest _args)
-  "Run `xy/after-enable-theme-hook'."
-  (run-hooks 'xy/after-enable-theme-hook))
-(advice-add 'enable-theme :after #'xy/after-enable-theme)
-
-(put 'narrow-to-region 'disabled nil)
-(put 'narrow-to-page 'disabled nil)
-(put 'scroll-left 'disabled nil)
-(put 'downcase-region 'disabled nil)
-(put 'upcase-region 'disabled nil)
-(put 'erase-buffer 'disabled nil)
-
-(defconst xy/elpa-lisp-d package-user-dir)
-(defconst xy/emacs-lisp-d (file-name-directory (directory-file-name doc-directory)))
-
-(dir-locals-set-class-variables
- 'read-only
- '((nil . ((eval . (view-mode-enter nil #'kill-buffer))
-           (tab-width . 8)))))
-(dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
-  (dir-locals-set-directory-class (file-truename dir) 'read-only))
-
+;;; keymap
 ;; http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 (keymap-global-set "C-;" "C-x C-;")
 (keymap-global-set "C-x ," (defun xy/open-init-file ()
-                             "打开emacs配置文件"
                              (interactive)
                              (find-file user-init-file)))
 (keymap-global-set "C-x ." (defun xy/open-init-dir ()
-                             "打开emacs配置目录"
                              (interactive)
                              (dired user-emacs-directory)))
 ;; Or you should practice more by using `C-]' for `abort-recursive-edit'
@@ -152,34 +135,19 @@
                              (abort-recursive-edit))
                             (t
                              (keyboard-quit)))))
-(keymap-global-set "<f12>" #'modus-themes-toggle)
 
-;; Make "C-z" available as a prefix key in the same manner as "C-x" and "C-c".
-;; To avoid clashes, new keybindings introduced by Emacs Onboard will usually
-;; begin with the prefix "C-z" (with only a few exceptions).
-(global-unset-key (kbd "C-z"))
+(keymap-global-set "M-S-SPC" #'cycle-spacing)
+(keymap-global-set "C-x l" #'count-words)
+(keymap-global-set "M-z" #'zap-up-to-char)
 
-(define-prefix-command 'ctl-z-map nil "Additional prefix key C-z")
-(global-set-key (kbd "C-z") 'ctl-z-map)
+(keymap-global-unset "C-z")
+(keymap-global-set "C-z e s" #'shell)
+(keymap-global-set "C-z e e" #'eshell)
+(keymap-global-set "C-z w w" #'browse-url)
+(keymap-global-set "C-z w W" #'browse-web)
 
-(define-prefix-command 'ctl-z-c-map nil "Commonly used commands")
-(define-key ctl-z-map (kbd "c") 'ctl-z-c-map)
 
-(define-prefix-command 'ctl-z-e-map nil "Emacs built-ins")
-(define-key ctl-z-map (kbd "e") 'ctl-z-e-map)
-
-(define-prefix-command 'ctl-z-o-map nil "Org-mode")
-(define-key ctl-z-map (kbd "o") 'ctl-z-o-map)
-
-(define-prefix-command 'ctl-z-s-map nil "Scratch buffers")
-(define-key ctl-z-map (kbd "s") 'ctl-z-s-map)
-
-(define-prefix-command 'ctl-z-w-map nil "Web-related")
-(define-key ctl-z-map (kbd "w") 'ctl-z-w-map)
-
-(define-prefix-command 'ctl-z-x-map nil "Global REPL bindings")
-(define-key ctl-z-map (kbd "x") 'ctl-z-x-map)
-
+;;; package
 (setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
                          ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
                          ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
@@ -199,74 +167,167 @@
 (setq use-package-expand-minimally t)
 (setq use-package-enable-imenu-support t)
 
+;;; startup
+(use-package emacs
+  :ensure nil
+  :init
+  (setq inhibit-default-init t)
+  ;; (setq inhibit-startup-screen t)
+  ;; (setq initial-major-mode #'org-mode)
+
+  (setq frame-inhibit-implied-resize t)
+  (setq frame-resize-pixelwise t)
+  (setq default-frame-alist '((fullscreen . maximized)
+                              (menu-bar-lines . 1)
+                              (tool-bar-lines . 0)
+                              (vertical-scroll-bars . nil)
+                              (horizontal-scroll-bars . nil)
+                              (cursor-type . bar)
+                              (alpha . 100)
+                              (alpha-background . 80)))
+  (setq frame-title-format
+        '((:eval (if (buffer-file-name)
+                     (abbreviate-file-name (buffer-file-name))
+                   "%b"))))
+  :config
+  ;; (menu-bar-mode +1)
+  ;; (tool-bar-mode -1)
+  ;; (scroll-bar-mode -1)
+  ;; (tooltip-mode +1)
+  )
+
+;;; basic
 (use-package emacs
   :ensure nil
   :config
-  (setq tab-always-indent 'complete)
+  ;;; tab
   (setq-default indent-tabs-mode nil)
+  (setq tab-always-indent 'complete)
   (setq backward-delete-char-untabify-method 'hungry)
 
-  ;; (global-visuxal-line-mode)
-  ;; (setq word-wrap t)
-  (setq word-wrap-by-category t)
-
+  ;;; completion
   ;; TODO `completion-preview-mode' in Emacs 30.
   (setq completions-detailed t)
-  (setq completion-styles '(basic flex)) ;; @see `completion-styles-alist' for available style
-  (setq completion-category-overrides ;; @see `completion-category-defaults' for available category
+  (setq completion-styles '(basic flex)) ; @see `completion-styles-alist' for available style
+  (setq completion-category-overrides ; @see `completion-category-defaults' for available category
         '((file (styles partial-completion))))
-  (setq completion-auto-select t
-        completion-auto-help 'visible ;; Display *Completions* upon first request
-        completion-no-auto-exit t
-        ;; completions-sort 'historical
-        completions-format 'one-column)
   (setq completion-ignore-case t
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t)
   (setq read-extended-command-predicate #'command-completion-default-include-p)
-  (setq history-delete-duplicates t)
 
+  ;;;; completion buffer
+  (setq completion-auto-select t
+        completion-auto-help 'visible
+        completion-no-auto-exit t
+        ;; completions-sort 'historical
+        completions-format 'one-column)
+
+  ;;;; minibuffer
+  ;; (fset 'yes-or-no-p 'y-or-n-p)
+  (setq use-short-answers t)
+  ;; (setq use-dialog-box nil)
+  (setq history-delete-duplicates t)
+  (setq enable-recursive-minibuffers t)
+  (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
+
+  ;;; kill
+  (setq kill-do-not-save-duplicates t)
+  (setq save-interprogram-paste-before-kill t)
+  ;; (setq select-enable-clipboard nil)
+
+  ;;; mouse
+  (setq mouse-yank-at-point t)
+  (setq mouse-autoselect-window t)
+
+  ;;; limit
+  (setq large-file-warning-threshold (* 64 1024 1024)) ; 10m -> 64m
+  (setq read-process-output-max (* 1024 1024)) ; 4k -> 1m
+  (setq undo-outer-limit (* 120 1024 1024)) ; 24m -> 120m
   (setq suggest-key-bindings 999)
   (setq eval-expression-print-length 30)
   (setq message-log-max 2000)
 
-  (setq make-backup-files nil
-        auto-save-default nil
-        create-lockfiles nil)
+  ;;; backup
+  (setq make-backup-files nil)
+  (setq backup-by-copying t)
+  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backup"))))
+  ;;
+  (setq auto-save-default nil)
+  (setq auto-save-interval 0)
+  ;;
+  (setq create-lockfiles nil)
 
-  (setq dired-listing-switches "-alh")
+  ;;; wrap
+  ;; (global-visual-line-mode +1)
+  ;; (setq word-wrap t)
+  (setq word-wrap-by-category t)
+  ;; Or use `toggle-truncate-lines'
+  (add-hook 'prog-mode-hook
+            (defun xy/truncate-lines ()
+              (setq-local truncate-lines t)))
+
+  ;;; buffer
+  ;; (setq uniquify-buffer-name-style 'forward)
+  (add-to-list 'display-buffer-alist
+               '("\\*.*compilation\\*" (display-buffer-no-window))) ; Keep the compilation buffer in the background, except when there's an error
+
+
+  ;;; dired
+  (setq dired-listing-switches "-lhFA -v") ; -alh, --group-directories-first
+  (setq dired-kill-when-opening-new-dired-buffer t)
+  (setq dired-dwim-target t) ; next windows as target for file copy, rename etc
+  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+  ;; use trash
+  (setq delete-by-moving-to-trash t)
+  (setq dired-recursive-deletes 'always) ; don't ask when directory not empty
+  (setq dired-recursive-copies 'always)
+  (setq dired-create-destination-dirs 'ask)
+  ;; (require 'image-dired)
+  (setq image-dired-thumb-margin 1
+        image-dired-thumb-relief 0
+        ;; Store thumbnails in the system-wide thumbnail location
+        ;; e.g. ~/.local/cache/thumbnails to make them reusable by other programs
+        image-dired-thumbnail-storage 'standard-large)
+
+  ;; (require 'comint)
+  (setq comint-input-ignoredups t
+        comint-prompt-read-only t
+        comint-scroll-to-bottom-on-input 'this)
+
+  ;; (require 'proced)
+  (setq proced-auto-update-interval 1)
+  (setq-default proced-auto-update-flag t)
+
+  ;; (require 'net-utils)
+  (setq netstat-program-options '("-atupe"))
+
+  ;; (require 'calendar)
+  (setq calendar-date-style 'iso
+        calendar-week-start-day 1
+        calendar-weekend-days '(6 0))
+
+  (setq epg-pinentry-mode 'loopback)
 
   ;; `simple.el'
-  (setq kill-do-not-save-duplicates t)
-  (setq save-interprogram-paste-before-kill t)
-  (setq what-cursor-show-names t) ;; For `C-x ='
+  (setq what-cursor-show-names t) ; For `C-x ='
   (setq set-mark-command-repeat-pop t)
   ;; `files.el'
   (setq confirm-kill-emacs #'yes-or-no-p)
   (setq require-final-newline t)
-  (setq backup-by-copying t)
-  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
   ;; `paren.el'
   (setq show-paren-context-when-offscreen 'overlay)
-  ;; `mouse.el'
-  (setq mouse-yank-at-point t)
   ;; `paragraphs.el'
-  (setq sentence-end-double-space nil) ;; Don't assume that sentences should have two spaces after periods. This ain't a typewriter
+  (setq sentence-end-double-space nil) ; Don't assume that sentences should have two spaces after periods. This ain't a typewriter
   ;; `vc-hooks.el'
   (setq vc-follow-symlinks t)
   ;; `C-code'
-  (setq use-short-answers t)
-  ;; (fset 'yes-or-no-p 'y-or-n-p)
-  (setq-default cursor-type 'bar)
-  (setq large-file-warning-threshold (* 64 1024 1024)) ;; 10m -> 64m
-  (setq read-process-output-max (* 1024 1024)) ;; 4k -> 1m
-  (setq undo-outer-limit (* 120 1024 1024)) ;; 24m -> 120m
   ;; (setq visible-bell t)
-  (setq frame-title-format
-        '((:eval (if (buffer-file-name)
-                     (abbreviate-file-name (buffer-file-name))
-                   "%b")))))
+  (setq show-trailing-whitespace t)
+  (setq-default fill-column 80)
+  (setq-default cursor-type 'bar))
 
+;;; hooks and keymaps
 (use-package emacs
   :ensure nil
   :hook
@@ -275,6 +336,8 @@
   (prog-mode . electric-pair-local-mode)
   (prog-mode . subword-mode)
   (emacs-startup . global-display-line-numbers-mode)
+  (emacs-startup . column-number-mode) ; modeline
+  (emacs-startup . size-indication-mode) ; modeline
   (emacs-startup . pixel-scroll-precision-mode)
   (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
@@ -284,36 +347,70 @@
   ;; (emacs-startup . global-tab-line-mode)
   ;; (emacs-startup . global-display-fill-column-indicator-mode)
   (before-save . delete-trailing-whitespace)
-  ;; (after-save . executable-make-buffer-file-executable-if-script-p) ;; Only work if buffer begin with "#!"
-  :bind
-  ("<backtab>" . #'back-to-indentation)
-  ("C-x C-b" . #'ibuffer)
-  ("C-x k" . #'kill-current-buffer)
-  ("C-x O" . #'switch-to-minibuffer)
-  ("M-/" . #'hippie-expand))
-
-(use-package lisp-mode
-  :ensure nil
+  ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
   :init
-  (defun xy/check-parens-before-save ()
-    (add-hook 'before-save-hook #'check-parens 0 :local))
-  (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
-  (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
-  :bind (:map lisp-mode-shared-map
-              ("C-M-<backspace>" . #'backward-kill-sexp)
-              ("C-h e c" . #'check-parens)))
+  (defun xy/scratch ()
+    "Jump to the *scratch* buffer. If it does not exist, create it."
+    (interactive)
+    (switch-to-buffer "*scratch*"))
 
-(use-package icomplete
+  (when xy/linux-p
+    (defun xy/wsl-kill (start end)
+      "Copy/Kill text from an Emacs buffer for pasting it into a Windows app"
+      (interactive "r")
+      (let ((default-directory "/mnt/c/"))
+        (shell-command-on-region start end "clip.exe")))
+    (defun xy/wsl-yank ()
+      "Paste/Yank text into Emacs buffer that has been copied from a Windows app"
+      (interactive)
+      (let ((coding-system-for-read 'dos)
+            (default-directory "/mnt/c/"))
+        (insert
+         (substring (shell-command-to-string "powershell.exe -NoLogo -NoProfile -command 'Get-Clipboard'") 0  -1))))
+    (keymap-global-set "C-z C-w" #'xy/wsl-kill)
+    (keymap-global-set "C-z C-y" #'xy/wsl-yank))
+  :bind
+  ("M-/" . #'hippie-expand)
+  ("<backtab>" . #'back-to-indentation)
+  ("C-x k" . #'kill-current-buffer)
+  ("C-x K" . #'bury-buffer)
+  ("C-x O" . #'switch-to-minibuffer)
+  ;;
+  ("C-z" . nil) ; `suspend-frame'
+  ("C-z C-r" . #'redraw-display)
+  ("C-z s s" . #'xy/scratch))
+
+;;; misc
+(use-package emacs
   :ensure nil
-  :defer 1
   :config
-  (fido-vertical-mode))
+  (setq user-full-name    "Xavier Young"
+        user-mail-address "younger321@foxmail.com")
 
+  (put 'narrow-to-region 'disabled nil)
+  (put 'narrow-to-page 'disabled nil)
+  (put 'scroll-left 'disabled nil)
+  (put 'downcase-region 'disabled nil)
+  (put 'upcase-region 'disabled nil)
+  (put 'erase-buffer 'disabled nil)
+
+  (defconst xy/elpa-lisp-d (expand-file-name package-user-dir))
+  (defconst xy/emacs-lisp-d (file-name-directory (directory-file-name doc-directory)))
+
+  (dir-locals-set-class-variables
+   'read-only
+   '((nil . ((eval . (view-mode-enter nil #'kill-buffer))
+             (tab-width . 8)))))
+  (dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
+    (dir-locals-set-directory-class (file-truename dir) 'read-only)))
+
+;;; help
 (use-package help
   :ensure nil
   :init
   (setq help-window-select t)
   (setq describe-bindings-outline t)
+  ;; (setq apropos-do-all t)
 
   (defun xy/find-feature ()
     "Find loaded features"
@@ -323,7 +420,7 @@
      (let* ((coll (mapcar #'symbol-name features))
             (completion-extra-properties
              '(:annotation-function
-               (lambda (k) ;; only accept string
+               (lambda (k) ; only accept string
                  (let ((desc (feature-file (intern k))))
                    (if desc
                        (format "\n\t\t%s" desc)
@@ -428,42 +525,6 @@
          ("." . #'Info-search-next)
          ("a" . #'info-apropos)))
 
-(use-package saveplace
-  :ensure nil
-  :defer 1
-  :config
-  (save-place-mode))
-
-(use-package savehist
-  :ensure nil
-  :defer 1
-  :config
-  (savehist-mode)
-  (setq savehist-additional-variables '(kill-ring      ; persist clipboard
-                                        register-alist ; persist keyboard macro
-                                        mark-ring global-mark-ring ; persist mark
-                                        (search-ring . 50) (regexp-search-ring . 50) ; persist search
-                                        comint-input-ring)))
-
-(use-package recentf
-  :ensure nil
-  :defer 1
-  :bind
-  ("C-x f" . recentf-open)
-  ("C-x R" . recentf-open-files)
-  :config
-  (recentf-mode)
-  (setq recentf-max-saved-items 500
-        recentf-max-menu-items 25))
-
-(use-package autorevert
-  :ensure nil
-  :defer 1
-  :config
-  (global-auto-revert-mode)
-  (setq auto-revert-remote-files t)
-  (setq global-auto-revert-non-file-buffers t))
-
 (use-package package
   :ensure nil
   :init
@@ -472,14 +533,14 @@
     (find-file package-quickstart-file))
   (defun xy/open-elpa-d ()
     (interactive)
-    ;; (find-file package-user-dir)
     (let ((default-directory (file-name-as-directory package-user-dir)))
       (call-interactively 'find-file)))
   :bind (("C-h p" . nil) ; `finder-by-keyword'
          ("C-h p p" . #'describe-package)
          ("C-h p R" . package-refresh-contents)
          ("C-h p q" . package-quickstart-refresh)
-         ("C-h p l" . package-list-packages)
+         ("C-h p l" . package-list-packages-no-fetch)
+         ("C-h p L" . package-list-packages)
          ("C-h p r" . package-reinstall)
          ("C-h p d" . package-delete)
          ("C-h p D" . package-autoremove)
@@ -500,16 +561,143 @@
          ("C-h p j" . #'use-package-jump-to-package-form)
          ("C-h p k" . #'use-package-report)))
 
+;;; history
+(use-package recentf
+  :ensure nil
+  :defer 0.1
+  :bind
+  ("C-x f" . recentf-open)
+  ("C-x F" . recentf-open-files)
+  :config
+  (recentf-mode +1)
+  (add-to-list 'recentf-exclude xy/elpa-lisp-d)
+  (add-to-list 'recentf-exclude xy/emacs-lisp-d)
+  (setq recentf-max-saved-items 500
+        recentf-max-menu-items 25))
+
+(use-package saveplace
+  :ensure nil
+  :defer 0.1
+  :config
+  (save-place-mode +1))
+
+(use-package savehist
+  :ensure nil
+  :defer 0.1
+  :config
+  (savehist-mode +1)
+  (setq savehist-additional-variables '(kill-ring      ; persist clipboard
+                                        register-alist ; persist keyboard macro
+                                        mark-ring global-mark-ring ; persist mark
+                                        (search-ring . 50) (regexp-search-ring . 50) ; persist search
+                                        comint-input-ring)))
+
+;;; minibuffer
+(use-package icomplete
+  :ensure nil
+  :defer 0.2
+  :config
+  (fido-vertical-mode +1))
+
+(defvar xy/boring-buffers '("\\` "
+                            "\\`\\*Echo Area"
+                            "\\`\\*Minibuf"
+                            "\\`\\*Completions"
+                            "\\`\\*Flymake log"
+                            "\\`\\*Semantic SymRef"
+                            "\\`\\*Backtrace"
+                            "\\`\\*tramp"
+                            "\\`\\*EGLOT"
+                            ;; And some hidden buffers can be visited by ...
+                            "\\`\\*scratch"        ; "C-z s s"
+                            "\\`\\*Messages"       ; "C-h h e"
+                            "\\`\\*Bookmark List"  ; "C-x r l"
+                            "\\`\\*Ibuffer"        ; "C-x C-b"
+                            )
+  "List of buffer names of buffers to hide on several occasions.")
+
+;;; buffer
+(use-package ibuffer
+  :ensure nil
+  :bind
+  ("C-x C-b" . #'ibuffer-jump)
+  ("C-x M-b" . #'ibuffer)
+  ("C-x 4 C-b" . #'ibuffer-other-window)
+  :hook (ibuffer-mode . ibuffer-auto-mode)
+  :config
+  (setq ibuffer-never-show-predicates xy/boring-buffers))
+
+;;; keymap
+(use-package ffap
+  :ensure nil
+  :defer 1
+  :bind
+  ("C-x M-f" . #'ffap-menu)
+  :config
+  (ffap-bindings))
+
 (use-package repeat
   :ensure nil
-  :hook (emacs-startup . repeat-mode))
+  :defer 0.2
+  :config (repeat-mode +1))
 
+;;; window
+(use-package winner
+  :ensure nil
+  :defer 1
+  :bind
+  ("C-x 4 u" . #'winner-undo)
+  ("C-x 4 r" . #'winner-redo)
+  :config
+  (winner-mode +1))
+
+(use-package windmove
+  :ensure nil
+  :defer 1
+  :config
+  (windmove-default-keybindings 'ctrl)
+  (windmove-swap-states-default-keybindings '(ctrl shift)))
+
+;;; ui
 (use-package hl-line
   :ensure nil
   :hook
   (prog-mode . hl-line-mode)
   (text-mode . hl-line-mode)
+  (help-mode . hl-line-mode)
+  (Info-mode . hl-line-mode)
+  (dired-mode . hl-line-mode)
   (package-menu-mode . hl-line-mode))
+
+;;; lisp
+(use-package lisp-mode
+  :ensure nil
+  :init
+  (defun xy/check-parens-before-save ()
+    (add-hook 'before-save-hook #'check-parens 0 :local))
+  (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
+  (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
+  :bind (:map lisp-mode-shared-map
+              ("C-M-<backspace>" . #'backward-kill-sexp)
+              ("C-h e c" . #'check-parens)))
+
+;;; util
+(use-package autorevert
+  :ensure nil
+  :defer 0.2
+  :config
+  (global-auto-revert-mode +1)
+  (setq global-auto-revert-non-file-buffers t)
+  (setq auto-revert-remote-files t))
+
+;;; tool
+(use-package eldoc
+  :ensure nil
+  :defer t
+  :config
+  (setq eldoc-minor-mode-string nil)
+  (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+  (setq eldoc-echo-area-display-truncation-message nil))
 
 (use-package ediff
   :ensure nil
@@ -519,9 +707,86 @@
         ediff-split-window-function #'split-window-horizontally
         ediff-merge-split-window-function #'split-window-horizontally))
 
+(use-package flymake
+  :ensure nil
+  :defer t
+  ;; :hook (emacs-lisp-mode)
+  :bind (:map flymake-mode-map
+              ("M-g n" . flymake-goto-next-error)
+              ("M-g p" . flymake-goto-prev-error)
+              ("M-g e" . flymake-show-buffer-diagnostics)
+              ("M-g E" . flymake-show-project-diagnostics))
+  :config
+  (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+
+(use-package org
+  :ensure nil
+  :defer t
+  :bind
+  ("C-z o d" . #'xy/open-org-dir)
+  ("C-z o o" . #'xy/open-org-notes)
+  ("C-z o c" . #'org-capture)
+  ("C-z o a" . #'org-agenda)
+  ("C-z o l" . #'org-insert-link)
+  ("C-z o L" . #'org-store-link)
+  ("C-z o ;" . #'org-toggle-link-display)
+  ("C-z o p" . #'org-publish)
+  :init
+  (defun xy/open-org-dir ()
+    (interactive)
+    (dired org-directory))
+  (defun xy/open-org-notes ()
+    "Visit the Org notes file."
+    (interactive)
+    (find-file org-default-notes-file))
+  :config
+  (add-hook 'org-mode-hook #'visual-line-mode)
+  ;; Alignment of tags at the end of headlines
+  (setq  org-auto-align-tags t
+         org-tags-column 0)
+  (setq org-reverse-note-order t) ; Put newer notes on top of the file
+  (setq org-directory "~/org/"
+        org-default-notes-file (concat org-directory "notes.org"))
+  (setq org-todo-keywords ; Set some sensible default states for todo-items
+        '((sequence "TODO(t)" "PROJ(p)" "LOOP(r)" "STRT(s)" "WAIT(w)" "HOLD(h)" "IDEA(i)" "|" "DONE(d)" "KILL(k)")
+          (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)")
+          (sequence "|" "OKAY(o)" "YES(y)" "NO(n)")))
+  (setq org-publish-timestamp-directory ; Where to place the directory containing the timestamps about changed files
+        (concat user-emacs-directory "org-timestamps/"))
+  (setq org-html-checkbox-type 'unicode
+        org-html-prefer-user-labels t
+        org-html-self-link-headlines t))
+
+;;; external
 (use-package which-key
-  :hook (window-setup . which-key-mode))
+  :defer 1
+  :config
+  (which-key-mode +1)
+  (setq which-key-lighter nil)
+  (setq which-key-idle-delay .0
+        which-key-idle-secondary-delay .1)
+  (setq which-key-sort-order 'which-key-key-order-alpha
+        which-key-sort-uppercase-first nil))
 
 (use-package macrostep
   :bind (:map lisp-mode-shared-map
               ("C-h e m" . macrostep-expand)))
+
+(unless (display-graphic-p)
+  (global-set-key (kbd "<mouse-4>") #'scroll-down-line)
+  (global-set-key (kbd "<mouse-5>") #'scroll-up-line)
+  (global-set-key (kbd "S-<mouse-4>") (defun xy/scroll-right () (interactive) (scroll-right 2)))
+  (global-set-key (kbd "S-<mouse-5>") (defun xy/scroll-left () (interactive) (scroll-left 2)))
+  (global-set-key (kbd "M-<mouse-4>") (defun xy/scroll-down++ () (interactive) (scroll-down-line 5)))
+  (global-set-key (kbd "M-<mouse-5>") (defun xy/scroll-up++ () (interactive) (scroll-up-line 5)))
+
+  (use-package xt-mouse
+    :defer 1
+    :config
+    (xterm-mouse-mode +1))
+
+  ;; Allow Emacs to copy to and paste from the GUI clipboard when running in a text terminal
+  (use-package xclip
+    :defer 1
+    :config
+    (xclip-mode +1)))
