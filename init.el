@@ -273,24 +273,6 @@
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window))) ; Keep the compilation buffer in the background, except when there's an error
 
-
-  ;;; dired
-  (setq dired-listing-switches "-lhFA -v") ; -alh, --group-directories-first
-  (setq dired-kill-when-opening-new-dired-buffer t)
-  (setq dired-dwim-target t) ; next windows as target for file copy, rename etc
-  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
-  ;; use trash
-  (setq delete-by-moving-to-trash t)
-  (setq dired-recursive-deletes 'always) ; don't ask when directory not empty
-  (setq dired-recursive-copies 'always)
-  (setq dired-create-destination-dirs 'ask)
-  ;; (require 'image-dired)
-  (setq image-dired-thumb-margin 1
-        image-dired-thumb-relief 0
-        ;; Store thumbnails in the system-wide thumbnail location
-        ;; e.g. ~/.local/cache/thumbnails to make them reusable by other programs
-        image-dired-thumbnail-storage 'standard-large)
-
   ;; (require 'comint)
   (setq comint-input-ignoredups t
         comint-prompt-read-only t
@@ -678,9 +660,45 @@
     (add-hook 'before-save-hook #'check-parens 0 :local))
   (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
   (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
-  :bind (:map lisp-mode-shared-map
-              ("C-M-<backspace>" . #'backward-kill-sexp)
-              ("C-h e c" . #'check-parens)))
+  :bind ( :map lisp-mode-shared-map
+          ("C-M-<backspace>" . #'backward-kill-sexp)
+          ("C-h e c" . #'check-parens)))
+
+;;; dired
+(use-package dired
+  :ensure nil
+  :hook
+  (dired-mode . dired-hide-details-mode)
+  (dired-mode . dired-omit-mode)
+  (dired-mode . hl-line-mode)
+  :config
+  ;; flags for `insert-directory-program'. Or: -alh, --group-directories-first
+  (setq dired-listing-switches "-lhFA -v")
+  (setq dired-kill-when-opening-new-dired-buffer t)
+  (setq dired-dwim-target t) ; next windows as target for file copy, rename etc
+  ;; use trash
+  (setq delete-by-moving-to-trash t)
+  (setq dired-recursive-deletes 'always) ; don't ask when directory not empty
+  (setq dired-recursive-copies 'always)
+  (setq dired-create-destination-dirs 'ask)
+  ;; (require 'image-dired)
+  (setq image-dired-thumb-margin 1
+        image-dired-thumb-relief 0
+        ;; Store thumbnails in the system-wide thumbnail location
+        ;; e.g. ~/.local/cache/thumbnails to make them reusable by other programs
+        image-dired-thumbnail-storage 'standard-large))
+
+(use-package dired-subtree
+  :after dired
+  :bind ( :map dired-mode-map
+          ("<tab>" . dired-subtree-toggle)
+          ("<backtab>" . dired-subtree-remove)
+          ("<C-tab>" . dired-subtree-cycle)
+          ("TAB" . dired-subtree-toggle)
+          ("S-TAB" . dired-subtree-remove)
+          ("C-TAB" . dired-subtree-cycle))
+  :config
+  (setq dired-subtree-use-backgrounds nil))
 
 ;;; util
 (use-package autorevert
@@ -690,6 +708,14 @@
   (global-auto-revert-mode +1)
   (setq global-auto-revert-non-file-buffers t)
   (setq auto-revert-remote-files t))
+
+(use-package trashed
+  :commands (trashed)
+  :config
+  (setq trashed-action-confirmer 'y-or-n-p)
+  (setq trashed-use-header-line t)
+  (setq trashed-sort-key '("Date deleted" . t))
+  (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
 ;;; tool
 (use-package eldoc
@@ -712,11 +738,11 @@
   :ensure nil
   :defer t
   ;; :hook (emacs-lisp-mode)
-  :bind (:map flymake-mode-map
-              ("M-g n" . flymake-goto-next-error)
-              ("M-g p" . flymake-goto-prev-error)
-              ("M-g e" . flymake-show-buffer-diagnostics)
-              ("M-g E" . flymake-show-project-diagnostics))
+  :bind ( :map flymake-mode-map
+          ("M-g n" . flymake-goto-next-error)
+          ("M-g p" . flymake-goto-prev-error)
+          ("M-g e" . flymake-show-buffer-diagnostics)
+          ("M-g E" . flymake-show-project-diagnostics))
   :config
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 
@@ -770,8 +796,8 @@
         which-key-sort-uppercase-first nil))
 
 (use-package macrostep
-  :bind (:map lisp-mode-shared-map
-              ("C-h e m" . macrostep-expand)))
+  :bind ( :map lisp-mode-shared-map
+          ("C-h e m" . macrostep-expand)))
 
 (unless (display-graphic-p)
   (global-set-key (kbd "<mouse-4>") #'scroll-down-line)

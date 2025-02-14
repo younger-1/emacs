@@ -4,7 +4,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(nerd-icons-completion nerd-icons-dired nerd-icons-ibuffer nerd-icons macrostep which-key))
+   '(trashed dired-subtree nerd-icons-completion nerd-icons-dired nerd-icons-ibuffer nerd-icons macrostep which-key))
  '(safe-local-variable-values '((eval view-mode-enter nil #'kill-buffer))))
 
 (custom-set-faces
