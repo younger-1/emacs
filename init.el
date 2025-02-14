@@ -159,6 +159,7 @@
 (setq package-install-upgrade-built-in t)
 ;; (setq package-native-compile t)
 
+;; (package-initialize)
 (package-activate-all)
 (unless (file-exists-p package-user-dir)
   (package-refresh-contents))
@@ -785,8 +786,28 @@
     :config
     (xterm-mouse-mode +1))
 
+  ;; NOTE: need xclip at linux
   ;; Allow Emacs to copy to and paste from the GUI clipboard when running in a text terminal
-  (use-package xclip
-    :defer 1
-    :config
-    (xclip-mode +1)))
+  (when (and xy/linux-p (executable-find "xclip"))
+    (use-package xclip
+      :defer 1
+      :config
+      (xclip-mode +1))))
+
+;;;; icon
+;; Remember to run `nerd-icons-install-fonts' nerd icon if system doesn't have
+;; Then restart Emacs to see the effect.
+(use-package nerd-icons
+  :defer t)
+
+;; Use human readable file size in ibuffer by `nerd-icons-ibuffer-human-readable-size'
+(use-package nerd-icons-ibuffer
+  :hook (ibuffer-mode))
+
+(use-package nerd-icons-dired
+  :hook (dired-mode))
+
+(use-package nerd-icons-completion
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))

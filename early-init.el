@@ -1,6 +1,8 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
 
 (setq debug-on-error t)
+(when (< emacs-major-version 29)
+  (user-error "[xy] emacs version is %s, require emacs-29." emacs-major-version))
 
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
