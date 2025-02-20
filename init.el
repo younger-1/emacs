@@ -146,6 +146,18 @@
 (keymap-global-set "C-z w w" #'browse-url)
 (keymap-global-set "C-z w W" #'browse-web)
 
+;; BUG: unfill not working because it no re-select marked region
+(defun xy/fill-or-unfill ()
+  "Like `fill-paragraph', but unfill if used twice."
+  (interactive)
+  (let ((fill-column
+         (if (eq last-command 'xy/fill-or-unfill)
+             (progn (setq this-command nil)
+                    (point-max))
+           fill-column)))
+    (call-interactively #'fill-paragraph)))
+(keymap-global-set "M-q" #'xy/fill-or-unfill)
+
 
 ;;; package
 (setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
@@ -218,19 +230,20 @@
   (setq read-extended-command-predicate #'command-completion-default-include-p)
 
   ;;;; completion buffer
-  (setq completion-auto-select t
-        completion-auto-help 'visible
+  (setq completion-auto-help 'visible
+        completion-auto-select 'second-tab
         completion-no-auto-exit t
+        ;; completions-format 'one-column
         ;; completions-sort 'historical
-        completions-format 'one-column)
+        completions-max-height 20)
 
   ;;;; minibuffer
+  (setq enable-recursive-minibuffers t)
+  (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
   ;; (fset 'yes-or-no-p 'y-or-n-p)
   (setq use-short-answers t)
   ;; (setq use-dialog-box nil)
   (setq history-delete-duplicates t)
-  (setq enable-recursive-minibuffers t)
-  (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
 
   ;;; kill
   (setq kill-do-not-save-duplicates t)
@@ -239,15 +252,18 @@
 
   ;;; mouse
   (setq mouse-yank-at-point t)
-  (setq mouse-autoselect-window t)
+  ;; (setq mouse-autoselect-window t)
 
   ;;; limit
   (setq large-file-warning-threshold (* 64 1024 1024)) ; 10m -> 64m
   (setq read-process-output-max (* 1024 1024)) ; 4k -> 1m
   (setq undo-outer-limit (* 120 1024 1024)) ; 24m -> 120m
+  (setq history-length 100)
+  (setq list-command-history-max 100)
   (setq suggest-key-bindings 999)
   (setq eval-expression-print-length 30)
   (setq message-log-max 2000)
+  ;; (lossage-size 500)
 
   ;;; backup
   (setq make-backup-files nil)
@@ -263,10 +279,11 @@
   ;; (global-visual-line-mode +1)
   ;; (setq word-wrap t)
   (setq word-wrap-by-category t)
-  ;; Or use `toggle-truncate-lines'
-  (add-hook 'prog-mode-hook
-            (defun xy/truncate-lines ()
-              (setq-local truncate-lines t)))
+  ;; Or use "C-x x t" (`toggle-truncate-lines')
+  ;; (add-hook 'prog-mode-hook
+  ;;           (defun xy/truncate-lines ()
+  ;;             (setq-local truncate-lines t)))
+  (setq-default truncate-lines t)
 
   ;;; buffer
   ;; (setq uniquify-buffer-name-style 'forward)
@@ -300,6 +317,7 @@
   (setq require-final-newline t)
   ;; `paren.el'
   (setq show-paren-context-when-offscreen 'overlay)
+  (setopt show-paren-delay 0.2)
   ;; `paragraphs.el'
   (setq sentence-end-double-space nil) ; Don't assume that sentences should have two spaces after periods. This ain't a typewriter
   ;; `vc-hooks.el'
@@ -381,19 +399,26 @@
   (defconst xy/emacs-lisp-d (file-name-directory (directory-file-name doc-directory)))
 
   (dir-locals-set-class-variables
-   'read-only
+   :read-only
    '((nil . ((eval . (view-mode-enter nil #'kill-buffer))
              (tab-width . 8)))))
   (dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
-    (dir-locals-set-directory-class (file-truename dir) 'read-only)))
+    (dir-locals-set-directory-class (file-truename dir) :read-only)))
 
 ;;; help
 (use-package help
   :ensure nil
   :init
   (setq help-window-select t)
+  (setq help-window-keep-selected t)
+  (setq help-enable-autoload t
+        help-enable-completion-autoload t
+        help-enable-symbol-autoload t)
+  (setopt help-at-pt-display-when-idle t)
+  (setq help-clean-buttons t)
   (setq describe-bindings-outline t)
   ;; (setq apropos-do-all t)
+  ;; (setq apropos-sort-by-scores 'verbose)
 
   (defun xy/find-feature ()
     "Find loaded features"
@@ -430,9 +455,11 @@
          ("C-h s" . #'describe-symbol)
          ("C-h m" . #'describe-mode)
          ("C-h n" . #'describe-minor-mode)
+         ("C-h x" . #'list-command-history)
+         ("C-h X" . #'command-history)
          ;;
-         ("C-h l" . #'xy/find-feature)
-         ("C-h L" . #'unload-feature)
+         ("C-h l" . #'xy/find-feature) ; `view-lossage'
+         ("C-h L" . #'unload-feature) ; `describe-language-environment'
          ;;
          ("C-h j i" . #'describe-icon)
          ("C-h j c" . #'describe-char)
@@ -441,13 +468,13 @@
          ("C-h j h" . #'describe-fontset)
          ("C-h j t" . #'describe-theme)
          ("C-h j s" . #'describe-syntax)
-         ("C-h j w" . #'describe-widget)
+         ("C-h j w" . #'describe-widget) ; or "C-u C-h ."
+         ("C-h j b" . #'button-describe)
+         ("C-h j W" . #'widget-describe)
          ("C-h j I" . #'describe-input-method)
          ("C-h j l" . #'describe-language-environment)
          ("C-h j p" . #'describe-text-properties)
          ("C-h j C" . #'describe-current-coding-system)
-         ("C-h j b" . #'button-describe)
-         ("C-h j W" . #'widget-describe)
          ("C-h j y" . #'cl-describe-type)
          ;;
          ("C-h a" . nil) ; `apropos-command'
@@ -484,8 +511,25 @@
          ("C-h w c" . #'where-is)
          ("C-h w k" . #'describe-key-briefly)
          ;;
+         ("C-h o" . nil) ; `describe-symbol'
+         ("C-h o f" . #'add-file-local-variable)
+         ("C-h o d" . #'add-dir-local-variable)
+         ;;
          ("C-h t" . #'help-with-tutorial)
+         ("C-h u" . #'shortdoc)
+         ;;
+         ("C-h d" . nil)
+         ("C-h I" . nil)
+         ("C-h C" . nil)
+         ("C-h C-c" . nil)
+         ("C-h C-d" . nil)
+         ("C-h C-e" . nil)
+         ("C-h C-m" . nil)
+         ("C-h C-n" . nil)
+         ("C-h C-o" . nil)
+         ("C-h C-w" . nil)
          :map help-mode-map
+         ("C" . #'set-variable)
          ("b" . #'beginning-of-buffer)
          ("e" . #'end-of-buffer)
          ("j" . #'next-line)
@@ -622,7 +666,34 @@
 (use-package repeat
   :ensure nil
   :defer 0.2
-  :config (repeat-mode +1))
+  :config
+  (repeat-mode +1)
+  (setq repeat-exit-key "RET"))
+
+(use-package which-key
+  :defer 1
+  :config
+  (which-key-mode +1)
+  (setq which-key-lighter nil)
+  (setq which-key-idle-delay .5
+        which-key-idle-secondary-delay .0)
+  (setq which-key-sort-order 'which-key-key-order-alpha
+        which-key-sort-uppercase-first nil))
+
+(use-package keyfreq
+  :defer 1
+  :bind ("C-h w f" . keyfreq-show)
+  :config
+  (setq keyfreq-excluded-commands
+        '(;; self-insert-command
+          ;; forward-char
+          ;; backward-char
+          ;; previous-line
+          ;; next-line
+          pixel-scroll-precision
+          mwheel-scroll))
+  (keyfreq-mode +1)
+  (keyfreq-autosave-mode +1))
 
 ;;; window
 (use-package winner
@@ -663,6 +734,10 @@
   :bind ( :map lisp-mode-shared-map
           ("C-M-<backspace>" . #'backward-kill-sexp)
           ("C-h e c" . #'check-parens)))
+
+(use-package macrostep
+  :bind ( :map lisp-mode-shared-map
+          ("C-h e m" . macrostep-expand)))
 
 ;;; dired
 (use-package dired
@@ -710,7 +785,7 @@
   (setq auto-revert-remote-files t))
 
 (use-package trashed
-  :commands (trashed)
+  :bind ("C-x C-d" . trashed)
   :config
   (setq trashed-action-confirmer 'y-or-n-p)
   (setq trashed-use-header-line t)
@@ -784,21 +859,7 @@
         org-html-prefer-user-labels t
         org-html-self-link-headlines t))
 
-;;; external
-(use-package which-key
-  :defer 1
-  :config
-  (which-key-mode +1)
-  (setq which-key-lighter nil)
-  (setq which-key-idle-delay .0
-        which-key-idle-secondary-delay .1)
-  (setq which-key-sort-order 'which-key-key-order-alpha
-        which-key-sort-uppercase-first nil))
-
-(use-package macrostep
-  :bind ( :map lisp-mode-shared-map
-          ("C-h e m" . macrostep-expand)))
-
+;;; terminal
 (unless (display-graphic-p)
   (global-set-key (kbd "<mouse-4>") #'scroll-down-line)
   (global-set-key (kbd "<mouse-5>") #'scroll-up-line)
@@ -820,7 +881,7 @@
       :config
       (xclip-mode +1))))
 
-;;;; icon
+;;; icon
 ;; Remember to run `nerd-icons-install-fonts' nerd icon if system doesn't have
 ;; Then restart Emacs to see the effect.
 (use-package nerd-icons
