@@ -250,6 +250,18 @@
   (setq save-interprogram-paste-before-kill t)
   ;; (setq select-enable-clipboard nil)
 
+  ;;; register
+  (setopt register-use-preview 'insist)
+
+  ;;; scroll
+  (setq scroll-preserve-screen-position t)
+  ;; (setq jit-lock-defer-time 0.05)
+  (setq scroll-margin 0) ; for C-l and auto-scroll
+  (setq scroll-conservatively 999) ; for auto-scroll never centers point
+  (setq hscroll-step 1)
+  (setq auto-hscroll-mode 'current-line)
+  (setq isearch-allow-scroll t)
+
   ;;; mouse
   (setq mouse-yank-at-point t)
   ;; (setq mouse-autoselect-window t)
@@ -316,7 +328,8 @@
   (setq confirm-kill-emacs #'yes-or-no-p)
   (setq require-final-newline t)
   ;; `paren.el'
-  (setq show-paren-context-when-offscreen 'overlay)
+  (setq show-paren-context-when-offscreen 'overlay
+        blink-matching-paren-highlight-offscreen t)
   (setopt show-paren-delay 0.2)
   ;; `paragraphs.el'
   (setq sentence-end-double-space nil) ; Don't assume that sentences should have two spaces after periods. This ain't a typewriter
