@@ -18,6 +18,7 @@
   (eq system-type 'darwin)
   "Are we running on a Mac system?")
 
+
 ;;; theme
 ;; (load-theme 'deeper-blue)
 ;; (load-theme 'wombat)
@@ -53,10 +54,18 @@
   (run-hooks 'xy/after-enable-theme-hook))
 (advice-add 'enable-theme :after #'xy/after-enable-theme)
 
+
 ;;; font
 (defconst xy/font-size (if xy/win-p 120 140))
-(defconst xy/font-name "Hack Nerd Font")
+(defconst xy/font-name "Maple Mono NF CN")
 (set-face-attribute 'default nil :height xy/font-size :family xy/font-name)
+
+(defun xy/select-font ()
+  (interactive)
+  (set-face-attribute 'default nil
+                      :family (completing-read "Default font: " (font-family-list))))
+
+(global-set-key (kbd "C-h C-y") #'xy/select-font)
 
 (defun xy/set-default-face-advanced ()
   "It's useful for setting faces that may get overwritten by switch themes."
@@ -103,8 +112,12 @@
 (add-hook 'xy/after-enable-theme-hook #'xy/set-default-face-advanced)
 
 (when (fboundp 'set-fontset-font)
+  ;; brew install font-maple-mono-nf-cn
+  (set-fontset-font t 'han "Maple Mono NF CN" nil 'append)
+  ;; brew install font-lxgw-wenkai
   ;; LXGW WenKai Mono
   (set-fontset-font t 'han "霞鹜文楷等宽" nil 'append)
+  ;; brew install font-sarasa-gothic
   ;; Sarasa Mono SC
   (set-fontset-font t 'han "等距更纱黑体 SC" nil 'append)
   ;; Microsoft YaHei
@@ -112,6 +125,7 @@
   ;; Heiti SC
   (set-fontset-font t 'han "黑体-简" nil 'append))
 
+
 ;;; keymap
 ;; http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 (keymap-global-set "C-;" "C-x C-;")
@@ -139,6 +153,8 @@
 (keymap-global-set "M-S-SPC" #'cycle-spacing)
 (keymap-global-set "C-x l" #'count-words)
 (keymap-global-set "M-z" #'zap-up-to-char)
+(keymap-global-set "C-x x v" #'view-buffer)
+(keymap-global-set "C-x x f" #'follow-mode)
 
 (keymap-global-unset "C-z")
 (keymap-global-set "C-z e s" #'shell)
@@ -158,8 +174,8 @@
     (call-interactively #'fill-paragraph)))
 (keymap-global-set "M-q" #'xy/fill-or-unfill)
 
-
-;;; package
+
+;;; builtin package setup
 (setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
                          ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
                          ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
@@ -180,7 +196,8 @@
 (setq use-package-expand-minimally t)
 (setq use-package-enable-imenu-support t)
 
-;;; startup
+
+;;; startup frame and screen
 (use-package emacs
   :ensure nil
   :init
@@ -209,6 +226,7 @@
   ;; (tooltip-mode +1)
   )
 
+
 ;;; basic
 (use-package emacs
   :ensure nil
@@ -341,6 +359,7 @@
   (setq-default fill-column 80)
   (setq-default cursor-type 'bar))
 
+
 ;;; hooks and keymaps
 (use-package emacs
   :ensure nil
@@ -394,6 +413,7 @@
   ("C-z C-r" . #'redraw-display)
   ("C-z s s" . #'xy/scratch))
 
+
 ;;; misc
 (use-package emacs
   :ensure nil
@@ -418,6 +438,7 @@
   (dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
     (dir-locals-set-directory-class (file-truename dir) :read-only)))
 
+
 ;;; help
 (use-package help
   :ensure nil
@@ -477,6 +498,7 @@
          ("C-h j i" . #'describe-icon)
          ("C-h j c" . #'describe-char)
          ("C-h j f" . #'describe-face)
+         ("C-h j F" . #'list-faces-display)
          ("C-h j g" . #'describe-font)
          ("C-h j h" . #'describe-fontset)
          ("C-h j t" . #'describe-theme)
@@ -601,6 +623,7 @@
          ("C-h p j" . #'use-package-jump-to-package-form)
          ("C-h p k" . #'use-package-report)))
 
+
 ;;; history
 (use-package recentf
   :ensure nil
@@ -632,6 +655,7 @@
                                         (search-ring . 50) (regexp-search-ring . 50) ; persist search
                                         comint-input-ring)))
 
+
 ;;; minibuffer
 (use-package icomplete
   :ensure nil
@@ -656,17 +680,7 @@
                             )
   "List of buffer names of buffers to hide on several occasions.")
 
-;;; buffer
-(use-package ibuffer
-  :ensure nil
-  :bind
-  ("C-x C-b" . #'ibuffer-jump)
-  ("C-x M-b" . #'ibuffer)
-  ("C-x 4 C-b" . #'ibuffer-other-window)
-  :hook (ibuffer-mode . ibuffer-auto-mode)
-  :config
-  (setq ibuffer-never-show-predicates xy/boring-buffers))
-
+
 ;;; keymap
 (use-package ffap
   :ensure nil
@@ -708,6 +722,19 @@
   (keyfreq-mode +1)
   (keyfreq-autosave-mode +1))
 
+
+;;; buffer
+(use-package ibuffer
+  :ensure nil
+  :bind
+  ("C-x C-b" . #'ibuffer-jump)
+  ("C-x M-b" . #'ibuffer)
+  ("C-x 4 C-b" . #'ibuffer-other-window)
+  :hook (ibuffer-mode . ibuffer-auto-mode)
+  :config
+  (setq ibuffer-never-show-predicates xy/boring-buffers))
+
+
 ;;; window
 (use-package winner
   :ensure nil
@@ -725,6 +752,7 @@
   (windmove-default-keybindings 'ctrl)
   (windmove-swap-states-default-keybindings '(ctrl shift)))
 
+
 ;;; ui
 (use-package hl-line
   :ensure nil
@@ -736,6 +764,7 @@
   (dired-mode . hl-line-mode)
   (package-menu-mode . hl-line-mode))
 
+
 ;;; lisp
 (use-package lisp-mode
   :ensure nil
@@ -752,6 +781,7 @@
   :bind ( :map lisp-mode-shared-map
           ("C-h e m" . macrostep-expand)))
 
+
 ;;; dired
 (use-package dired
   :ensure nil
@@ -788,6 +818,7 @@
   :config
   (setq dired-subtree-use-backgrounds nil))
 
+
 ;;; util
 (use-package autorevert
   :ensure nil
@@ -805,6 +836,7 @@
   (setq trashed-sort-key '("Date deleted" . t))
   (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
+
 ;;; tool
 (use-package eldoc
   :ensure nil
@@ -872,6 +904,7 @@
         org-html-prefer-user-labels t
         org-html-self-link-headlines t))
 
+
 ;;; terminal
 (unless (display-graphic-p)
   (global-set-key (kbd "<mouse-4>") #'scroll-down-line)
@@ -894,6 +927,7 @@
       :config
       (xclip-mode +1))))
 
+
 ;;; icon
 ;; Remember to run `nerd-icons-install-fonts' nerd icon if system doesn't have
 ;; Then restart Emacs to see the effect.
