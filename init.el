@@ -45,8 +45,8 @@
     (mapc #'disable-theme custom-enabled-themes))
   (funcall-interactively 'load-theme theme :no-confirm no-enable))
 
-(global-set-key (kbd "C-h C-t") #'xy/load-theme)
-(global-set-key (kbd "C-h M-t") #'disable-theme)
+(keymap-global-set "C-h C-t" #'xy/load-theme)
+(keymap-global-set "C-h M-t" #'disable-theme)
 
 (defvar xy/after-enable-theme-hook nil
   "Normal hook run after enabling a theme.")
@@ -66,9 +66,9 @@
   (set-face-attribute 'default nil
                       :family (completing-read "Default font: " (font-family-list))))
 
-(global-set-key (kbd "C-h C-y") #'xy/select-font)
+(keymap-global-set "C-h C-y" #'xy/select-font)
 ;; @tip from `term/ns-win'
-;; (global-set-key (kbd "s-t") #'menu-set-font)
+;; (keymap-global-set "s-t" #'menu-set-font)
 
 (defun xy/set-default-face-advanced ()
   "It's useful for setting faces that may get overwritten by switch themes."
@@ -130,14 +130,13 @@
 
 
 ;;; keymap
-;; http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
-(keymap-global-set "C-;" "C-x C-;")
-(keymap-global-set "C-x ," (defun xy/open-init-file ()
-                             (interactive)
-                             (find-file user-init-file)))
-(keymap-global-set "C-x ." (defun xy/open-init-dir ()
-                             (interactive)
-                             (dired user-emacs-directory)))
+;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
+(keymap-global-set "M-/" #'hippie-expand)
+(keymap-global-set "<backtab>" #'back-to-indentation)
+;; @tip from `bindings'
+;; (keymap-global-set "C-M-<backspace>" #'backward-kill-sexp)
+(keymap-global-set "M-S-SPC" #'cycle-spacing)
+(keymap-global-set "M-z" #'zap-up-to-char)
 
 ;; @tip from `mouse'
 ;; By binding these to down-going events, we let the user use the up-going event to make the selection, saving a click.
@@ -146,6 +145,17 @@
 ;; (global-set-key [C-down-mouse-1] #'mouse-buffer-menu)
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
+
+;; @tip not convenient use emacs in terminal or ms-windows yet
+(keymap-global-set "s-x" #'execute-extended-command)
+(keymap-global-set "s-X" #'execute-extended-command-for-buffer)
+(keymap-global-set "s-/" "C-x C-;")
+(keymap-global-set "s-<" (defun xy/open-init-file ()
+                             (interactive)
+                             (find-file user-init-file)))
+(keymap-global-set "s->" (defun xy/open-init-dir ()
+                             (interactive)
+                             (dired user-emacs-directory)))
 
 ;; @tip I should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
@@ -162,29 +172,16 @@
                             (t
                              (keyboard-quit)))))
 
-(keymap-global-set "M-S-SPC" #'cycle-spacing)
-(keymap-global-set "C-x l" #'count-words)
-(keymap-global-set "M-z" #'zap-up-to-char)
-(keymap-global-set "C-x x v" #'view-buffer)
-(keymap-global-set "C-x x f" #'follow-mode)
-
-(keymap-global-unset "C-z")
-(keymap-global-set "C-z e s" #'shell)
-(keymap-global-set "C-z e e" #'eshell)
-(keymap-global-set "C-z w w" #'browse-url)
-(keymap-global-set "C-z w W" #'browse-web)
-
 ;; BUG: unfill not working because it no re-select marked region
-(defun xy/fill-or-unfill ()
-  "Like `fill-paragraph', but unfill if used twice."
-  (interactive)
-  (let ((fill-column
-         (if (eq last-command 'xy/fill-or-unfill)
-             (progn (setq this-command nil)
-                    (point-max))
-           fill-column)))
-    (call-interactively #'fill-paragraph)))
-(keymap-global-set "M-q" #'xy/fill-or-unfill)
+(keymap-global-set "M-q" (defun xy/fill-or-unfill ()
+                           "Like `fill-paragraph', but unfill if used twice."
+                           (interactive)
+                           (let ((fill-column
+                                  (if (eq last-command 'xy/fill-or-unfill)
+                                      (progn (setq this-command nil)
+                                             (point-max))
+                                    fill-column)))
+                             (call-interactively #'fill-paragraph))))
 
 
 ;;; builtin package setup
@@ -325,6 +322,8 @@
   ;; (global-visual-line-mode +1)
   ;; (setq word-wrap t)
   (setq word-wrap-by-category t)
+
+  ;; truncate
   ;; @tip use "C-x x t" (`toggle-truncate-lines')
   ;; (add-hook 'prog-mode-hook
   ;;           (defun xy/truncate-lines ()
@@ -420,15 +419,22 @@
     (keymap-global-set "C-z C-w" #'xy/wsl-kill)
     (keymap-global-set "C-z C-y" #'xy/wsl-yank))
   :bind
-  ("M-/" . #'hippie-expand)
-  ("<backtab>" . #'back-to-indentation)
-  ("C-x k" . #'kill-current-buffer)
+  ;; @tip "s-k" is `kill-current-buffer'
+  ;; ("C-x k" . #'kill-current-buffer)
   ("C-x K" . #'bury-buffer)
   ("C-x O" . #'switch-to-minibuffer)
+  ("C-x l" . #'count-words)
+  ("C-x x v" . #'view-buffer)
+  ("C-x x f" . #'follow-mode)
+
   ;;
   ("C-z" . nil) ; `suspend-frame'
   ("C-z C-r" . #'redraw-display)
-  ("C-z s s" . #'xy/scratch))
+  ("C-z s s" . #'xy/scratch)
+  ("C-z e s" . #'shell)
+  ("C-z e e" . #'eshell)
+  ("C-z w w" . #'browse-url)
+  ("C-z w W" . #'browse-web))
 
 
 ;;; misc
@@ -728,8 +734,8 @@
   ("C-x M-f" . #'ffap-menu)
   :config
   ;; @tip
-  ;; (global-set-key [S-mouse-3] 'ffap-at-mouse)
-  ;; (global-set-key [C-S-mouse-3] 'ffap-menu)
+  ;; (keymap-global-set "S-<mouse-3>" 'ffap-at-mouse)
+  ;; (keymap-global-set "C-S-<mouse-3>" 'ffap-menu)
   (ffap-bindings))
 
 (use-package repeat
@@ -816,7 +822,6 @@
   (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
   (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
   :bind ( :map lisp-mode-shared-map
-          ("C-M-<backspace>" . #'backward-kill-sexp)
           ("C-h e c" . #'check-parens)))
 
 (use-package macrostep
@@ -853,10 +858,11 @@
   :bind ( :map dired-mode-map
           ("<tab>" . dired-subtree-toggle)
           ("<backtab>" . dired-subtree-remove)
-          ("<C-tab>" . dired-subtree-cycle)
-          ("TAB" . dired-subtree-toggle)
-          ("S-TAB" . dired-subtree-remove)
-          ("C-TAB" . dired-subtree-cycle))
+          ("C-<tab>" . dired-subtree-cycle)
+          ;; ("TAB" . dired-subtree-toggle)
+          ;; ("S-TAB" . dired-subtree-remove)
+          ;; ("C-TAB" . dired-subtree-cycle)
+          )
   :config
   (setq dired-subtree-use-backgrounds nil))
 
@@ -884,12 +890,12 @@
   :config
   ;; @tip
   ;; RET at beginning of headers line trigger `outline-cycle'
+  ;; TAB on a heading line trigger `outline-cycle'
+  ;; (setq outline-minor-mode-cycle t)
   ;; C-q `outline-hide-sublevels': Obly top n (default 1, can prefix) headers visible
   ;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
   (setopt outline-minor-mode-prefix (kbd "C-c c"))
-  (setq outline-minor-mode-use-buttons 'in-margins)
-  ;; @tip TAB on a heading line trigger `outline-cycle'
-  (setq outline-minor-mode-cycle t))
+  (setq outline-minor-mode-use-buttons 'in-margins))
 
 (use-package xref
   :ensure nil
@@ -967,12 +973,12 @@
 
 ;;; terminal
 (unless (display-graphic-p)
-  (global-set-key (kbd "<mouse-4>") #'scroll-down-line)
-  (global-set-key (kbd "<mouse-5>") #'scroll-up-line)
-  (global-set-key (kbd "S-<mouse-4>") (defun xy/scroll-right () (interactive) (scroll-right 2)))
-  (global-set-key (kbd "S-<mouse-5>") (defun xy/scroll-left () (interactive) (scroll-left 2)))
-  (global-set-key (kbd "M-<mouse-4>") (defun xy/scroll-down++ () (interactive) (scroll-down-line 5)))
-  (global-set-key (kbd "M-<mouse-5>") (defun xy/scroll-up++ () (interactive) (scroll-up-line 5)))
+  (keymap-global-set "<mouse-4>" #'scroll-down-line)
+  (keymap-global-set "<mouse-5>" #'scroll-up-line)
+  (keymap-global-set "S-<mouse-4>" (defun xy/scroll-right () (interactive) (scroll-right 2)))
+  (keymap-global-set "S-<mouse-5>" (defun xy/scroll-left () (interactive) (scroll-left 2)))
+  (keymap-global-set "M-<mouse-4>" (defun xy/scroll-down++ () (interactive) (scroll-down-line 5)))
+  (keymap-global-set "M-<mouse-5>" (defun xy/scroll-up++ () (interactive) (scroll-up-line 5)))
 
   (use-package xt-mouse
     :defer 1
