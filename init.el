@@ -1,5 +1,6 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
 
+;;; preface
 ;; (set-default-coding-systems 'utf-8)
 (prefer-coding-system 'utf-8)
 
@@ -146,7 +147,7 @@
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
-;; Or you should practice more by using `C-]' for `abort-recursive-edit'
+;; @tip I should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
 (keymap-global-set "C-g" (defun xy/keyboard-quit-dwim ()
                            "Do-What-I-Mean behaviour for a general `keyboard-quit'."
@@ -324,7 +325,7 @@
   ;; (global-visual-line-mode +1)
   ;; (setq word-wrap t)
   (setq word-wrap-by-category t)
-  ;; Or use "C-x x t" (`toggle-truncate-lines')
+  ;; @tip use "C-x x t" (`toggle-truncate-lines')
   ;; (add-hook 'prog-mode-hook
   ;;           (defun xy/truncate-lines ()
   ;;             (setq-local truncate-lines t)))
@@ -453,6 +454,22 @@
              (tab-width . 8)))))
   (dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
     (dir-locals-set-directory-class (file-truename dir) :read-only)))
+
+;; Ensure adding the following compile-angel code at the very beginning of init file, before all other packages.
+;; (use-package compile-angel
+;;   :demand t
+;;   :config
+;;   ;; When set to nil, compile-angel won't show which file is being compiled.
+;;   (setq compile-angel-verbose t)
+
+;;   (push "/early-init.el" compile-angel-excluded-files)
+;;   (push "/init.el" compile-angel-excluded-files)
+
+;;   ;; A local mode that compiles .el files whenever the user saves them.
+;;   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
+
+;;   ;; A global mode that compiles .el files before they are loaded.
+;;   (compile-angel-on-load-mode))
 
 
 ;;; help
@@ -644,22 +661,6 @@
   :config
   (tooltip-mode -1)
   (setq tooltip-resize-echo-area t))
-
-;; Ensure adding the following compile-angel code at the very beginning of init file, before all other packages.
-;; (use-package compile-angel
-;;   :demand t
-;;   :config
-;;   ;; When set to nil, compile-angel won't show which file is being compiled.
-;;   (setq compile-angel-verbose t)
-;;
-;;   (push "/early-init.el" compile-angel-excluded-files)
-;;   (push "/init.el" compile-angel-excluded-files)
-;;
-;;   ;; A local mode that compiles .el files whenever the user saves them.
-;;   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
-;;
-;;   ;; A global mode that compiles .el files before they are loaded.
-;;   (compile-angel-on-load-mode))
 
 
 ;;; history
@@ -877,8 +878,24 @@
   (setq trashed-sort-key '("Date deleted" . t))
   (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
-
-;;; tool
+(use-package outline
+  :hook
+  (emacs-lisp-mode . outline-minor-mode)
+  :config
+  ;; @tip
+  ;; RET at beginning of headers line trigger `outline-cycle'
+  ;; C-q `outline-hide-sublevels': Obly top n (default 1, can prefix) headers visible
+  ;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
+  (setopt outline-minor-mode-prefix (kbd "C-c c"))
+  (setq outline-minor-mode-use-buttons 'in-margins)
+  ;; @tip TAB on a heading line trigger `outline-cycle'
+  (setq outline-minor-mode-cycle t))
+
+(use-package xref
+  :ensure nil
+  :config
+  (setq xref-history-storage 'xref-window-local-history))
+
 (use-package eldoc
   :ensure nil
   :defer t
@@ -895,6 +912,8 @@
         ediff-split-window-function #'split-window-horizontally
         ediff-merge-split-window-function #'split-window-horizontally))
 
+
+;;; tool
 (use-package flymake
   :ensure nil
   :defer t
