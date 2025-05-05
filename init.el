@@ -215,6 +215,9 @@
                               (cursor-type . bar)
                               (alpha . 100)
                               (alpha-background . 80)))
+  ;; The variables must also be set to `nil' so users don't have to call the functions twice to re-enable them.
+  (setq tool-bar-mode nil
+        scroll-bar-mode nil)
   (setq frame-title-format
         '((:eval (if (buffer-file-name)
                      (abbreviate-file-name (buffer-file-name))
@@ -223,7 +226,6 @@
   ;; (menu-bar-mode +1)
   ;; (tool-bar-mode -1)
   ;; (scroll-bar-mode -1)
-  ;; (tooltip-mode +1)
   )
 
 
@@ -260,8 +262,10 @@
   (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
   ;; (fset 'yes-or-no-p 'y-or-n-p)
   (setq use-short-answers t)
-  ;; (setq use-dialog-box nil)
   (setq history-delete-duplicates t)
+  ;; Disable GUIs because they are inconsistent across systems, desktop environments, and themes, and they don't match the look of Emacs.
+  (setq use-file-dialog nil)
+  (setq use-dialog-box nil)
 
   ;;; kill
   (setq kill-do-not-save-duplicates t)
@@ -622,6 +626,12 @@
          ("C-h p a" . #'xy/open-elpa-d)
          ("C-h p j" . #'use-package-jump-to-package-form)
          ("C-h p k" . #'use-package-report)))
+
+(use-package tooltip
+  :ensure nil
+  :config
+  (tooltip-mode -1)
+  (setq tooltip-resize-echo-area t))
 
 
 ;;; history
