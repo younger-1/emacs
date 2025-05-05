@@ -66,6 +66,8 @@
                       :family (completing-read "Default font: " (font-family-list))))
 
 (global-set-key (kbd "C-h C-y") #'xy/select-font)
+;; @tip from `term/ns-win'
+;; (global-set-key (kbd "s-t") #'menu-set-font)
 
 (defun xy/set-default-face-advanced ()
   "It's useful for setting faces that may get overwritten by switch themes."
@@ -135,6 +137,15 @@
 (keymap-global-set "C-x ." (defun xy/open-init-dir ()
                              (interactive)
                              (dired user-emacs-directory)))
+
+;; @tip from `mouse'
+;; By binding these to down-going events, we let the user use the up-going event to make the selection, saving a click.
+(global-set-key [down-mouse-3] #'context-menu-open)
+(global-set-key [M-down-mouse-3] (mouse-menu-bar-map))
+;; (global-set-key [C-down-mouse-1] #'mouse-buffer-menu)
+;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
+;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
+
 ;; Or you should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
 (keymap-global-set "C-g" (defun xy/keyboard-quit-dwim ()
@@ -379,6 +390,7 @@
   (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
   (emacs-startup . blink-cursor-mode)
+  ;; (emacs-startup . context-menu-mode)
   ;; (emacs-startup . tab-bar-mode)
   ;; (emacs-startup . tab-bar-history-mode)
   ;; (emacs-startup . global-tab-line-mode)
@@ -633,6 +645,22 @@
   (tooltip-mode -1)
   (setq tooltip-resize-echo-area t))
 
+;; Ensure adding the following compile-angel code at the very beginning of init file, before all other packages.
+;; (use-package compile-angel
+;;   :demand t
+;;   :config
+;;   ;; When set to nil, compile-angel won't show which file is being compiled.
+;;   (setq compile-angel-verbose t)
+;;
+;;   (push "/early-init.el" compile-angel-excluded-files)
+;;   (push "/init.el" compile-angel-excluded-files)
+;;
+;;   ;; A local mode that compiles .el files whenever the user saves them.
+;;   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
+;;
+;;   ;; A global mode that compiles .el files before they are loaded.
+;;   (compile-angel-on-load-mode))
+
 
 ;;; history
 (use-package recentf
@@ -698,6 +726,9 @@
   :bind
   ("C-x M-f" . #'ffap-menu)
   :config
+  ;; @tip
+  ;; (global-set-key [S-mouse-3] 'ffap-at-mouse)
+  ;; (global-set-key [C-S-mouse-3] 'ffap-menu)
   (ffap-bindings))
 
 (use-package repeat

@@ -33,6 +33,7 @@
 (setq byte-compile-warnings '(not obsolete))
 (when (featurep 'native-compile)
   (setq native-comp-async-report-warnings-errors 'silent)
+  ;; Compile loaded elc files asynchronously
   (setq native-comp-jit-compilation t))
 
 (setq package-enable-at-startup nil)
