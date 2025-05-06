@@ -247,7 +247,6 @@
                               (tool-bar-lines . 0)
                               (vertical-scroll-bars . nil)
                               (horizontal-scroll-bars . nil)
-                              (cursor-type . bar)
                               (alpha . 100)
                               (alpha-background . 80)))
   ;; The variables must also be set to `nil' so users don't have to call the functions twice to re-enable them.
@@ -270,6 +269,7 @@
   :config
   ;;; tab
   (setq-default indent-tabs-mode nil)
+  ;; (setq-default tab-width 4)
   (setq tab-always-indent 'complete)
   (setq backward-delete-char-untabify-method 'hungry)
 
@@ -319,7 +319,7 @@
 
   ;;; scroll
   (setq scroll-preserve-screen-position t)
-  (setq scroll-margin 1) ; for C-l and auto-scroll
+  (setq scroll-margin 0) ; for C-l and auto-scroll
   (setq scroll-conservatively 999) ; for auto-scroll never centers point
   (setq next-screen-context-lines 15) ; for C-v/M-v
   (setq scroll-error-top-bottom t) ; for C-v/M-v move point to top/bottom
@@ -378,15 +378,17 @@
 
   ;;; wrap
   ;; (global-visual-line-mode +1)
-  ;; (setq word-wrap t)
+  ;; (setq-default word-wrap t)
   (setq word-wrap-by-category t)
 
   ;; truncate
   ;; @tip use "C-x x t" (`toggle-truncate-lines')
+  ;; (setq-default truncate-lines t)
   ;; (add-hook 'prog-mode-hook
   ;;           (defun xy/truncate-lines ()
   ;;             (setq-local truncate-lines t)))
-  (setq-default truncate-lines t)
+  ;; auto truncate lines
+  (setq truncate-partial-width-windows 70)
 
   ;;; buffer
   (setq uniquify-buffer-name-style 'forward)
@@ -396,6 +398,23 @@
   ;;; window
   ;; (setq split-height-threshold nil
   ;;       split-width-threshold 0)
+
+  ;;; cursor
+  (setq-default cursor-type 'box)
+  (setq x-stretch-cursor t)
+  (blink-cursor-mode -1)
+
+  ;;; edit
+  (setq comment-empty-lines t)
+  (setq comment-multi-line t)
+  (setq-default fill-column 80)
+  ;; Disable the obsolete practice of end-of-line spacing from the typewriter era.
+  (setq sentence-end-double-space nil)
+  ;; According to the POSIX, a line is defined as "a sequence of zero or more non-newline characters followed by a terminating newline".
+  (setq require-final-newline t)
+
+  ;;; isearch
+  (setq lazy-highlight-initial-delay 0)
 
   ;; (require 'comint)
   (setq comint-input-ignoredups t
@@ -425,8 +444,8 @@
   ;; By default, emacs "updates" its ui more often than it needs to
   (setq idle-update-delay 1.0)
   ;; `files.el'
+  (setq delete-by-moving-to-trash t)
   (setq confirm-kill-emacs #'yes-or-no-p)
-  (setq require-final-newline t)
   (setq remote-file-name-inhibit-cache 50)
   (setq remote-file-name-inhibit-delete-by-moving-to-trash t)
   ;; (setq find-file-suppress-same-file-warnings t)
@@ -439,8 +458,6 @@
   (setopt show-paren-delay 0.2)
   (setq show-paren-when-point-inside-paren t
         show-paren-when-point-in-periphery t)
-  ;; `paragraphs.el'
-  (setq sentence-end-double-space nil) ; Don't assume that sentences should have two spaces after periods. This ain't a typewriter
   ;; `compile.el'
   (setq compilation-scroll-output 'first-error)
   ;; (setq compilation-always-kill t
@@ -450,9 +467,8 @@
   ;; (setq ring-bell-function #'ignore
   ;;       visible-bell nil)
   (setq show-trailing-whitespace t)
-  (setq-default fill-column 80)
   (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
-  (setq-default cursor-type 'bar))
+  )
 
 
 ;;; hooks and keymaps
@@ -469,7 +485,6 @@
   (emacs-startup . pixel-scroll-precision-mode)
   (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
-  (emacs-startup . blink-cursor-mode)
   ;; (emacs-startup . context-menu-mode)
   ;; (emacs-startup . tab-bar-mode)
   ;; (emacs-startup . tab-bar-history-mode)
@@ -918,19 +933,19 @@
   :hook
   (dired-mode . dired-hide-details-mode)
   (dired-mode . dired-omit-mode)
-  (dired-mode . hl-line-mode)
   :config
+  ;; @tip see `dired-mode-map' for summary and usage
   ;; flags for `insert-directory-program'. Or: -alh, --group-directories-first
   (setq dired-listing-switches "-lhFA -v")
   (setq dired-kill-when-opening-new-dired-buffer t)
-  (setq dired-dwim-target t) ; next windows as target for file copy, rename etc
-  ;; use trash
-  (setq delete-by-moving-to-trash t)
-  (setq dired-recursive-deletes 'always) ; don't ask when directory not empty
+  ;; Propose a target for intelligent moving or copying.
+  ;; e.g. use next windows as target for file copy, rename etc
+  (setq dired-dwim-target t)
   (setq dired-recursive-copies 'always)
   (setq dired-create-destination-dirs 'ask)
-  ;; (require 'image-dired)
-  (setq image-dired-thumb-margin 1
+  (setq dired-vc-rename-file t)
+  (setq image-dired-thumb-size 150
+        image-dired-thumb-margin 1
         image-dired-thumb-relief 0
         ;; Store thumbnails in the system-wide thumbnail location
         ;; e.g. ~/.local/cache/thumbnails to make them reusable by other programs
