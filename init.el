@@ -267,14 +267,21 @@
         completions-max-height 20)
 
   ;;;; minibuffer
+  ;; Allow nested minibuffers.
   (setq enable-recursive-minibuffers t)
   (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
-  ;; (fset 'yes-or-no-p 'y-or-n-p)
-  (setq use-short-answers t)
+  ;; Keep the cursor out of the read-only portions of the minibuffer.
+  (setq minibuffer-prompt-properties
+        '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
   (setq history-delete-duplicates t)
+
+  ;;;; minibuffer UX
+  (setq use-short-answers t)
   ;; Disable GUIs because they are inconsistent across systems, desktop environments, and themes, and they don't match the look of Emacs.
   (setq use-file-dialog nil)
   (setq use-dialog-box nil)
+  (setq resize-mini-windows 'grow-only)
 
   ;;; kill
   (setq kill-do-not-save-duplicates t)
@@ -300,23 +307,43 @@
   ;;; limit
   (setq large-file-warning-threshold (* 64 1024 1024)) ; 10m -> 64m
   (setq read-process-output-max (* 1024 1024)) ; 4k -> 1m
-  (setq undo-outer-limit (* 120 1024 1024)) ; 24m -> 120m
-  (setq history-length 100)
+  (setq undo-limit (* 10 160000) ; 10x
+        undo-strong-limit (* 10 240000)
+        undo-outer-limit (* 10 24000000))
+  (setq history-length 150)
   (setq list-command-history-max 100)
   (setq suggest-key-bindings 999)
-  (setq eval-expression-print-length 30)
+  ;; Disable truncation of printed s-expressions
+  ;; in the message buffer (C-x_C-e `eval-last-sexp') and scratch buffer (C-j `eval-print-last-sexp')
+  (setq eval-expression-print-length nil
+        eval-expression-print-level nil)
   (setq message-log-max 2000)
   ;; (lossage-size 500)
+
+  ;;; lock
+  (setq create-lockfiles nil)
 
   ;;; backup
   (setq make-backup-files nil)
   (setq backup-by-copying t)
-  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backup"))))
-  ;;
+  (setq backup-directory-alist
+        `(("." . ,(concat user-emacs-directory "backup"))))
+  (setq tramp-backup-directory-alist backup-directory-alist)
+
+  ;;; auto-save
+  ;; Enable `auto-save-mode' to prevent data loss in crash. Use `recover-file' or `recover-session' to restore unsaved changes.
+  ;; Disable it can stop creating #filename# files.
+  ;; By default, auto-saves happen every 300 keystrokes, or after around 30 seconds of idle time
   (setq auto-save-default nil)
-  (setq auto-save-interval 0)
-  ;;
-  (setq create-lockfiles nil)
+  (setq auto-save-list-file-prefix
+        (concat user-emacs-directory "auto-save"))
+  (setq tramp-auto-save-directory
+        (concat user-emacs-directory "tramp-auto-save"))
+  (setq kill-buffer-delete-auto-save-files t)
+  ;; auto-save for file
+  ;; - 1.only saves file-visiting buffers
+  ;; - 2.directly saving to the file itself without creating backup files
+  ;; (auto-save-visited-mode +1)
 
   ;;; wrap
   ;; (global-visual-line-mode +1)
@@ -331,14 +358,19 @@
   (setq-default truncate-lines t)
 
   ;;; buffer
-  ;; (setq uniquify-buffer-name-style 'forward)
+  (setq uniquify-buffer-name-style 'forward)
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window))) ; Keep the compilation buffer in the background, except when there's an error
+
+  ;;; window
+  (setq split-height-threshold nil
+        split-width-threshold 0)
 
   ;; (require 'comint)
   (setq comint-input-ignoredups t
         comint-prompt-read-only t
-        comint-scroll-to-bottom-on-input 'this)
+        comint-scroll-to-bottom-on-input 'this
+        comint-buffer-maximum-size (* 2 1024))
 
   ;; (require 'proced)
   (setq proced-auto-update-interval 1)
@@ -357,21 +389,38 @@
   ;; `simple.el'
   (setq what-cursor-show-names t) ; For `C-x ='
   (setq set-mark-command-repeat-pop t)
+  ;; Recenter to the middle of the window for `compile-goto-error', `wgrep', `embark-export'.
+  (setq next-error-recenter '(4))
+  ;; By default, emacs "updates" its ui more often than it needs to
+  (setq idle-update-delay 1.0)
   ;; `files.el'
   (setq confirm-kill-emacs #'yes-or-no-p)
   (setq require-final-newline t)
+  (setq remote-file-name-inhibit-cache 50)
+  (setq remote-file-name-inhibit-delete-by-moving-to-trash t)
+  ;; (setq find-file-suppress-same-file-warnings t)
+  ;; Resolve symlinks so that operations are conducted from the file's directory
+  (setq find-file-visit-truename t
+        vc-follow-symlinks t)
   ;; `paren.el'
   (setq show-paren-context-when-offscreen 'overlay
         blink-matching-paren-highlight-offscreen t)
   (setopt show-paren-delay 0.2)
+  (setq show-paren-when-point-inside-paren t
+        show-paren-when-point-in-periphery t)
   ;; `paragraphs.el'
   (setq sentence-end-double-space nil) ; Don't assume that sentences should have two spaces after periods. This ain't a typewriter
-  ;; `vc-hooks.el'
-  (setq vc-follow-symlinks t)
+  ;; `compile.el'
+  (setq compilation-scroll-output 'first-error)
+  ;; (setq compilation-always-kill t
+  ;;       compilation-ask-about-save nil)
   ;; `C-code'
-  ;; (setq visible-bell t)
+  ;; No beeping or blinking
+  ;; (setq ring-bell-function #'ignore
+  ;;       visible-bell nil)
   (setq show-trailing-whitespace t)
   (setq-default fill-column 80)
+  (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
   (setq-default cursor-type 'bar))
 
 
@@ -426,7 +475,6 @@
   ("C-x l" . #'count-words)
   ("C-x x v" . #'view-buffer)
   ("C-x x f" . #'follow-mode)
-
   ;;
   ("C-z" . nil) ; `suspend-frame'
   ("C-z C-r" . #'redraw-display)
@@ -670,6 +718,7 @@
 
 
 ;;; history
+;; Pick recently visited files
 (use-package recentf
   :ensure nil
   :defer 0.1
@@ -680,24 +729,27 @@
   (recentf-mode +1)
   (add-to-list 'recentf-exclude xy/elpa-lisp-d)
   (add-to-list 'recentf-exclude xy/emacs-lisp-d)
+  (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
   (setq recentf-max-saved-items 500
         recentf-max-menu-items 25))
 
+;; Goto the last location within a file upon reopening
 (use-package saveplace
   :ensure nil
   :defer 0.1
   :config
   (save-place-mode +1))
 
+;; Save various kind of history between sessions
 (use-package savehist
   :ensure nil
   :defer 0.1
   :config
   (savehist-mode +1)
-  (setq savehist-additional-variables '(kill-ring      ; persist clipboard
-                                        register-alist ; persist keyboard macro
-                                        mark-ring global-mark-ring ; persist mark
-                                        (search-ring . 50) (regexp-search-ring . 50) ; persist search
+  (setq savehist-additional-variables '(kill-ring      ; clipboard
+                                        register-alist ; keyboard macro
+                                        mark-ring global-mark-ring ; mark
+                                        search-ring regexp-search-ring ; search
                                         comint-input-ring)))
 
 
@@ -873,6 +925,7 @@
   :defer 0.2
   :config
   (global-auto-revert-mode +1)
+  ;; @tip C-x x g is `revert-buffer-quick', s-u is `revert-buffer'
   (setq global-auto-revert-non-file-buffers t)
   (setq auto-revert-remote-files t))
 
@@ -894,7 +947,9 @@
   ;; (setq outline-minor-mode-cycle t)
   ;; C-q `outline-hide-sublevels': Obly top n (default 1, can prefix) headers visible
   ;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
-  (setopt outline-minor-mode-prefix (kbd "C-c c"))
+  (setopt outline-minor-mode-prefix (kbd "C-c v")) ; v for view
+  ;;; UI
+  ;; (setq outline-minor-mode-highlight 'append)
   (setq outline-minor-mode-use-buttons 'in-margins))
 
 (use-package xref
