@@ -293,12 +293,17 @@
 
   ;;; scroll
   (setq scroll-preserve-screen-position t)
-  ;; (setq jit-lock-defer-time 0.05)
-  (setq scroll-margin 0) ; for C-l and auto-scroll
+  (setq scroll-margin 1) ; for C-l and auto-scroll
   (setq scroll-conservatively 999) ; for auto-scroll never centers point
-  (setq hscroll-step 1)
-  (setq auto-hscroll-mode 'current-line)
-  (setq isearch-allow-scroll t)
+  (setq next-screen-context-lines 15) ; for C-v/M-v
+  (setq scroll-error-top-bottom t) ; for C-v/M-v move point to top/bottom
+  (setq hscroll-margin 10
+        hscroll-step 0
+        auto-hscroll-mode 'current-line)
+  (setq isearch-allow-scroll 'unlimited)
+  ;; scroll performance
+  ;; (setq fast-but-imprecise-scrolling t)
+  ;; (setq jit-lock-defer-time 0.05)
 
   ;;; mouse
   (setq mouse-yank-at-point t)
@@ -363,8 +368,8 @@
                '("\\*.*compilation\\*" (display-buffer-no-window))) ; Keep the compilation buffer in the background, except when there's an error
 
   ;;; window
-  (setq split-height-threshold nil
-        split-width-threshold 0)
+  ;; (setq split-height-threshold nil
+  ;;       split-width-threshold 0)
 
   ;; (require 'comint)
   (setq comint-input-ignoredups t
