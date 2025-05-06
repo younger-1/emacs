@@ -184,9 +184,6 @@
                              (call-interactively #'fill-paragraph))))
 
 ;;; path
-(defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
-(add-to-list 'exec-path xy/mason-bin-dir)
-
 (when (memq window-system '(ns))
   ;; https://www.emacswiki.org/emacs/ExecPath
   (defun xy/set-exec-path-from-shell-PATH ()
@@ -208,6 +205,9 @@
     (setenv "PATH" (concat xy/git-bin-dir ";" (getenv "PATH"))))
   (setenv "LANG" "en_US")
   (cd "~/"))
+
+(defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
+(add-to-list 'exec-path xy/mason-bin-dir)
 
 
 ;;; builtin package setup
@@ -433,6 +433,15 @@
   (setq calendar-date-style 'iso
         calendar-week-start-day 1
         calendar-weekend-days '(6 0))
+
+  ;; eglot
+  (setq eglot-sync-connect 1
+        eglot-autoshutdown t)
+  (setq eglot-extend-to-xref t)
+  ;; optimization
+  (setq eglot-events-buffer-size 0)
+  ;; prevent eglot minibuffer spam
+  (setq eglot-report-progress nil)
 
   (setq epg-pinentry-mode 'loopback)
 
@@ -697,6 +706,11 @@
          ("C-h C-o" . nil)
          ("C-h C-w" . nil)
          :map help-mode-map
+         ;; @tip
+         ;; ("i" . #'help-goto-info)
+         ;; ("I" . #'help-goto-lispref-info)
+         ;; ("s" . #'help-view-source)
+         ;; ("c" . #'help-customize)
          ("C" . #'set-variable)
          ("b" . #'beginning-of-buffer)
          ("e" . #'end-of-buffer)
@@ -944,6 +958,9 @@
   (setq dired-recursive-copies 'always)
   (setq dired-create-destination-dirs 'ask)
   (setq dired-vc-rename-file t)
+  (setq dired-omit-verbose nil)
+  ;; (setq dired-omit-files (concat "\\`[.]\\'"))
+  (setq ls-lisp-dirs-first t)
   (setq image-dired-thumb-size 150
         image-dired-thumb-margin 1
         image-dired-thumb-relief 0
@@ -1015,6 +1032,7 @@
   :ensure nil
   :defer t
   :config
+  ;; use a single frame and split windows horizontally
   (setq ediff-window-setup-function #'ediff-setup-windows-plain
         ediff-split-window-function #'split-window-horizontally
         ediff-merge-split-window-function #'split-window-horizontally))
@@ -1031,6 +1049,7 @@
           ("M-g e" . flymake-show-buffer-diagnostics)
           ("M-g E" . flymake-show-project-diagnostics))
   :config
+  ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 
 (use-package org
