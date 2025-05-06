@@ -183,6 +183,32 @@
                                     fill-column)))
                              (call-interactively #'fill-paragraph))))
 
+;;; path
+(defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
+(add-to-list 'exec-path xy/mason-bin-dir)
+
+(when (memq window-system '(ns))
+  ;; https://www.emacswiki.org/emacs/ExecPath
+  (defun xy/set-exec-path-from-shell-PATH ()
+    "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell. This is particularly useful under macOS, where GUI apps are not started from a shell."
+    (interactive)
+    (let ((path-from-shell (replace-regexp-in-string
+                            "[ \t\n]*$" "" (shell-command-to-string
+                                            "$SHELL --login -c 'echo $PATH'"))))
+      (setenv "PATH" path-from-shell)
+      (setq exec-path (split-string path-from-shell path-separator))))
+  (add-hook 'emacs-startup-hook 'xy/set-exec-path-from-shell-PATH))
+
+(when xy/win-p
+  (defconst xy/git-bin-dir (expand-file-name (file-name-concat (getenv "SCOOP") "apps/git/current/usr/bin")))
+  (when (file-exists-p xy/git-bin-dir)
+    ;; For (executable-find "ls")
+    (add-to-list 'exec-path xy/git-bin-dir)
+    ;; For (shell-command-to-string "ls")
+    (setenv "PATH" (concat xy/git-bin-dir ";" (getenv "PATH"))))
+  (setenv "LANG" "en_US")
+  (cd "~/"))
+
 
 ;;; builtin package setup
 (setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
