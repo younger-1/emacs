@@ -184,6 +184,9 @@
                              (call-interactively #'fill-paragraph))))
 
 ;;; path
+(defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
+(add-to-list 'exec-path xy/mason-bin-dir)
+
 (when (memq window-system '(ns))
   ;; https://www.emacswiki.org/emacs/ExecPath
   (defun xy/set-exec-path-from-shell-PATH ()
@@ -192,8 +195,12 @@
     (let ((path-from-shell (replace-regexp-in-string
                             "[ \t\n]*$" "" (shell-command-to-string
                                             "$SHELL --login -c 'echo $PATH'"))))
+      ;; For (shell-command-to-string "gls")
       (setenv "PATH" path-from-shell)
-      (setq exec-path (split-string path-from-shell path-separator))))
+      ;; For (executable-find "gls")
+      ;; (setq exec-path (split-string path-from-shell path-separator))
+      (dolist (path (split-string path-from-shell path-separator))
+        (add-to-list 'exec-path path))))
   (add-hook 'emacs-startup-hook 'xy/set-exec-path-from-shell-PATH))
 
 (when xy/win-p
@@ -205,9 +212,6 @@
     (setenv "PATH" (concat xy/git-bin-dir ";" (getenv "PATH"))))
   (setenv "LANG" "en_US")
   (cd "~/"))
-
-(defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
-(add-to-list 'exec-path xy/mason-bin-dir)
 
 
 ;;; builtin package setup
@@ -416,6 +420,11 @@
   ;;; isearch
   (setq lazy-highlight-initial-delay 0)
 
+  ;;; abbrev
+  (setq dabbrev-upcase-means-case-search t)
+  (setq dabbrev-ignored-buffer-modes
+      '(archive-mode image-mode docview-mode tags-table-mode pdf-view-mode))
+
   ;; (require 'comint)
   (setq comint-input-ignoredups t
         comint-prompt-read-only t
@@ -434,7 +443,7 @@
         calendar-week-start-day 1
         calendar-weekend-days '(6 0))
 
-  ;; eglot
+  ;;; eglot
   (setq eglot-sync-connect 1
         eglot-autoshutdown t)
   (setq eglot-extend-to-xref t)
@@ -442,6 +451,16 @@
   (setq eglot-events-buffer-size 0)
   ;; prevent eglot minibuffer spam
   (setq eglot-report-progress nil)
+
+  ;;; flyspell
+  ;; (setq flyspell-issue-welcome-flag nil)
+  ;; Greatly improves flyspell performance by preventing messages from being displayed for each word when checking the entire buffer.
+  ;; (setq flyspell-issue-message-flag nil)
+
+  ;;; ispell
+  ;; Disable ispell completion to avoid annotation errors when no `ispell' dictionary is set.
+  ;; (setq text-mode-ispell-word-completion nil)
+  (setq ispell-silently-savep t)
 
   (setq epg-pinentry-mode 'loopback)
 
@@ -553,6 +572,8 @@
   (put 'downcase-region 'disabled nil)
   (put 'upcase-region 'disabled nil)
   (put 'erase-buffer 'disabled nil)
+  (put 'dired-find-alternate-file 'disabled nil)
+  (put 'list-timers 'disabled nil)
 
   (defconst xy/elpa-lisp-d (expand-file-name package-user-dir))
   (defconst xy/emacs-lisp-d (file-name-directory (directory-file-name doc-directory)))
@@ -570,13 +591,13 @@
 ;;   :config
 ;;   ;; When set to nil, compile-angel won't show which file is being compiled.
 ;;   (setq compile-angel-verbose t)
-
+;;
 ;;   (push "/early-init.el" compile-angel-excluded-files)
 ;;   (push "/init.el" compile-angel-excluded-files)
-
+;;
 ;;   ;; A local mode that compiles .el files whenever the user saves them.
 ;;   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
-
+;;
 ;;   ;; A global mode that compiles .el files before they are loaded.
 ;;   (compile-angel-on-load-mode))
 
@@ -818,6 +839,8 @@
   :ensure nil
   :defer 0.2
   :config
+  ;; Do not delay displaying completion candidates
+  (setq icomplete-compute-delay 0.01)
   (fido-vertical-mode +1))
 
 (defvar xy/boring-buffers '("\\` "
@@ -1018,6 +1041,8 @@
 (use-package xref
   :ensure nil
   :config
+  ;; (setq xref-show-definitions-function 'xref-show-definitions-completing-read
+  ;;       xref-show-xrefs-function 'xref-show-definitions-completing-read)
   (setq xref-history-storage 'xref-window-local-history))
 
 (use-package eldoc
