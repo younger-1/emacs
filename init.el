@@ -131,9 +131,11 @@
 
 ;;; keymap
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
+;; (keymap-global-set "s-," #'customize)
+(keymap-global-set "M-s-," #'customize-group)
 (keymap-global-set "M-/" #'hippie-expand)
 (keymap-global-set "<backtab>" #'back-to-indentation)
-;; (keymap-global-set "RET" #'comment-indent-new-line)
+(keymap-global-set "S-<return>" #'comment-indent-new-line)
 ;; @tip from `bindings'
 ;; (keymap-global-set "C-M-<backspace>" #'backward-kill-sexp)
 (keymap-global-set "M-S-SPC" #'cycle-spacing)
@@ -147,10 +149,9 @@
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
-;; @tip not convenient use emacs in terminal or ms-windows yet
 (keymap-global-set "s-x" #'execute-extended-command)
 (keymap-global-set "s-X" #'execute-extended-command-for-buffer)
-(keymap-global-set "s-/" "C-x C-;")
+(keymap-global-set "s-/" #'comment-line)
 (keymap-global-set "s-<" (defun xy/open-init-file ()
                              (interactive)
                              (find-file user-init-file)))
@@ -801,6 +802,23 @@
          ("C-h p a" . #'xy/open-elpa-d)
          ("C-h p j" . #'use-package-jump-to-package-form)
          ("C-h p k" . #'use-package-report)))
+
+(use-package cus-edit
+  :ensure nil
+  :bind
+  ("C-h , ," . #'customize-group)
+  ("C-h , a" . #'customize-apropos)
+  ("C-h , b" . #'customize-browse)
+  ("C-h , c" . #'customize-changed)
+  ("C-h , m" . #'customize-mode)
+  ("C-h , o" . #'customize-option)
+  ("C-h , t" . #'customize-themes)
+  ("C-h , f" . #'customize-face)
+  ("C-h , i" . #'customize-icon)
+  ;;
+  ("C-h , s" . #'customize-saved)
+  ("C-h , u" . #'customize-unsaved)
+  ("C-h , r" . #'customize-rogue))
 
 (use-package tooltip
   :ensure nil
