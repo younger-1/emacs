@@ -1,9 +1,11 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
 
-(setq debug-on-error t)
-(when (< emacs-major-version 29)
-  (user-error "[xy] emacs version is %s, require emacs-29." emacs-major-version))
+(when (< emacs-major-version 30)
+  (user-error "[xy] emacs version is %s, require emacs-30." emacs-major-version))
 
+(setq debug-on-error (or init-file-debug '(void-variable)))
+
+(setq garbage-collection-messages init-file-debug)
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
 
@@ -32,8 +34,7 @@
 (setq load-prefer-newer t)
 (setq byte-compile-warnings '(not obsolete))
 (when (featurep 'native-compile)
-  (setq native-comp-async-report-warnings-errors 'silent)
-  ;; Compile loaded elc files asynchronously
+  (setq native-comp-async-report-warnings-errors (or init-file-debug 'silent))
   (setq native-comp-jit-compilation t))
 
 (setq package-enable-at-startup nil)

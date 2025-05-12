@@ -133,6 +133,7 @@
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 (keymap-global-set "M-/" #'hippie-expand)
 (keymap-global-set "<backtab>" #'back-to-indentation)
+;; (keymap-global-set "RET" #'comment-indent-new-line)
 ;; @tip from `bindings'
 ;; (keymap-global-set "C-M-<backspace>" #'backward-kill-sexp)
 (keymap-global-set "M-S-SPC" #'cycle-spacing)
@@ -232,17 +233,26 @@
   (package-refresh-contents))
 
 (setq use-package-always-ensure t)
-(setq use-package-expand-minimally t)
 (setq use-package-enable-imenu-support t)
+(setq use-package-expand-minimally t)
+(setq use-package-compute-statistics init-file-debug)
+;; (setq use-package-minimum-reported-time (if init-file-debug 0 0.1))
+;; (setq use-package-verbose init-file-debug)
 
 
 ;;; startup frame and screen
 (use-package emacs
   :ensure nil
+  :custom
+  (inhibit-startup-echo-area-message user-login-name)
   :init
   (setq inhibit-default-init t)
   ;; (setq inhibit-startup-screen t)
+  ;; (setq inhibit-x-resources t)
   ;; (setq initial-major-mode #'org-mode)
+
+  ;; Font compacting can be very resource-intensive, especially when rendering icon fonts on Windows. This will increase memory usage.
+  (setq inhibit-compacting-font-caches t)
 
   (setq frame-inhibit-implied-resize t)
   (setq frame-resize-pixelwise t)
@@ -352,7 +362,7 @@
   ;; in the message buffer (C-x_C-e `eval-last-sexp') and scratch buffer (C-j `eval-print-last-sexp')
   (setq eval-expression-print-length nil
         eval-expression-print-level nil)
-  (setq message-log-max 2000)
+  (setq message-log-max 3000)
   ;; (lossage-size 500)
 
   ;;; lock
@@ -410,7 +420,7 @@
 
   ;;; edit
   (setq comment-empty-lines t)
-  (setq comment-multi-line t)
+  ;; (setq comment-multi-line t)
   (setq-default fill-column 80)
   ;; Disable the obsolete practice of end-of-line spacing from the typewriter era.
   (setq sentence-end-double-space nil)
@@ -698,8 +708,9 @@
          ("C-h h l" . #'view-lossage)
          ;;
          ("C-h e" . nil) ; `view-echo-area-messages'
-         ("C-h e j" . #'pp-eval-last-sexp)
+         ("C-h e e" . #'pp-eval-last-sexp)
          ("C-h e p" . #'pp-eval-expression)
+         ("C-h e j" . #'eval-print-last-sexp)
          ("C-h e f" . #'eval-defun)
          ("C-h e b" . #'eval-buffer)
          ("C-h e r" . #'eval-region)
