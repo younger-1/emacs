@@ -34,7 +34,7 @@
                                 (3 . (1.1))))
   ;; (load-theme 'modus-vivendi)
   ;; (load-theme 'modus-operandi)
-  (load-theme 'modus-operandi-tritanopia)
+  (load-theme 'modus-operandi-deuteranopia)
   (keymap-global-set "<f12>" #'modus-themes-toggle))
 
 (defun xy/load-theme (theme &optional no-confirm no-enable)
@@ -134,9 +134,10 @@
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 ;; (keymap-global-set "s-," #'customize)
 (keymap-global-set "M-s-," #'customize-group)
-(keymap-global-set "M-/" #'hippie-expand)
 (keymap-global-set "<backtab>" #'back-to-indentation)
 (keymap-global-set "S-<return>" #'comment-indent-new-line)
+;; (keymap-global-set "C-S-v" #'scroll-other-window)
+;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-V is not M-V
 ;; @tip from `bindings'
 ;; (keymap-global-set "C-M-<backspace>" #'backward-kill-sexp)
 (keymap-global-set "M-S-SPC" #'cycle-spacing)
@@ -316,7 +317,6 @@
   (setq minibuffer-prompt-properties
         '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-  (setq history-delete-duplicates t)
 
   ;;;; minibuffer UX
   (setq use-short-answers t)
@@ -357,7 +357,6 @@
   (setq undo-limit (* 10 160000) ; 10x
         undo-strong-limit (* 10 240000)
         undo-outer-limit (* 10 24000000))
-  (setq history-length 150)
   (setq list-command-history-max 100)
   (setq suggest-key-bindings 999)
   ;; Disable truncation of printed s-expressions
@@ -858,6 +857,8 @@
   :defer 0.1
   :config
   (savehist-mode +1)
+  (setq history-length 150)
+  (setq history-delete-duplicates t)
   (setq savehist-additional-variables '(kill-ring      ; clipboard
                                         register-alist ; keyboard macro
                                         mark-ring global-mark-ring ; mark
@@ -876,14 +877,42 @@
 
 
 ;;; completion
-(use-package completion-preview
-  :ensure nil
+;; (use-package completion-preview
+;;   :ensure nil
+;;   :defer 0.2
+;;   :bind ( :map completion-preview-active-mode-map
+;;           ("M-n" . #'completion-preview-next-candidate)
+;;           ("M-p" . #'completion-preview-prev-candidate))
+;;   :config
+;;   (global-completion-preview-mode +1))
+
+(use-package corfu
   :defer 0.2
-  :bind ( :map completion-preview-active-mode-map
-          ("M-n" . #'completion-preview-next-candidate)
-          ("M-p" . #'completion-preview-prev-candidate))
   :config
-  (global-completion-preview-mode +1))
+  ;; (setq corfu-preview-current nil)
+  (setq corfu-auto t)
+  (setq corfu-cycle t)
+  ;; Recommended since many modes provide Capfs and Dabbrev can be used globally (M-/).
+  (global-corfu-mode +1)
+  ;; Sort completions by history
+  (with-eval-after-load 'savehist
+    (corfu-history-mode +1))
+  ;; Show documentation in popup.
+  ;; @tip M-g:`corfu-info-location', M-h:`corfu-info-documentation'
+  (setq corfu-popupinfo-delay '(1 . 0.5))
+  (corfu-popupinfo-mode +1))
+
+;; (keymap-global-set "M-/" #'hippie-expand)
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  :config
+  (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+  (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 
 ;;; keymap
