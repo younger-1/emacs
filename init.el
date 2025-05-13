@@ -875,6 +875,11 @@
   (setq icomplete-compute-delay 0.01)
   (fido-vertical-mode +1))
 
+(use-package nerd-icons-completion
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
 
 ;;; completion
 ;; (use-package completion-preview
@@ -901,6 +906,11 @@
   ;; @tip M-g:`corfu-info-location', M-h:`corfu-info-documentation'
   (setq corfu-popupinfo-delay '(1 . 0.5))
   (corfu-popupinfo-mode +1))
+
+(use-package nerd-icons-corfu
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 ;; (keymap-global-set "M-/" #'hippie-expand)
 (use-package dabbrev
@@ -988,6 +998,9 @@
 
   (setq ibuffer-never-show-predicates xy/boring-buffers))
 
+(use-package nerd-icons-ibuffer
+  :hook (ibuffer-mode))
+
 
 ;;; window
 (use-package winner
@@ -1061,6 +1074,9 @@
         ;; Store thumbnails in the system-wide thumbnail location
         ;; e.g. ~/.local/cache/thumbnails to make them reusable by other programs
         image-dired-thumbnail-storage 'standard-large))
+
+(use-package nerd-icons-dired
+  :hook (dired-mode))
 
 (use-package dired-subtree
   :after dired
@@ -1209,22 +1225,3 @@
       :defer 1
       :config
       (xclip-mode +1))))
-
-
-;;; icon
-;; Remember to run `nerd-icons-install-fonts' nerd icon if system doesn't have
-;; Then restart Emacs to see the effect.
-(use-package nerd-icons
-  :defer t)
-
-;; Use human readable file size in ibuffer by `nerd-icons-ibuffer-human-readable-size'
-(use-package nerd-icons-ibuffer
-  :hook (ibuffer-mode))
-
-(use-package nerd-icons-dired
-  :hook (dired-mode))
-
-(use-package nerd-icons-completion
-  :config
-  (nerd-icons-completion-mode)
-  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
