@@ -290,41 +290,6 @@
   (setq tab-always-indent 'complete)
   (setq backward-delete-char-untabify-method 'hungry)
 
-  ;;; completion
-  (setq completions-detailed t)
-  (setq completion-styles '(basic flex)) ; @see `completion-styles-alist' for available style
-  (setq completion-category-overrides ; @see `completion-category-defaults' for available category
-        '((file (styles partial-completion))))
-  (setq completion-ignore-case t
-        read-buffer-completion-ignore-case t
-        read-file-name-completion-ignore-case t)
-  (setq read-extended-command-predicate #'command-completion-default-include-p)
-  ;; (setq completion-cycle-threshold nil)
-
-  ;;;; completion buffer
-  (setq completion-auto-help 'visible
-        completion-auto-select 'second-tab
-        completion-no-auto-exit t
-        completions-format 'one-column
-        completions-sort 'historical
-        completions-max-height 20)
-
-  ;;;; minibuffer
-  ;; Allow nested minibuffers.
-  (setq enable-recursive-minibuffers t)
-  (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
-  ;; Keep the cursor out of the read-only portions of the minibuffer.
-  (setq minibuffer-prompt-properties
-        '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
-  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
-  ;;;; minibuffer UX
-  (setq use-short-answers t)
-  ;; Disable GUIs because they are inconsistent across systems, desktop environments, and themes, and they don't match the look of Emacs.
-  (setq use-file-dialog nil)
-  (setq use-dialog-box nil)
-  (setq resize-mini-windows 'grow-only)
-
   ;;; kill
   (setq kill-do-not-save-duplicates t)
   (setq save-interprogram-paste-before-kill t)
@@ -867,18 +832,79 @@
 
 
 ;;; minibuffer
-(use-package icomplete
+(use-package minibuffer
   :ensure nil
-  :defer 0.2
   :config
-  ;; Do not delay displaying completion candidates
-  (setq icomplete-compute-delay 0.01)
-  (fido-vertical-mode +1))
+  ;;; completion
+  (setq completions-detailed t)
+  (setq completion-styles '(basic flex)) ; @see `completion-styles-alist' for available style
+  (setq completion-category-overrides ; @see `completion-category-defaults' for available category
+        '((file (styles partial-completion))))
+  (setq completion-ignore-case t
+        read-buffer-completion-ignore-case t
+        read-file-name-completion-ignore-case t)
+  (setq read-extended-command-predicate #'command-completion-default-include-p)
+  ;; (setq completion-cycle-threshold nil)
+
+  ;;; completion buffer
+  (setq completion-auto-help 'visible
+        completion-auto-select 'second-tab
+        completion-no-auto-exit t
+        completions-format 'one-column
+        completions-sort 'historical
+        completions-max-height 20)
+
+  ;;; minibuffer
+  ;; Allow nested minibuffers.
+  (setq enable-recursive-minibuffers t)
+  (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
+  ;; Keep the cursor out of the read-only portions of the minibuffer.
+  (setq minibuffer-prompt-properties
+        '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  ;;;; minibuffer UX
+  (setq use-short-answers t)
+  ;; Disable GUIs because they are inconsistent across systems, desktop environments, and themes, and they don't match the look of Emacs.
+  (setq use-file-dialog nil)
+  (setq use-dialog-box nil)
+  (setq resize-mini-windows 'grow-only))
+
+;; (use-package icomplete
+;;   :ensure nil
+;;   :defer 0.2
+;;   :config
+;;   ;; Do not delay displaying completion candidates
+;;   (setq icomplete-compute-delay 0.01)
+;;   (fido-vertical-mode +1))
 
 (use-package nerd-icons-completion
   :config
   (nerd-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+(use-package vertico
+  :defer 0.2
+  :config
+  (vertico-mode +1))
+
+(use-package orderless
+  :after vertico
+  :config
+  (setq completion-styles '(orderless basic))
+  (setq completion-category-defaults nil)
+
+  (defun xy/-orderless-fast-dispatch (word index total)
+    (and (= index 0) (= total 1) (length< word 4)
+         (cons 'orderless-literal-prefix word)))
+  (orderless-define-completion-style xy/orderless-fast
+                                     (orderless-style-dispatchers '(xy/-orderless-fast-dispatch))
+                                     (orderless-matching-styles '(orderless-literal orderless-regexp))))
+
+(use-package marginalia
+  :after vertico
+  :config
+  (marginalia-mode))
 
 
 ;;; completion
@@ -897,7 +923,7 @@
   ;; (setq corfu-preview-current nil)
   (setq corfu-auto t)
   (setq corfu-cycle t)
-  ;; Recommended since many modes provide Capfs and Dabbrev can be used globally (M-/).
+  ;; Recommended enable globally since many modes provide Capfs and Dabbrev can be used globally (M-/).
   (global-corfu-mode +1)
   ;; Sort completions by history
   (with-eval-after-load 'savehist
@@ -905,7 +931,13 @@
   ;; Show documentation in popup.
   ;; @tip M-g:`corfu-info-location', M-h:`corfu-info-documentation'
   (setq corfu-popupinfo-delay '(1 . 0.5))
-  (corfu-popupinfo-mode +1))
+  (corfu-popupinfo-mode +1)
+
+  (add-hook 'corfu-mode-hook
+            (defun xy/in-buffer-completion-style ()
+              (setq-local completion-styles '(xy/orderless-fast basic)
+                          completion-category-overrides nil
+                          completion-category-defaults nil))))
 
 (use-package cape
   :bind ("C-c p" . cape-prefix-map)
@@ -1110,7 +1142,7 @@
   :defer 0.2
   :config
   (global-auto-revert-mode +1)
-  ;; @tip C-x x g is `revert-buffer-quick', s-u is `revert-buffer'
+  ;; @tip "C-x x g" is `revert-buffer-quick', "s-u" is `revert-buffer'
   (setq global-auto-revert-non-file-buffers t)
   (setq auto-revert-remote-files t))
 
