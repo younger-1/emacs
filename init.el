@@ -33,7 +33,8 @@
                                 (2 . (1.2))
                                 (3 . (1.1))))
   ;; (load-theme 'modus-vivendi)
-  (load-theme 'modus-operandi)
+  ;; (load-theme 'modus-operandi)
+  (load-theme 'modus-operandi-tritanopia)
   (keymap-global-set "<f12>" #'modus-themes-toggle))
 
 (defun xy/load-theme (theme &optional no-confirm no-enable)
@@ -289,7 +290,6 @@
   (setq backward-delete-char-untabify-method 'hungry)
 
   ;;; completion
-  ;; TODO `completion-preview-mode' in Emacs 30.
   (setq completions-detailed t)
   (setq completion-styles '(basic flex)) ; @see `completion-styles-alist' for available style
   (setq completion-category-overrides ; @see `completion-category-defaults' for available category
@@ -298,13 +298,14 @@
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t)
   (setq read-extended-command-predicate #'command-completion-default-include-p)
+  ;; (setq completion-cycle-threshold nil)
 
   ;;;; completion buffer
   (setq completion-auto-help 'visible
         completion-auto-select 'second-tab
         completion-no-auto-exit t
-        ;; completions-format 'one-column
-        ;; completions-sort 'historical
+        completions-format 'one-column
+        completions-sort 'historical
         completions-max-height 20)
 
   ;;;; minibuffer
@@ -651,7 +652,6 @@
          ("C-h C-f" . #'find-function)
          ("C-h C-v" . #'find-variable)
          ("C-h C-k" . #'find-function-on-key)
-         ("C-h C-l" . #'find-library)
          ("C-h C-b" . #'describe-keymap)
          ("C-h C-p" . #'finder-by-keyword)
          ;;
@@ -668,6 +668,8 @@
          ;;
          ("C-h l" . #'xy/find-feature) ; `view-lossage'
          ("C-h L" . #'unload-feature) ; `describe-language-environment'
+         ("C-h C-l" . #'find-library)
+         ("C-h M-l" . #'locate-library)
          ;;
          ("C-h j i" . #'describe-icon)
          ("C-h j c" . #'describe-char)
@@ -872,22 +874,16 @@
   (setq icomplete-compute-delay 0.01)
   (fido-vertical-mode +1))
 
-(defvar xy/boring-buffers '("\\` "
-                            "\\`\\*Echo Area"
-                            "\\`\\*Minibuf"
-                            "\\`\\*Completions"
-                            "\\`\\*Flymake log"
-                            "\\`\\*Semantic SymRef"
-                            "\\`\\*Backtrace"
-                            "\\`\\*tramp"
-                            "\\`\\*EGLOT"
-                            ;; And some hidden buffers can be visited by ...
-                            "\\`\\*scratch"        ; "C-z s s"
-                            "\\`\\*Messages"       ; "C-h h e"
-                            "\\`\\*Bookmark List"  ; "C-x r l"
-                            "\\`\\*Ibuffer"        ; "C-x C-b"
-                            )
-  "List of buffer names of buffers to hide on several occasions.")
+
+;;; completion
+(use-package completion-preview
+  :ensure nil
+  :defer 0.2
+  :bind ( :map completion-preview-active-mode-map
+          ("M-n" . #'completion-preview-next-candidate)
+          ("M-p" . #'completion-preview-prev-candidate))
+  :config
+  (global-completion-preview-mode +1))
 
 
 ;;; keymap
@@ -944,6 +940,23 @@
   ("C-x 4 C-b" . #'ibuffer-other-window)
   :hook (ibuffer-mode . ibuffer-auto-mode)
   :config
+  (defvar xy/boring-buffers '("\\` "
+                            "\\`\\*Echo Area"
+                            "\\`\\*Minibuf"
+                            "\\`\\*Completions"
+                            "\\`\\*Flymake log"
+                            "\\`\\*Semantic SymRef"
+                            "\\`\\*Backtrace"
+                            "\\`\\*tramp"
+                            "\\`\\*EGLOT"
+                            ;; And some hidden buffers can be visited by ...
+                            "\\`\\*scratch"        ; "C-z s s"
+                            "\\`\\*Messages"       ; "C-h h e"
+                            "\\`\\*Bookmark List"  ; "C-x r l"
+                            "\\`\\*Ibuffer"        ; "C-x C-b"
+                            )
+  "List of buffer names of buffers to hide on several occasions.")
+
   (setq ibuffer-never-show-predicates xy/boring-buffers))
 
 
@@ -1070,6 +1083,7 @@
 (use-package xref
   :ensure nil
   :config
+  ;; Use completion system instead of popup window.
   ;; (setq xref-show-definitions-function 'xref-show-definitions-completing-read
   ;;       xref-show-xrefs-function 'xref-show-definitions-completing-read)
   (setq xref-history-storage 'xref-window-local-history))
