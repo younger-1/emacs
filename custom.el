@@ -4,7 +4,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(keyfreq trashed dired-subtree nerd-icons-completion nerd-icons-dired nerd-icons-ibuffer nerd-icons macrostep which-key))
+   '(cape compile-angel corfu dired-subtree keyfreq macrostep nerd-icons-completion
+          nerd-icons-corfu nerd-icons-dired nerd-icons-ibuffer trashed))
  '(safe-local-variable-values '((eval view-mode-enter nil #'kill-buffer))))
 
 (custom-set-faces

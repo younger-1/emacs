@@ -907,6 +907,18 @@
   (setq corfu-popupinfo-delay '(1 . 0.5))
   (corfu-popupinfo-mode +1))
 
+(use-package cape
+  :bind ("C-c p" . cape-prefix-map)
+  :init
+  (setq text-mode-ispell-word-completion #'cape-dict)
+  ;; Add more completion backends used by `completion-at-point'. The order of the functions matters.
+  (add-hook 'completion-at-point-functions #'cape-dict)
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
+  ;; (add-hook 'completion-at-point-functions #'cape-history)
+  )
+
 (use-package nerd-icons-corfu
   :after corfu
   :config
