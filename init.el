@@ -401,12 +401,6 @@
   (setq dabbrev-ignored-buffer-modes
       '(archive-mode image-mode docview-mode tags-table-mode pdf-view-mode))
 
-  ;; (require 'comint)
-  (setq comint-input-ignoredups t
-        comint-prompt-read-only t
-        comint-scroll-to-bottom-on-input 'this
-        comint-buffer-maximum-size (* 2 1024))
-
   ;; (require 'proced)
   (setq proced-auto-update-interval 1)
   (setq-default proced-auto-update-flag t)
@@ -496,6 +490,7 @@
   ;; (emacs-startup . global-display-fill-column-indicator-mode)
   (before-save . delete-trailing-whitespace)
   ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
+
   :init
   (defun xy/scratch ()
     "Jump to the *scratch* buffer. If it does not exist, create it."
@@ -517,6 +512,7 @@
          (substring (shell-command-to-string "powershell.exe -NoLogo -NoProfile -command 'Get-Clipboard'") 0  -1))))
     (keymap-global-set "C-z C-w" #'xy/wsl-kill)
     (keymap-global-set "C-z C-y" #'xy/wsl-yank))
+
   :bind
   ;; @tip "s-k" is `kill-current-buffer'
   ;; ("C-x k" . #'kill-current-buffer)
@@ -529,8 +525,7 @@
   ("C-z" . nil) ; `suspend-frame'
   ("C-z C-r" . #'redraw-display)
   ("C-z s s" . #'xy/scratch)
-  ("C-z e s" . #'shell)
-  ("C-z e e" . #'eshell)
+  ;;
   ("C-z w w" . #'browse-url)
   ("C-z w W" . #'browse-web))
 
@@ -1269,3 +1264,49 @@
       :defer 1
       :config
       (xclip-mode +1))))
+
+;;; shell
+;; @see https://www.masteringemacs.org/article/running-shells-in-emacs-overview
+(use-package comint
+  :ensure nil
+  :bind (("C-z e s" . shell)
+         ("C-z e t" . ansi-term)
+         :map comint-mode-map
+         ;; @tip
+         ;; "C-c C-p/C-n/C-a": Jump to the prev/next/last prompt
+         ;; "C-c C-l": `comint-dynamic-list-input-ring'
+         ;; "C-c C-x": `comint-get-next-from-history'
+         ;; Auto subsitution: !! expands to the last command; ^a^b replaces a with b
+         ("SPC" . #'comint-magic-space))
+  :config
+  (setq comint-input-ignoredups t
+        comint-prompt-read-only t
+        comint-scroll-to-bottom-on-input 'this
+        comint-buffer-maximum-size (* 2 1024))
+  (setq comint-history-isearch 'dwim)
+  ;; (setq comint-input-autoexpand 'input)
+  )
+
+;; @see https://www.masteringemacs.org/article/complete-guide-mastering-eshell
+(use-package eshell
+  :ensure nil
+  :bind
+  ("C-z e e" . eshell)
+  :config
+  (with-eval-after-load 'em-term
+    (add-to-list 'eshell-visual-subcommands '("git" "log" "diff" "show" "ls"))
+    (add-to-list 'eshell-visual-options '("git" "--help" "--paginate")))
+  ;; Show help for quickly filtering files or elisp lists
+  (with-eval-after-load 'em-alias
+    (eshell/alias "ep" #'eshell-display-predicate-help)
+    (eshell/alias "ef" #'eshell-display-modifier-help))
+  ;; Enable bash keys (C-r, C-s, C-w, C-u)
+  ;; (require 'em-rebind)
+  ;; (eshell-rebind-initialize)
+  ;; Plan 9 Smart Shell: improve the write-run-revise
+  ;; (require 'em-smart)
+  ;; (eshell-smart-initialize)
+  )
+
+;; @see https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs
+;; (use-package pcomplete)
