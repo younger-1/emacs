@@ -68,8 +68,6 @@
                       :family (completing-read "Default font: " (font-family-list))))
 
 (keymap-global-set "C-h C-y" #'xy/select-font)
-;; @tip from `term/ns-win'
-;; (keymap-global-set "s-t" #'menu-set-font)
 
 (defun xy/set-default-face-advanced ()
   "It's useful for setting faces that may get overwritten by switch themes."
@@ -132,12 +130,14 @@
 
 ;;; keymap
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
-;; (keymap-global-set "s-," #'customize)
-(keymap-global-set "M-s-," #'customize-group)
 (keymap-global-set "<backtab>" #'back-to-indentation)
 (keymap-global-set "S-<return>" #'comment-indent-new-line)
+(keymap-global-set "C-;" #'comment-line) ; @tip "M-;" run `comment-dwim'
 ;; (keymap-global-set "C-S-v" #'scroll-other-window)
 ;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-V is not M-V
+(keymap-global-set "C-<return>" #'toggle-frame-fullscreen) ; <f11>
+(keymap-global-set "s-<return>" #'toggle-frame-maximized) ; M-<f10>
+
 ;; @tip from `bindings'
 ;; (keymap-global-set "C-M-<backspace>" #'backward-kill-sexp)
 (keymap-global-set "M-S-SPC" #'cycle-spacing)
@@ -151,9 +151,12 @@
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
+;; @tip from `term/ns-win'
+;; (keymap-global-set "s-t" #'menu-set-font)
+;; (keymap-global-set "s-," #'customize)
+(keymap-global-set "M-s-," #'customize-group)
 (keymap-global-set "s-x" #'execute-extended-command)
 (keymap-global-set "s-X" #'execute-extended-command-for-buffer)
-(keymap-global-set "s-/" #'comment-line)
 (keymap-global-set "s-<" (defun xy/open-init-file ()
                              (interactive)
                              (find-file user-init-file)))
@@ -907,12 +910,16 @@
 (use-package embark
   :defer 0.5
   :bind
-  (("C-." . embark-act)
-   ("C-;" . embark-dwim)
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  (("M-SPC" . embark-act)
+   ("M-S-SPC" . embark-dwim)
+   ;; ("M-RET" . embark-act)
+   ;; ("M-." . embark-dwim) ; embark-dwim acts like xref-find-definitions on the symbol at point.
+   ("C-h B" . embark-bindings)) ; alternative for `describe-bindings'
   :init
   ;; Used for backup of `which-key-C-h-dispatch', saved as `which-key--prefix-help-cmd-backup'
   ;; (setq prefix-help-command #'embark-prefix-help-command)
+  ;; Show the Embark target at point via Eldoc
+  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
   :config
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
@@ -921,7 +928,6 @@
                  (window-parameters (mode-line-format . none)))))
 
 (use-package embark-consult
-  :after embark
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 
@@ -1184,9 +1190,10 @@
   :hook
   (emacs-lisp-mode . outline-minor-mode)
   :config
-  ;; @tip
-  ;; RET at beginning of headers line trigger `outline-cycle'
-  ;; TAB on a heading line trigger `outline-cycle'
+  ;; @tip Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
+  ;; @tip RET at beginning of headers line trigger `outline-cycle'. And for S-RET:
+  (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
+  ;; For TAB/S-TAB
   ;; (setq outline-minor-mode-cycle t)
   ;; C-q `outline-hide-sublevels': Obly top n (default 1, can prefix) headers visible
   ;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
