@@ -372,8 +372,9 @@
 
   ;;; buffer
   (setq uniquify-buffer-name-style 'forward)
+  ;; Keep the compilation buffer in the background, except when there's an error
   (add-to-list 'display-buffer-alist
-               '("\\*.*compilation\\*" (display-buffer-no-window))) ; Keep the compilation buffer in the background, except when there's an error
+               '("\\*.*compilation\\*" (display-buffer-no-window)))
 
   ;;; window
   ;; (setq split-height-threshold nil
@@ -587,6 +588,7 @@
   (setq describe-bindings-outline t)
   ;; (setq apropos-do-all t)
   ;; (setq apropos-sort-by-scores 'verbose)
+  (setq describe-bindings-show-prefix-commands t)
 
   (defun xy/find-feature ()
     "Find loaded features"
@@ -901,6 +903,27 @@
   :config
   (marginalia-mode))
 
+;; minibuffer context menu to perform context-sensitive actions on selected items
+(use-package embark
+  :defer 0.5
+  :bind
+  (("C-." . embark-act)
+   ("C-;" . embark-dwim)
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  :init
+  ;; Used for backup of `which-key-C-h-dispatch', saved as `which-key--prefix-help-cmd-backup'
+  ;; (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :after embark
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
 
 ;;; completion
 ;; (use-package completion-preview
@@ -914,6 +937,11 @@
 
 (use-package corfu
   :defer 0.2
+  :bind ( :map corfu-map
+          ;; ("RET" . nil) ; Free RET for newline etc.
+          ;; ("TAB" . corfu-next) ; Use TAB for cycling
+          ;; ("S-TAB" . corfu-previous)
+          ("M-q" . corfu-quick-complete))
   :config
   ;; (setq corfu-preview-current nil)
   (setq corfu-auto t)
@@ -921,13 +949,13 @@
   ;; Recommended enable globally since many modes provide Capfs and Dabbrev can be used globally (M-/).
   (global-corfu-mode +1)
   ;; Sort completions by history
-  (with-eval-after-load 'savehist
-    (corfu-history-mode +1))
+  (corfu-history-mode +1)
   ;; Show documentation in popup.
   ;; @tip M-g:`corfu-info-location', M-h:`corfu-info-documentation'
-  (setq corfu-popupinfo-delay '(1 . 0.5))
   (corfu-popupinfo-mode +1)
-
+  (setq corfu-popupinfo-delay '(1 . 0.5))
+  ;; (corfu-indexed-mode +1)
+  ;; Buffer-local/Corfu-only completion styles
   (add-hook 'corfu-mode-hook
             (defun xy/in-buffer-completion-style ()
               (setq-local completion-styles '(xy/orderless-fast basic)
@@ -984,12 +1012,15 @@
   (setq repeat-exit-key "RET"))
 
 (use-package which-key
+  :ensure nil
   :defer 1
   :config
   (which-key-mode +1)
   (setq which-key-lighter nil)
   (setq which-key-idle-delay .5
         which-key-idle-secondary-delay .0)
+  ;; @tip Press h/C-h after which-key's paging will run `which-key-show-standard-help', which run `describe-prefix-bindings'
+  (setq which-key-use-C-h-commands t)
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-sort-uppercase-first nil))
 
