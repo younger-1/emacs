@@ -130,18 +130,33 @@
 
 ;;; keymap
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
-(keymap-global-set "<backtab>" #'back-to-indentation)
-(keymap-global-set "S-<return>" #'comment-indent-new-line)
-(keymap-global-set "C-;" #'comment-line) ; @tip "M-;" run `comment-dwim'
 ;; (keymap-global-set "C-S-v" #'scroll-other-window)
 ;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-V is not M-V
 (keymap-global-set "C-<return>" #'toggle-frame-fullscreen) ; <f11>
 (keymap-global-set "s-<return>" #'toggle-frame-maximized) ; M-<f10>
 
+;; @tip from `subr'
+;; `global-map' `ctl-x-map' `esc-map'
+
 ;; @tip from `bindings'
-;; (keymap-global-set "C-M-<backspace>" #'backward-kill-sexp)
-(keymap-global-set "M-S-SPC" #'cycle-spacing)
+;; C-M-a / C-M-e / C-M-h -> `beginning-of-defun' / `end-of-defun' / `mark-defun'
+;; C-M-k / C-M-<backspace> -> `kill-sexp' / `backward-kill-sexp'
+;; C-M-t -> `transpose-sexps'
+;; C-o / C-M-o -> `open-line' / `split-line'
+;; M-j / C-M-j -> `default-indent-new-line'
+;; C-x ESC ESC -> `repeat-complex-command'
+(keymap-global-set "ESC =" #'count-words)
 (keymap-global-set "M-z" #'zap-up-to-char)
+;; M-SPC -> `cycle-spacing'
+;; M-m -> `back-to-indentation'
+(keymap-global-set "<backtab>" #'back-to-indentation)
+;; M-; -> `comment-dwim'
+(keymap-global-set "C-;" #'comment-line)
+
+;; @tip from `files'
+(keymap-global-set "S-<return>" #'save-buffer)
+;; @tip from `window'
+;; M-r -> `move-to-window-line-top-bottom'
 
 ;; @tip from `mouse'
 ;; By binding these to down-going events, we let the user use the up-going event to make the selection, saving a click.
@@ -518,11 +533,11 @@
     (keymap-global-set "C-z C-y" #'xy/wsl-yank))
 
   :bind
-  ;; @tip "s-k" is `kill-current-buffer'
+  ;; @tip s-k is `kill-current-buffer'
   ;; ("C-x k" . #'kill-current-buffer)
   ("C-x K" . #'bury-buffer)
   ("C-x O" . #'switch-to-minibuffer)
-  ("C-x l" . #'count-words)
+  ;; ("C-x l" . #'count-words)
   ("C-x x v" . #'view-buffer)
   ("C-x x f" . #'follow-mode)
   ;;
