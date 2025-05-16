@@ -114,38 +114,41 @@
 (add-hook 'xy/after-enable-theme-hook #'xy/set-default-face-advanced)
 
 (when (fboundp 'set-fontset-font)
+  ;; Heiti SC (mac)
+  (set-fontset-font t 'han "黑体-简" nil 'prepend)
+  ;; Microsoft YaHei (windows)
+  (set-fontset-font t 'han "微软雅黑" nil 'prepend)
+  ;; Sarasa Mono SC -> brew install font-sarasa-gothic
+  (set-fontset-font t 'han "等距更纱黑体 SC" nil 'prepend)
+  ;; LXGW WenKai Mono -> brew install font-lxgw-wenkai
+  (set-fontset-font t 'han "霞鹜文楷等宽" nil 'prepend)
   ;; brew install font-maple-mono-nf-cn
-  (set-fontset-font t 'han "Maple Mono NF CN" nil 'append)
-  ;; brew install font-lxgw-wenkai
-  ;; LXGW WenKai Mono
-  (set-fontset-font t 'han "霞鹜文楷等宽" nil 'append)
-  ;; brew install font-sarasa-gothic
-  ;; Sarasa Mono SC
-  (set-fontset-font t 'han "等距更纱黑体 SC" nil 'append)
-  ;; Microsoft YaHei
-  (set-fontset-font t 'han "微软雅黑" nil 'append)
-  ;; Heiti SC
-  (set-fontset-font t 'han "黑体-简" nil 'append))
+  (set-fontset-font t 'han "Maple Mono NF CN" nil 'prepend))
 
 
 ;;; keymap
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
+(keymap-global-set "C-," (defun xy/open-init-file ()
+                             (interactive)
+                             (find-file user-init-file)))
+(keymap-global-set "C-<" (defun xy/open-init-dir ()
+                             (interactive)
+                             (dired user-emacs-directory)))
 ;; (keymap-global-set "C-S-v" #'scroll-other-window)
 ;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-v is not M-V
-(keymap-global-set "C-<return>" #'toggle-frame-fullscreen) ; <f11>
-(keymap-global-set "s-<return>" #'toggle-frame-maximized) ; M-<f10>
 
 ;; @tip from `subr'
 ;; `global-map' `ctl-x-map' `esc-map'
 
 ;; @tip from `bindings'
-;; C-M-a / C-M-e / C-M-h -> `beginning-of-defun' / `end-of-defun' / `mark-defun'
+;; C-M-a / C-M-e -> `beginning-of-defun' / `end-of-defun'
+;; C-M-h / C-M-x -> `mark-defun' / `eval-defun'
 ;; C-M-k / C-M-<backspace> -> `kill-sexp' / `backward-kill-sexp'
 ;; C-M-t -> `transpose-sexps'
 ;; C-o / C-M-o -> `open-line' / `split-line'
 ;; M-j / C-M-j -> `default-indent-new-line'
 ;; C-x ESC ESC -> `repeat-complex-command'
-(keymap-global-set "ESC =" #'count-words)
+(keymap-global-set "M-=" #'count-words)
 (keymap-global-set "M-z" #'zap-up-to-char)
 ;; M-SPC -> `cycle-spacing'
 ;; M-m -> `back-to-indentation'
@@ -166,18 +169,18 @@
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
+;; @tip disable `mouse-wheel-text-scale' by `mouse-wheel-mode'
+(keymap-global-unset "C-<wheel-down>")
+(keymap-global-unset "C-<wheel-up>")
+
 ;; @tip from `term/ns-win'
 ;; (keymap-global-set "s-t" #'menu-set-font)
 ;; (keymap-global-set "s-," #'customize)
 (keymap-global-set "M-s-," #'customize-group)
 (keymap-global-set "s-x" #'execute-extended-command)
 (keymap-global-set "s-X" #'execute-extended-command-for-buffer)
-(keymap-global-set "s-<" (defun xy/open-init-file ()
-                             (interactive)
-                             (find-file user-init-file)))
-(keymap-global-set "s->" (defun xy/open-init-dir ()
-                             (interactive)
-                             (dired user-emacs-directory)))
+(keymap-global-set "s-<return>" #'toggle-frame-fullscreen) ; <f11>
+(keymap-global-set "S-s-<return>" #'toggle-frame-maximized) ; M-<f10>
 
 ;; @tip I should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
@@ -371,8 +374,8 @@
         (concat user-emacs-directory "tramp-auto-save"))
   (setq kill-buffer-delete-auto-save-files t)
   ;; auto-save for file
-  ;; - 1.only saves file-visiting buffers
-  ;; - 2.directly saving to the file itself without creating backup files
+  ;; -- 1.only saves file-visiting buffers
+  ;; -- 2.directly saving to the file itself without creating backup files
   ;; (auto-save-visited-mode +1)
 
   ;;; wrap
@@ -790,7 +793,8 @@
 (use-package cus-edit
   :ensure nil
   :bind
-  ("C-h , ," . #'customize-group)
+  ("C-h , ," . #'customize)
+  ("C-h , ." . #'customize-group)
   ("C-h , a" . #'customize-apropos)
   ("C-h , b" . #'customize-browse)
   ("C-h , c" . #'customize-changed)
@@ -906,9 +910,11 @@
 (use-package vertico
   :defer 0.2
   :bind ( :map vertico-map
-          ;; `vertico-exit-input': Exiting with the current input is needed when create a new buffer/file
-          ;; Non-existing candidates can be submitted by moving the point to the prompt.
-          ;; Reserve for `embark-export'
+          ;; @tip
+          ;; M-w -> `vertico-save' Save current candidate to kill ring.
+          ;; M-RET -> `vertico-exit-input' Exiting with input when create a new buffer/file
+          ;; -- Non-existing candidates can be submitted by moving the point to the prompt.
+          ;; -- Reserve for `embark-export'
           ("M-RET" . nil))
   :config
   (vertico-mode +1))
@@ -940,15 +946,17 @@
   :bind
   ;; @see `embark-keymap-alist'
   ;; `embark-act' acts as a right-click context menu at point and `embark-dwim' acts like left-click
-  (("M-SPC" . embark-act)
-   ("M-S-SPC" . embark-act-all)
+  (;; ("M-SPC" . embark-act)
+   ;; ("M-S-SPC" . embark-act-all)
+   ("C-." . embark-act)
+   ("C->" . embark-act-all)
    ("M-." . embark-dwim) ; acts like `xref-find-definitions' on the symbol at point.
    ;;
    ("S-SPC" . embark-select)
    ;;
    ("M-RET" . embark-export) ; @see `embark-exporters-alist', falls back to the generic `embark-collect'
    ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf.
-   ;; TODO: `embark-live'
+   ("C-<return>" . embark-live)
    ;;
    ("C-h B" . embark-bindings)  ; alternative for `describe-bindings'
    :map minibuffer-local-map
@@ -966,8 +974,8 @@
                  (window-parameters (mode-line-format . none)))))
 
 ;; 1. `embark-export' exporters:
-;; - `occur-mode' for `consult-line' `consult-outline' `consult-mark'
-;; - `grep-mode' for `consult-grep' `consult-git-grep' `consult-ripgrep'
+;; -- `occur-mode' for `consult-line' `consult-outline' `consult-mark'
+;; -- `grep-mode' for `consult-grep' `consult-git-grep' `consult-ripgrep'
 ;; 2. `embark-live' collectors: add to `embark-candidate-collectors' for `outline-minor-mode' and `imenu'
 (use-package embark-consult
   :hook (embark-collect-mode . consult-preview-at-point-mode))
@@ -1248,6 +1256,10 @@
   ;; (setq outline-minor-mode-highlight 'append)
   (setq outline-minor-mode-use-buttons 'in-margins))
 
+;; @tip
+;; M-. / M-, -> `xref-find-definitions' / `xref-go-back'
+;; C-M-. / C-M-, -> `xref-find-apropos' / `xref-go-forward'
+;; M-? -> `xref-find-references'
 (use-package xref
   :ensure nil
   :config
