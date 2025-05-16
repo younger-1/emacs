@@ -902,6 +902,11 @@
 
 (use-package vertico
   :defer 0.2
+  :bind ( :map vertico-map
+          ;; `vertico-exit-input': Exiting with the current input is needed when you want to create a new buffer or a new file with find-file or switch-to-buffer
+          ;; As an alternative to pressing M-RET, move the selection up to the input prompt by pressing the up arrow key and then press RET.
+          ;; reserve for `embark-export'
+          ("M-RET" . nil))
   :config
   (vertico-mode +1))
 
@@ -924,20 +929,22 @@
   (marginalia-mode))
 
 ;; minibuffer context menu to perform context-sensitive actions on selected items
-;; @see `embark-keymap-alist'
 (use-package embark
   :defer 0.5
   :bind
+  ;; @see `embark-keymap-alist'
   (("M-SPC" . embark-act)
    ("M-S-SPC" . embark-act-all)
-   ("M-." . embark-dwim) ; `embark-dwim' acts like `xref-find-definitions' on the symbol at point.
+   ("M-." . embark-dwim) ; acts like `xref-find-definitions' on the symbol at point.
    ;;
    ("S-SPC" . embark-select)
    ;;
-   ("M-RET" . embark-export) ; falls back to the generic `embark-collect'
+   ("M-RET" . embark-export) ; @see `embark-exporters-alist', falls back to the generic `embark-collect'
    ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf
    ;;
-   ("C-h B" . embark-bindings)) ; alternative for `describe-bindings'
+   ("C-h B" . embark-bindings)  ; alternative for `describe-bindings'
+   :map minibuffer-local-map
+   ("M-." . embark-become)) ; @see `embark-become-keymaps'
   :init
   ;; Used for backup of `which-key-C-h-dispatch', saved as `which-key--prefix-help-cmd-backup'
   ;; (setq prefix-help-command #'embark-prefix-help-command)
