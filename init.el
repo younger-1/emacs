@@ -131,7 +131,7 @@
 ;;; keymap
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 ;; (keymap-global-set "C-S-v" #'scroll-other-window)
-;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-V is not M-V
+;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-v is not M-V
 (keymap-global-set "C-<return>" #'toggle-frame-fullscreen) ; <f11>
 (keymap-global-set "s-<return>" #'toggle-frame-maximized) ; M-<f10>
 
@@ -305,6 +305,7 @@
   ;;; tab
   (setq-default indent-tabs-mode nil)
   ;; (setq-default tab-width 4)
+  ;; TAB key for indentation+completion. `completion-at-point' is often bound to M-TAB.
   (setq tab-always-indent 'complete)
   (setq backward-delete-char-untabify-method 'hungry)
 
@@ -900,12 +901,14 @@
   (nerd-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
+;; VERTical Interactive COmpletion
+;; minibuffer completion with vertical UI
 (use-package vertico
   :defer 0.2
   :bind ( :map vertico-map
-          ;; `vertico-exit-input': Exiting with the current input is needed when you want to create a new buffer or a new file with find-file or switch-to-buffer
-          ;; As an alternative to pressing M-RET, move the selection up to the input prompt by pressing the up arrow key and then press RET.
-          ;; reserve for `embark-export'
+          ;; `vertico-exit-input': Exiting with the current input is needed when create a new buffer/file
+          ;; Non-existing candidates can be submitted by moving the point to the prompt.
+          ;; Reserve for `embark-export'
           ("M-RET" . nil))
   :config
   (vertico-mode +1))
@@ -926,13 +929,17 @@
 (use-package marginalia
   :after vertico
   :config
-  (marginalia-mode))
+  (marginalia-mode +1))
 
-;; minibuffer context menu to perform context-sensitive actions on selected items
+;; Emacs Mini-Buffer Actions Rooted in Keymaps
+;; a keyboard-based version of a right-click contextual menu
+;; to perform context-sensitive actions on target(s) at point
+;; which works both in minibuffer and normal buffers
 (use-package embark
   :defer 0.5
   :bind
   ;; @see `embark-keymap-alist'
+  ;; `embark-act' acts as a right-click context menu at point and `embark-dwim' acts like left-click
   (("M-SPC" . embark-act)
    ("M-S-SPC" . embark-act-all)
    ("M-." . embark-dwim) ; acts like `xref-find-definitions' on the symbol at point.
@@ -940,7 +947,8 @@
    ("S-SPC" . embark-select)
    ;;
    ("M-RET" . embark-export) ; @see `embark-exporters-alist', falls back to the generic `embark-collect'
-   ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf
+   ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf.
+   ;; TODO: `embark-live'
    ;;
    ("C-h B" . embark-bindings)  ; alternative for `describe-bindings'
    :map minibuffer-local-map
@@ -957,6 +965,10 @@
                  nil
                  (window-parameters (mode-line-format . none)))))
 
+;; 1. `embark-export' exporters:
+;; - `occur-mode' for `consult-line' `consult-outline' `consult-mark'
+;; - `grep-mode' for `consult-grep' `consult-git-grep' `consult-ripgrep'
+;; 2. `embark-live' collectors: add to `embark-candidate-collectors' for `outline-minor-mode' and `imenu'
 (use-package embark-consult
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
@@ -971,6 +983,8 @@
 ;;   :config
 ;;   (global-completion-preview-mode +1))
 
+;; COmpletion in Region FUnction
+;; in-buffer completion with a child frame popup for `completion-in-region'
 (use-package corfu
   :defer 0.2
   :bind ( :map corfu-map
@@ -998,11 +1012,13 @@
                           completion-category-overrides nil
                           completion-category-defaults nil))))
 
+;; Completion At Point Extensions
 (use-package cape
   :bind ("C-c p" . cape-prefix-map)
   :init
   (setq text-mode-ispell-word-completion #'cape-dict)
-  ;; Add more completion backends used by `completion-at-point'. The order of the functions matters.
+  ;; The completion backends used by `completion-at-point' are called `completion-at-point-functions' (Capfs).
+  ;; Add more completion backends. The latters take precedence over formers.
   (add-hook 'completion-at-point-functions #'cape-dict)
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-file)
