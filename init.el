@@ -725,6 +725,7 @@
          ;; ("I" . #'help-goto-lispref-info)
          ;; ("s" . #'help-view-source)
          ;; ("c" . #'help-customize)
+         ("S-SPC" . nil) ; `scroll-down-command', available as M-v/DEL(<backspace>)
          ("C" . #'set-variable)
          ("b" . #'beginning-of-buffer)
          ("e" . #'end-of-buffer)
@@ -742,7 +743,8 @@
          ("C-h i e" . #'xy/info-elisp)
          ("C-h i t" . #'xy/info-eintr)
          :map Info-mode-map
-         ("M-n" . nil) ; `clone-buffer`
+         ("M-n" . nil) ; `clone-buffer'
+         ("S-SPC" . nil) ; `Info-scroll-down', available as DEL(<backspace>)
          ("j" . #'next-line)
          ("k" . #'previous-line)
          ("." . #'Info-search-next)
@@ -922,13 +924,19 @@
   (marginalia-mode))
 
 ;; minibuffer context menu to perform context-sensitive actions on selected items
+;; @see `embark-keymap-alist'
 (use-package embark
   :defer 0.5
   :bind
   (("M-SPC" . embark-act)
-   ("M-S-SPC" . embark-dwim)
-   ;; ("M-RET" . embark-act)
-   ;; ("M-." . embark-dwim) ; embark-dwim acts like xref-find-definitions on the symbol at point.
+   ("M-S-SPC" . embark-act-all)
+   ("M-." . embark-dwim) ; `embark-dwim' acts like `xref-find-definitions' on the symbol at point.
+   ;;
+   ("S-SPC" . embark-select)
+   ;;
+   ("M-RET" . embark-export) ; falls back to the generic `embark-collect'
+   ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf
+   ;;
    ("C-h B" . embark-bindings)) ; alternative for `describe-bindings'
   :init
   ;; Used for backup of `which-key-C-h-dispatch', saved as `which-key--prefix-help-cmd-backup'
