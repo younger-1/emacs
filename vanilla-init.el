@@ -39,11 +39,16 @@
 
 ;;; basic
 (use-package emacs
+  :init
+  (show-paren-mode)
+  (electric-indent-mode)
+  (electric-pair-mode)
+  (global-subword-mode)
   :hook
-  (prog-mode . show-paren-local-mode)
-  (prog-mode . electric-indent-local-mode)
-  (prog-mode . electric-pair-local-mode)
-  (prog-mode . subword-mode)
+  ;; (prog-mode . show-paren-local-mode)
+  ;; (prog-mode . electric-indent-local-mode)
+  ;; (prog-mode . electric-pair-local-mode)
+  ;; (prog-mode . subword-mode)
   ;; (emacs-startup . global-display-line-numbers-mode)
   ;; (emacs-startup . column-number-mode) ; modeline
   ;; (emacs-startup . size-indication-mode) ; modeline
