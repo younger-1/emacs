@@ -171,7 +171,7 @@
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
-;; @tip disable `mouse-wheel-text-scale' by `mouse-wheel-mode'
+;; @tip disable `mouse-wheel-text-scale' by `mouse-wheel-mode' when use `pixel-scroll-precision-mode'
 (keymap-global-unset "C-<wheel-down>")
 (keymap-global-unset "C-<wheel-up>")
 
@@ -325,7 +325,7 @@
   ;;; scroll
   (setq scroll-preserve-screen-position t)
   (setq scroll-margin 0) ; for C-l and auto-scroll
-  (setq scroll-conservatively 999) ; for auto-scroll never centers point
+  ;; (setq scroll-conservatively 999) ; for auto-scroll never centers point
   (setq next-screen-context-lines 15) ; for C-v/M-v
   (setq scroll-error-top-bottom t) ; for C-v/M-v move point to top/bottom
   (setq hscroll-margin 10
@@ -338,7 +338,7 @@
 
   ;;; mouse
   (setq mouse-yank-at-point t)
-  ;; (setq mouse-autoselect-window t)
+  (setq mouse-autoselect-window t)
 
   ;;; limit
   (setq large-file-warning-threshold (* 64 1024 1024)) ; 10m -> 64m
@@ -392,7 +392,7 @@
   ;;           (defun xy/truncate-lines ()
   ;;             (setq-local truncate-lines t)))
   ;; auto truncate lines
-  (setq truncate-partial-width-windows 70)
+  (setq truncate-partial-width-windows 80)
 
   ;;; buffer
   (setq uniquify-buffer-name-style 'forward)
@@ -602,16 +602,16 @@
 (use-package help
   :ensure nil
   :init
-  (setq help-window-select t)
-  (setq help-window-keep-selected t)
+  ;; (setq help-window-select t)
+  ;; (setq help-window-keep-selected t)
   (setq help-enable-autoload t
         help-enable-completion-autoload t
         help-enable-symbol-autoload t)
   (setopt help-at-pt-display-when-idle t)
   (setq help-clean-buttons t)
-  (setq describe-bindings-outline t)
   ;; (setq apropos-do-all t)
   ;; (setq apropos-sort-by-scores 'verbose)
+  (setq describe-bindings-outline t)
   (setq describe-bindings-show-prefix-commands t)
 
   (defun xy/find-feature ()
@@ -731,12 +731,10 @@
          ;; ("I" . #'help-goto-lispref-info)
          ;; ("s" . #'help-view-source)
          ;; ("c" . #'help-customize)
-         ("S-SPC" . nil) ; `scroll-down-command', available as M-v/DEL(<backspace>)
          ("C" . #'set-variable)
+         ("S-SPC" . nil) ; `scroll-down-command', available as M-v/DEL(<backspace>)
          ("b" . #'beginning-of-buffer)
-         ("e" . #'end-of-buffer)
-         ("j" . #'next-line)
-         ("k" . #'previous-line)))
+         ("e" . #'end-of-buffer)))
 
 (use-package info
   :ensure nil
@@ -872,8 +870,8 @@
   ;; (setq completion-cycle-threshold nil)
 
   ;;; completion buffer
-  (setq completion-auto-help 'visible
-        completion-auto-select 'second-tab
+  (setq completion-auto-help 'always
+        completion-auto-select nil
         completion-no-auto-exit t
         completions-format 'one-column
         completions-sort 'historical
@@ -1113,19 +1111,18 @@
   :hook (ibuffer-mode . ibuffer-auto-mode)
   :config
   (defvar xy/boring-buffers '("\\` "
-                              "\\`\\*Echo Area"
-                              "\\`\\*Minibuf"
-                              "\\`\\*Completions"
+                              ;; "\\`\\*Echo Area"
+                              ;; "\\`\\*Minibuf"
+                              ;; "\\`\\*Completions"
                               "\\`\\*Flymake log"
                               "\\`\\*Semantic SymRef"
-                              "\\`\\*Backtrace"
+                              ;; "\\`\\*Backtrace"
                               "\\`\\*tramp"
                               "\\`\\*EGLOT"
                               ;; And some hidden buffers can be visited by ...
-                              "\\`\\*scratch"        ; "C-z s s"
-                              "\\`\\*Messages"       ; "C-h h e"
+                              ;; "\\`\\*scratch"        ; "C-z s s"
+                              ;; "\\`\\*Messages"       ; "C-h h e"
                               "\\`\\*Bookmark List"  ; "C-x r l"
-                              "\\`\\*Ibuffer"        ; "C-x C-b"
                               )
     "List of buffer names of buffers to hide on several occasions.")
 
@@ -1145,12 +1142,12 @@
   :config
   (winner-mode +1))
 
-(use-package windmove
-  :ensure nil
-  :defer 1
-  :config
-  (windmove-default-keybindings 'ctrl)
-  (windmove-swap-states-default-keybindings '(ctrl shift)))
+;; (use-package windmove
+;;   :ensure nil
+;;   :defer 1
+;;   :config
+;;   (windmove-default-keybindings 'ctrl)
+;;   (windmove-swap-states-default-keybindings '(ctrl shift)))
 
 
 ;;; ui
@@ -1265,18 +1262,19 @@
 ;; M-? -> `xref-find-references'
 (use-package xref
   :ensure nil
+  :defer t
   :config
   ;; Use completion system instead of popup window.
-  ;; (setq xref-show-definitions-function 'xref-show-definitions-completing-read
-  ;;       xref-show-xrefs-function 'xref-show-definitions-completing-read)
+  (setq xref-show-definitions-function 'xref-show-definitions-completing-read
+        xref-show-xrefs-function 'xref-show-definitions-completing-read)
   (setq xref-history-storage 'xref-window-local-history))
 
 (use-package eldoc
   :ensure nil
   :defer t
   :config
+  ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   (setq eldoc-minor-mode-string nil)
-  (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   (setq eldoc-echo-area-display-truncation-message nil))
 
 (use-package ediff
