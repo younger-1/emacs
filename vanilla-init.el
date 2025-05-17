@@ -24,7 +24,7 @@
                                (set-face-attribute 'default nil
                                                    :family (completing-read "Default font: " (font-family-list)))))
 (global-set-key [down-mouse-3] #'context-menu-open)
-(global-set-key [M-down-mouse-3] (mouse-menu-bar-map))
+(global-set-key [M-down-mouse-3] `(menu-item ,(purecopy "Menu Bar") ignore :filter ,(lambda (_) (mouse-menu-bar-map))))
 (keymap-global-set "M-s-," #'customize-group)
 (keymap-global-set "s-x" #'execute-extended-command)
 (keymap-global-set "s-X" #'execute-extended-command-for-buffer)
@@ -93,6 +93,10 @@
 
   ;; register
   (setopt register-use-preview 'insist)
+
+  ;; scroll
+  (setq scroll-preserve-screen-position 'always)
+  (setq next-screen-context-lines 15)
 
   ;; mouse
   (setq mouse-yank-at-point t)
@@ -339,7 +343,7 @@
   :config
   ;;; completion
   (setq completions-detailed t)
-  (setq completion-styles '(basic flex))
+  (setq completion-styles '(basic partial-completion emacs22 substring flex))
   (setq completion-category-overrides
         '((file (styles partial-completion))))
   (setq completion-ignore-case t
@@ -367,11 +371,11 @@
   (setq use-dialog-box nil)
   (setq resize-mini-windows 'grow-only))
 
-(use-package icomplete
-  :defer 0.2
-  :config
-  (setq icomplete-compute-delay 0.01)
-  (fido-vertical-mode +1))
+;; (use-package icomplete
+;;   :defer 0.2
+;;   :config
+;;   (setq icomplete-compute-delay 0.01)
+;;   (fido-vertical-mode +1))
 
 
 (use-package dabbrev

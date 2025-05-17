@@ -158,20 +158,20 @@
 ;; M-; -> `comment-dwim'
 (keymap-global-set "C-;" #'comment-line)
 
-;; @tip from `files'
+;; @tip from `files' / `window'
 (keymap-global-set "S-<return>" #'save-buffer)
-;; @tip from `window'
 ;; M-r -> `move-to-window-line-top-bottom'
 
-;; @tip from `mouse'
+;; @tip from `mouse' / `menu-bar' / `tmm' / `facemenu'
+;; <f10> -> `menu-bar-open' ; M-` -> `tmm-menubar'
 ;; By binding these to down-going events, we let the user use the up-going event to make the selection, saving a click.
 (global-set-key [down-mouse-3] #'context-menu-open)
-(global-set-key [M-down-mouse-3] (mouse-menu-bar-map))
+(global-set-key [M-down-mouse-3] `(menu-item ,(purecopy "Menu Bar") ignore :filter ,(lambda (_) (mouse-menu-bar-map))))
 ;; (global-set-key [C-down-mouse-1] #'mouse-buffer-menu)
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
-;; @tip disable `mouse-wheel-text-scale' by `mouse-wheel-mode' when use `pixel-scroll-precision-mode'
+;; disable `mouse-wheel-text-scale' by `mouse-wheel-mode' when use `pixel-scroll-precision-mode'
 (keymap-global-unset "C-<wheel-down>")
 (keymap-global-unset "C-<wheel-up>")
 
@@ -323,7 +323,7 @@
   (setopt register-use-preview 'insist)
 
   ;;; scroll
-  (setq scroll-preserve-screen-position t)
+  (setq scroll-preserve-screen-position 'always)
   (setq scroll-margin 0) ; for C-l and auto-scroll
   ;; (setq scroll-conservatively 999) ; for auto-scroll never centers point
   (setq next-screen-context-lines 15) ; for C-v/M-v
@@ -859,7 +859,7 @@
   :config
   ;;; completion
   (setq completions-detailed t)
-  (setq completion-styles '(basic flex)) ; @see `completion-styles-alist' for available style
+  (setq completion-styles '(basic partial-completion emacs22 substring flex)) ; @see `completion-styles-alist' for available style
   (setq completion-category-overrides ; @see `completion-category-defaults' for available category
         '((file (styles partial-completion)))) ; partial-completion enable open multiple files with `find-file' using wildcards
   (setq completion-ignore-case t
@@ -870,6 +870,16 @@
   ;; (setq completion-cycle-threshold nil)
 
   ;;; completion buffer
+  ;; -- demo for basic style
+  ;; 1. t
+  ;; "buf" TAB|TAB       |"f" TAB     |TAB            |"t" TAB
+  ;; buffer-  |buffer-(*)|buffer-face-|buffer-face-(*)|buffer-face-toggle
+  ;; 2. always
+  ;; "buf" TAB |"f" TAB        |"t" TAB
+  ;; buffer-(*)|buffer-face-(*)|buffer-face-toggle
+  ;; 3. visible
+  ;; "buf" TAB|TAB       |"f" TAB        |"t" TAB
+  ;; buffer-  |buffer-(*)|buffer-face-(*)|buffer-face-toggle
   (setq completion-auto-help t
         completion-auto-select nil
         completion-no-auto-exit t
