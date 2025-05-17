@@ -24,14 +24,16 @@
 ;; (load-theme 'deeper-blue)
 ;; (load-theme 'wombat)
 (progn
-  (setq modus-themes-italic-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-mixed-fonts t
-        modus-themes-variable-pitch-ui nil
-        modus-themes-prompts '(background)
-        modus-themes-headings '((1 . (1.4))
-                                (2 . (1.2))
-                                (3 . (1.1))))
+  (setopt modus-themes-italic-constructs t
+          modus-themes-bold-constructs t
+          modus-themes-mixed-fonts t
+          modus-themes-variable-pitch-ui nil
+          modus-themes-prompts '(light)
+          ;; modus-themes-completions '((matches . (underline))
+          ;;                            (selection . (bold)))
+          modus-themes-headings '((1 . (1.4))
+                                  (2 . (1.2))
+                                  (3 . (1.1))))
   ;; (load-theme 'modus-vivendi)
   ;; (load-theme 'modus-operandi)
   (load-theme 'modus-operandi-deuteranopia)
@@ -129,11 +131,11 @@
 ;;; keymap
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 (keymap-global-set "C-," (defun xy/open-init-file ()
-                             (interactive)
-                             (find-file user-init-file)))
+                           (interactive)
+                           (find-file user-init-file)))
 (keymap-global-set "C-<" (defun xy/open-init-dir ()
-                             (interactive)
-                             (dired user-emacs-directory)))
+                           (interactive)
+                           (dired user-emacs-directory)))
 ;; (keymap-global-set "C-S-v" #'scroll-other-window)
 ;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-v is not M-V
 
@@ -422,7 +424,7 @@
   ;;; abbrev
   (setq dabbrev-upcase-means-case-search t)
   (setq dabbrev-ignored-buffer-modes
-      '(archive-mode image-mode docview-mode tags-table-mode pdf-view-mode))
+        '(archive-mode image-mode docview-mode tags-table-mode pdf-view-mode))
 
   ;; (require 'proced)
   (setq proced-auto-update-interval 1)
@@ -861,10 +863,11 @@
   (setq completions-detailed t)
   (setq completion-styles '(basic flex)) ; @see `completion-styles-alist' for available style
   (setq completion-category-overrides ; @see `completion-category-defaults' for available category
-        '((file (styles partial-completion))))
+        '((file (styles partial-completion)))) ; partial-completion enable open multiple files with `find-file' using wildcards
   (setq completion-ignore-case t
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t)
+  ;; M-x only show commands which are applicable to major mode and active minor modes
   (setq read-extended-command-predicate #'command-completion-default-include-p)
   ;; (setq completion-cycle-threshold nil)
 
@@ -882,7 +885,7 @@
   (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
   ;; Keep the cursor out of the read-only portions of the minibuffer.
   (setq minibuffer-prompt-properties
-        '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+        '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
   ;;;; minibuffer UX
@@ -929,8 +932,8 @@
     (and (= index 0) (= total 1) (length< word 4)
          (cons 'orderless-literal-prefix word)))
   (orderless-define-completion-style xy/orderless-fast
-                                     (orderless-style-dispatchers '(xy/-orderless-fast-dispatch))
-                                     (orderless-matching-styles '(orderless-literal orderless-regexp))))
+    (orderless-style-dispatchers '(xy/-orderless-fast-dispatch))
+    (orderless-matching-styles '(orderless-literal orderless-regexp))))
 
 (use-package marginalia
   :after vertico
@@ -1110,21 +1113,21 @@
   :hook (ibuffer-mode . ibuffer-auto-mode)
   :config
   (defvar xy/boring-buffers '("\\` "
-                            "\\`\\*Echo Area"
-                            "\\`\\*Minibuf"
-                            "\\`\\*Completions"
-                            "\\`\\*Flymake log"
-                            "\\`\\*Semantic SymRef"
-                            "\\`\\*Backtrace"
-                            "\\`\\*tramp"
-                            "\\`\\*EGLOT"
-                            ;; And some hidden buffers can be visited by ...
-                            "\\`\\*scratch"        ; "C-z s s"
-                            "\\`\\*Messages"       ; "C-h h e"
-                            "\\`\\*Bookmark List"  ; "C-x r l"
-                            "\\`\\*Ibuffer"        ; "C-x C-b"
-                            )
-  "List of buffer names of buffers to hide on several occasions.")
+                              "\\`\\*Echo Area"
+                              "\\`\\*Minibuf"
+                              "\\`\\*Completions"
+                              "\\`\\*Flymake log"
+                              "\\`\\*Semantic SymRef"
+                              "\\`\\*Backtrace"
+                              "\\`\\*tramp"
+                              "\\`\\*EGLOT"
+                              ;; And some hidden buffers can be visited by ...
+                              "\\`\\*scratch"        ; "C-z s s"
+                              "\\`\\*Messages"       ; "C-h h e"
+                              "\\`\\*Bookmark List"  ; "C-x r l"
+                              "\\`\\*Ibuffer"        ; "C-x C-b"
+                              )
+    "List of buffer names of buffers to hide on several occasions.")
 
   (setq ibuffer-never-show-predicates xy/boring-buffers))
 
