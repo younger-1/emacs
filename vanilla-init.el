@@ -31,6 +31,8 @@
 (keymap-global-set "s-<return>" #'toggle-frame-fullscreen)  ; <f11>
 (keymap-global-set "S-s-<return>" #'toggle-frame-maximized) ; M-<f10>
 
+(package-activate-all)
+
 (setq use-package-always-ensure nil)
 (setq use-package-enable-imenu-support t)
 (setq use-package-expand-minimally t)
@@ -346,7 +348,7 @@
   (setq read-extended-command-predicate #'command-completion-default-include-p)
 
   ;;; completion buffer
-  (setq completion-auto-help 'always
+  (setq completion-auto-help t
         completion-auto-select nil
         completions-format 'one-column
         completions-sort 'historical

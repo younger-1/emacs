@@ -870,7 +870,7 @@
   ;; (setq completion-cycle-threshold nil)
 
   ;;; completion buffer
-  (setq completion-auto-help 'always
+  (setq completion-auto-help t
         completion-auto-select nil
         completion-no-auto-exit t
         completions-format 'one-column
