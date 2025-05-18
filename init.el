@@ -331,7 +331,6 @@
   (setq hscroll-margin 10
         hscroll-step 0
         auto-hscroll-mode 'current-line)
-  (setq isearch-allow-scroll 'unlimited)
   ;; scroll performance
   ;; (setq fast-but-imprecise-scrolling t)
   ;; (setq jit-lock-defer-time 0.05)
@@ -420,6 +419,8 @@
 
   ;;; isearch
   (setq lazy-highlight-initial-delay 0)
+  (setq isearch-allow-scroll 'unlimited)
+  (setq isearch-yank-on-move 'shift)
 
   ;;; abbrev
   (setq dabbrev-upcase-means-case-search t)
@@ -609,7 +610,7 @@
         help-enable-symbol-autoload t)
   (setopt help-at-pt-display-when-idle t)
   (setq help-clean-buttons t)
-  ;; (setq apropos-do-all t)
+  (setq apropos-do-all t)
   ;; (setq apropos-sort-by-scores 'verbose)
   (setq describe-bindings-outline t)
   (setq describe-bindings-show-prefix-commands t)
@@ -628,6 +629,9 @@
                        (format "\n\t\t%s" desc)
                      ""))))))
        (completing-read "Features: " coll))))
+  (defun xy/help-show-plist ()
+    (interactive)
+    (apropos-describe-plist (symbol-at-point)))
 
   :bind (("C-h R" . #'info-display-manual)
          ("C-h S" . #'info-lookup-symbol)
@@ -732,6 +736,7 @@
          ;; ("s" . #'help-view-source)
          ;; ("c" . #'help-customize)
          ("C" . #'set-variable)
+         ("P" . #'xy/help-show-plist)
          ("S-SPC" . nil) ; `scroll-down-command', available as M-v/DEL(<backspace>)
          ("b" . #'beginning-of-buffer)
          ("e" . #'end-of-buffer)))

@@ -130,6 +130,10 @@
   (setq sentence-end-double-space nil)
   (setq require-final-newline t)
 
+  ;; isearch
+  (setq isearch-allow-scroll 'unlimited)
+  (setq isearch-yank-on-move 'shift)
+
   ;; `simple.el'
   (setq what-cursor-show-names t) ; For `C-x ='
   (setq set-mark-command-repeat-pop t)
@@ -203,6 +207,9 @@
                        (format "\n\t\t%s" desc)
                      ""))))))
        (completing-read "Features: " coll))))
+  (defun xy/help-show-plist ()
+    (interactive)
+    (apropos-describe-plist (symbol-at-point)))
 
   :bind (("C-h R" . #'info-display-manual)
          ("C-h S" . #'info-lookup-symbol)
@@ -302,6 +309,7 @@
          ("C-h C-w" . nil)
          :map help-mode-map
          ("C" . #'set-variable)
+         ("P" . #'xy/help-show-plist)
          ("b" . #'beginning-of-buffer)
          ("e" . #'end-of-buffer)))
 
