@@ -419,7 +419,8 @@
 
   ;;; isearch
   (setq lazy-highlight-initial-delay 0)
-  (setq isearch-allow-scroll 'unlimited)
+  (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
+        isearch-allow-motion t) ; change action of C-v/M-v/M-</M->
   (setq isearch-yank-on-move 'shift)
 
   ;;; abbrev
@@ -631,6 +632,7 @@
        (completing-read "Features: " coll))))
   (defun xy/help-show-plist ()
     (interactive)
+    (require 'apropos)
     (apropos-describe-plist (symbol-at-point)))
 
   :bind (("C-h R" . #'info-display-manual)
