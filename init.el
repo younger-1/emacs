@@ -307,25 +307,28 @@
 (use-package emacs
   :ensure nil
   :config
-  ;;; tab
+  ;; tab
   (setq-default indent-tabs-mode nil)
   ;; (setq-default tab-width 4)
   ;; TAB key for indentation+completion. `completion-at-point' is often bound to M-TAB.
   (setq tab-always-indent 'complete)
   (setq backward-delete-char-untabify-method 'hungry)
 
-  ;;; kill
+  ;; kill
   (setq kill-do-not-save-duplicates t)
   (setq save-interprogram-paste-before-kill t)
   ;; (setq select-enable-clipboard nil)
 
-  ;;; register
+  ;; register
   (setopt register-use-preview 'insist)
 
-  ;;; scroll
-  (setq scroll-preserve-screen-position 'always)
-  (setq scroll-margin 0) ; for C-l and auto-scroll
-  ;; (setq scroll-conservatively 999) ; for auto-scroll never centers point
+  ;; scroll
+  ;; @tip
+  ;; C-v/M-v/auto-scroll -> keep point, scroll buffer up/dwon relative to the window
+  ;; C-p/C-n/M-}/M-{ -> move point, trigger auto-scroll if point out of window
+  ;; (setq scroll-preserve-screen-position 'always) ; vim flavor
+  (setq scroll-margin 2 ; for C-l and auto-scroll
+        scroll-conservatively 3) ; avoid auto-scroll if point move off margin
   (setq next-screen-context-lines 15) ; for C-v/M-v
   (setq scroll-error-top-bottom t) ; for C-v/M-v move point to top/bottom
   (setq hscroll-margin 10
@@ -335,17 +338,16 @@
   ;; (setq fast-but-imprecise-scrolling t)
   ;; (setq jit-lock-defer-time 0.05)
 
-  ;;; mouse
+  ;; mouse
   (setq mouse-yank-at-point t)
   (setq mouse-autoselect-window t)
 
-  ;;; limit
+  ;; limit
   (setq large-file-warning-threshold (* 64 1024 1024)) ; 10m -> 64m
   (setq read-process-output-max (* 1024 1024)) ; 4k -> 1m
   (setq undo-limit (* 10 160000) ; 10x
         undo-strong-limit (* 10 240000)
         undo-outer-limit (* 10 24000000))
-  (setq list-command-history-max 100)
   (setq suggest-key-bindings 999)
   ;; Disable truncation of printed s-expressions
   ;; in the message buffer (C-x_C-e `eval-last-sexp') and scratch buffer (C-j `eval-print-last-sexp')
@@ -354,17 +356,17 @@
   (setq message-log-max 3000)
   ;; (lossage-size 500)
 
-  ;;; lock
+  ;; lock
   (setq create-lockfiles nil)
 
-  ;;; backup
+  ;; backup
   (setq make-backup-files nil)
   (setq backup-by-copying t)
   (setq backup-directory-alist
         `(("." . ,(concat user-emacs-directory "backup"))))
   (setq tramp-backup-directory-alist backup-directory-alist)
 
-  ;;; auto-save
+  ;; auto-save
   ;; Enable `auto-save-mode' to prevent data loss in crash. Use `recover-file' or `recover-session' to restore unsaved changes.
   ;; Disable it can stop creating #filename# files.
   ;; By default, auto-saves happen every 300 keystrokes, or after around 30 seconds of idle time
@@ -379,7 +381,7 @@
   ;; -- 2.directly saving to the file itself without creating backup files
   ;; (auto-save-visited-mode +1)
 
-  ;;; wrap
+  ;; wrap
   ;; (global-visual-line-mode +1)
   ;; (setq-default word-wrap t)
   (setq word-wrap-by-category t)
@@ -393,22 +395,22 @@
   ;; auto truncate lines
   (setq truncate-partial-width-windows 80)
 
-  ;;; buffer
+  ;; buffer
   (setq uniquify-buffer-name-style 'forward)
   ;; Keep the compilation buffer in the background, except when there's an error
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window)))
 
-  ;;; window
+  ;; window
   ;; (setq split-height-threshold nil
   ;;       split-width-threshold 0)
 
-  ;;; cursor
+  ;; cursor
   (setq-default cursor-type 'box)
   (setq x-stretch-cursor t)
   (blink-cursor-mode -1)
 
-  ;;; edit
+  ;; edit
   (setq comment-empty-lines t)
   ;; (setq comment-multi-line t)
   (setq-default fill-column 80)
@@ -417,30 +419,22 @@
   ;; According to the POSIX, a line is defined as "a sequence of zero or more non-newline characters followed by a terminating newline".
   (setq require-final-newline t)
 
-  ;;; isearch
+  ;; isearch
   (setq lazy-highlight-initial-delay 0)
   (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
         isearch-allow-motion t) ; change action of C-v/M-v/M-</M->
   (setq isearch-yank-on-move 'shift)
 
-  ;;; abbrev
+  ;; abbrev
   (setq dabbrev-upcase-means-case-search t)
   (setq dabbrev-ignored-buffer-modes
         '(archive-mode image-mode docview-mode tags-table-mode pdf-view-mode))
 
-  ;; (require 'proced)
+  ;; proced
   (setq proced-auto-update-interval 1)
   (setq-default proced-auto-update-flag t)
 
-  ;; (require 'net-utils)
-  (setq netstat-program-options '("-atupe"))
-
-  ;; (require 'calendar)
-  (setq calendar-date-style 'iso
-        calendar-week-start-day 1
-        calendar-weekend-days '(6 0))
-
-  ;;; eglot
+  ;; eglot
   (setq eglot-sync-connect 1
         eglot-autoshutdown t)
   (setq eglot-extend-to-xref t)
@@ -449,17 +443,29 @@
   ;; prevent eglot minibuffer spam
   (setq eglot-report-progress nil)
 
-  ;;; flyspell
+  ;; flyspell
   ;; (setq flyspell-issue-welcome-flag nil)
   ;; Greatly improves flyspell performance by preventing messages from being displayed for each word when checking the entire buffer.
   ;; (setq flyspell-issue-message-flag nil)
 
-  ;;; ispell
+  ;; ispell
   ;; Disable ispell completion to avoid annotation errors when no `ispell' dictionary is set.
   ;; (setq text-mode-ispell-word-completion nil)
   (setq ispell-silently-savep t)
 
+  ;; GnuPG
   (setq epg-pinentry-mode 'loopback)
+
+  ;; misc
+  (require 'net-utils)
+  (setq netstat-program-options '("-atupe"))
+
+  (setq calendar-date-style 'iso
+        calendar-week-start-day 1
+        calendar-weekend-days '(6 0))
+
+  ;; [M-s M-w] -> `eww-search-words'
+  (setq eww-search-prefix "https://www.bing.com/search?q=")
 
   ;; `simple.el'
   (setq what-cursor-show-names t) ; For `C-x ='
@@ -491,7 +497,7 @@
   ;; No beeping or blinking
   ;; (setq ring-bell-function #'ignore
   ;;       visible-bell nil)
-  (setq show-trailing-whitespace t)
+  (setq-default show-trailing-whitespace t)
   (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
   )
 
@@ -507,7 +513,7 @@
   (emacs-startup . global-display-line-numbers-mode)
   (emacs-startup . column-number-mode) ; modeline
   (emacs-startup . size-indication-mode) ; modeline
-  (emacs-startup . pixel-scroll-precision-mode)
+  ;; (emacs-startup . pixel-scroll-precision-mode)
   (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
   ;; (emacs-startup . context-menu-mode)
@@ -850,14 +856,21 @@
   :ensure nil
   :defer 0.1
   :config
-  (savehist-mode +1)
-  (setq history-length 150)
-  (setq history-delete-duplicates t)
   (setq savehist-additional-variables '(kill-ring      ; clipboard
                                         register-alist ; keyboard macro
                                         mark-ring global-mark-ring ; mark
                                         search-ring regexp-search-ring ; search
-                                        comint-input-ring)))
+                                        comint-input-ring))
+  (setq history-length (* 100 2)
+        history-delete-duplicates t)
+  (setq list-command-history-max (* 32 2))
+  (setq kill-ring-max (* 120 1))
+  (setq mark-ring-max (* 16 2)
+        global-mark-ring-max (* 16 2))
+  (setq search-ring-max (* 16 2)
+        regexp-search-ring-max (* 16 2))
+  (setq comint-input-ring-size (* 500 1))
+  (savehist-mode +1))
 
 
 ;;; minibuffer
@@ -866,7 +879,7 @@
   :config
   ;;; completion
   (setq completions-detailed t)
-  (setq completion-styles '(basic partial-completion emacs22 substring flex)) ; @see `completion-styles-alist' for available style
+  (setq completion-styles '(basic substring partial-completion flex)) ; @see `completion-styles-alist' for available style
   (setq completion-category-overrides ; @see `completion-category-defaults' for available category
         '((file (styles partial-completion)))) ; partial-completion enable open multiple files with `find-file' using wildcards
   (setq completion-ignore-case t
@@ -877,7 +890,7 @@
   ;; (setq completion-cycle-threshold nil)
 
   ;;; completion buffer
-  ;; -- demo for basic style
+  ;; -- `completion-auto-help' demo for basic style
   ;; 1. t
   ;; "buf" TAB|TAB       |"f" TAB     |TAB            |"t" TAB
   ;; buffer-  |buffer-(*)|buffer-face-|buffer-face-(*)|buffer-face-toggle

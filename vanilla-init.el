@@ -95,8 +95,10 @@
   (setopt register-use-preview 'insist)
 
   ;; scroll
-  (setq scroll-preserve-screen-position 'always)
-  (setq next-screen-context-lines 15)
+  ;; (setq scroll-preserve-screen-position 'always)
+  ;; (setq scroll-margin 2
+  ;;       scroll-conservatively 3)
+  ;; (setq next-screen-context-lines 15)
 
   ;; mouse
   (setq mouse-yank-at-point t)
@@ -108,7 +110,6 @@
   (setq undo-limit (* 10 160000) ; 10x
         undo-strong-limit (* 10 240000)
         undo-outer-limit (* 10 24000000))
-  (setq list-command-history-max 100)
   (setq suggest-key-bindings 999)
   (setq eval-expression-print-length nil
         eval-expression-print-level nil)
@@ -153,7 +154,7 @@
   ;; `compile.el'
   (setq compilation-scroll-output 'first-error)
   ;; `C-code'
-  (setq show-trailing-whitespace t)
+  (setq-default show-trailing-whitespace t)
   (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
 
   ;; others
@@ -338,14 +339,21 @@
 (use-package savehist
   :defer 0.1
   :config
-  (savehist-mode +1)
-  (setq history-length 150)
-  (setq history-delete-duplicates t)
   (setq savehist-additional-variables '(kill-ring      ; clipboard
                                         register-alist ; keyboard macro
                                         mark-ring global-mark-ring ; mark
                                         search-ring regexp-search-ring ; search
-                                        comint-input-ring)))
+                                        comint-input-ring))
+  (setq history-length (* 100 2)
+        history-delete-duplicates t)
+  (setq list-command-history-max (* 32 2))
+  (setq kill-ring-max (* 120 1))
+  (setq mark-ring-max (* 16 2)
+        global-mark-ring-max (* 16 2))
+  (setq search-ring-max (* 16 2)
+        regexp-search-ring-max (* 16 2))
+  (setq comint-input-ring-size (* 500 1))
+  (savehist-mode +1))
 
 
 ;;; minibuffer
@@ -353,7 +361,7 @@
   :config
   ;;; completion
   (setq completions-detailed t)
-  (setq completion-styles '(basic partial-completion emacs22 substring flex))
+  (setq completion-styles '(basic substring partial-completion flex))
   (setq completion-category-overrides
         '((file (styles partial-completion))))
   (setq completion-ignore-case t
@@ -364,6 +372,7 @@
   ;;; completion buffer
   (setq completion-auto-help t
         completion-auto-select nil
+        completion-no-auto-exit t
         completions-format 'one-column
         completions-sort 'historical
         completions-max-height 20)
