@@ -326,7 +326,7 @@
   ;; @tip
   ;; C-v/M-v/auto-scroll -> keep point, scroll buffer up/dwon relative to the window
   ;; C-p/C-n/M-}/M-{ -> move point, trigger auto-scroll if point out of window
-  ;; (setq scroll-preserve-screen-position 'always) ; vim flavor
+  (setq scroll-preserve-screen-position t) ; vim flavor
   (setq scroll-margin 2 ; for C-l and auto-scroll
         scroll-conservatively 3) ; avoid auto-scroll if point move off margin
   (setq next-screen-context-lines 15) ; for C-v/M-v
@@ -500,10 +500,10 @@
   ;; No beeping or blinking
   ;; (setq ring-bell-function #'ignore
   ;;       visible-bell nil)
+  (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
   (setq-default show-trailing-whitespace t)
   ;; (setq-default indicate-empty-lines t)
-  (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
-  )
+  (setq-default indicate-buffer-boundaries 'left))
 
 
 ;;; hooks and keymaps
@@ -881,9 +881,9 @@
 (use-package minibuffer
   :ensure nil
   :config
-  ;;; completion
+  ;; completion
   (setq completions-detailed t)
-  (setq completion-styles '(basic substring partial-completion flex)) ; @see `completion-styles-alist' for available style
+  (setq completion-styles '(basic initials substring partial-completion flex)) ; @see `completion-styles-alist' for available style
   (setq completion-category-overrides ; @see `completion-category-defaults' for available category
         '((file (styles partial-completion)))) ; partial-completion enable open multiple files with `find-file' using wildcards
   (setq completion-ignore-case t
@@ -893,7 +893,7 @@
   (setq read-extended-command-predicate #'command-completion-default-include-p)
   ;; (setq completion-cycle-threshold nil)
 
-  ;;; completion buffer
+  ;; completion buffer
   ;; -- `completion-auto-help' demo for basic style
   ;; 1. t
   ;; "buf" TAB|TAB       |"f" TAB     |TAB            |"t" TAB
@@ -904,14 +904,15 @@
   ;; 3. visible
   ;; "buf" TAB|TAB       |"f" TAB        |"t" TAB
   ;; buffer-  |buffer-(*)|buffer-face-(*)|buffer-face-toggle
-  (setq completion-auto-help t
-        completion-auto-select nil
+  (setq completion-auto-help 'always
+        completion-auto-select 'second-tab
         completion-no-auto-exit t
         completions-format 'one-column
         completions-sort 'historical
+        completions-group t
         completions-max-height 20)
 
-  ;;; minibuffer
+  ;; minibuffer
   ;; Allow nested minibuffers.
   (setq enable-recursive-minibuffers t)
   (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
@@ -920,7 +921,7 @@
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
-  ;;;; minibuffer UX
+  ;; minibuffer UX
   (setq use-short-answers t)
   ;; Disable GUIs because they are inconsistent across systems, desktop environments, and themes, and they don't match the look of Emacs.
   (setq use-file-dialog nil)
@@ -998,14 +999,17 @@
   (setq vertico-multiform-commands
         '((imenu buffer reverse)
           (switch-to-buffer buffer (vertico-buffer-display-action . (display-buffer-same-window)))
-          (execute-extended-command (:not indexed))
           (execute-extended-command-for-buffer (:not indexed mouse))))
-  (setq vertico-multiform-categories
+  (setq vertico-multiform-categories ; categories at `marginalia-annotator-registry'
         '((file buffer)
+          (project-file buffer)
           (buffer buffer)
+          (command (:not indexed))
           (symbol (vertico-sort-function . vertico-sort-alpha))))
-  (vertico-multiform-mode +1)
-  )
+  (vertico-multiform-mode +1))
+
+;; Consult provides search and navigation commands based on `completing-read'
+
 
 (use-package orderless
   :after vertico
@@ -1020,6 +1024,7 @@
     (orderless-style-dispatchers '(xy/-orderless-fast-dispatch))
     (orderless-matching-styles '(orderless-literal orderless-regexp))))
 
+;; Enriches the completion display with annotation
 (use-package marginalia
   :after vertico
   :config

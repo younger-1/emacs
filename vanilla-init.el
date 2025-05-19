@@ -95,10 +95,9 @@
   (setopt register-use-preview 'insist)
 
   ;; scroll
-  ;; (setq scroll-preserve-screen-position 'always)
+  ;; (setq scroll-preserve-screen-position t)
   ;; (setq scroll-margin 2
   ;;       scroll-conservatively 3)
-  ;; (setq next-screen-context-lines 15)
 
   ;; mouse
   (setq mouse-yank-at-point t)
@@ -156,7 +155,7 @@
   (setq compilation-scroll-output 'first-error)
   ;; `C-code'
   (setq-default show-trailing-whitespace t)
-  (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
+  (setq-default indicate-buffer-boundaries 'left)
 
   ;; others
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -362,7 +361,7 @@
   :config
   ;;; completion
   (setq completions-detailed t)
-  (setq completion-styles '(basic substring partial-completion flex))
+  (setq completion-styles '(basic initials substring partial-completion flex))
   (setq completion-category-overrides
         '((file (styles partial-completion))))
   (setq completion-ignore-case t
@@ -371,11 +370,12 @@
   (setq read-extended-command-predicate #'command-completion-default-include-p)
 
   ;;; completion buffer
-  (setq completion-auto-help t
-        completion-auto-select nil
+  (setq completion-auto-help 'always
+        completion-auto-select 'second-tab
         completion-no-auto-exit t
         completions-format 'one-column
         completions-sort 'historical
+        completions-group t
         completions-max-height 20)
 
   ;;; minibuffer
