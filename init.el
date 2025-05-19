@@ -927,13 +927,25 @@
   (setq use-dialog-box nil)
   (setq resize-mini-windows 'grow-only))
 
+;; @see (info "(emacs) Icomplete")
 ;; (use-package icomplete
 ;;   :ensure nil
 ;;   :defer 0.2
 ;;   :config
+;;   ;; -- Enable Icomplete’s in-buffer display for C-M-i (`completion-at-point'), and disable *Completions* buffer
+;;   ;; -- 1.must set before `icomplete-mode' / `fido-mode'
+;;   ;; -- 2.only for non-vertical version
+;;   ;; (progn
+;;   ;;   (setq icomplete-in-buffer t)
+;;   ;;   (advice-add 'completion-at-point :after #'minibuffer-hide-completions))
+;;   ;; (icomplete-mode +1)
+;;   ;; (fido-mode +1)
+;;   ;; -- vertical version
+;;   ;; (icomplete-vertical-mode +1)
+;;   ;; (fido-vertical-mode +1)
+;;   ;;
 ;;   ;; Do not delay displaying completion candidates
-;;   (setq icomplete-compute-delay 0.01)
-;;   (fido-vertical-mode +1))
+;;   (setq icomplete-compute-delay 0.01))
 
 (use-package nerd-icons-completion
   :config
@@ -948,7 +960,7 @@
           ;; @tip
           ;; M-w -> `vertico-save' Save current candidate to kill ring.
           ;; M-RET -> `vertico-exit-input', reserve for `embark-export'
-          ;; -- Other method for exiting with input when create a new buffer/file
+          ;; -- Other ways for exiting with input when create a new buffer/file
           ;; -- 1.moving the point to the prompt.
           ;; -- 2.C-u RET
           ("M-RET" . nil))
