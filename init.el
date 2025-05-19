@@ -348,6 +348,7 @@
   (setq undo-limit (* 10 160000) ; 10x
         undo-strong-limit (* 10 240000)
         undo-outer-limit (* 10 24000000))
+  (setq echo-keystrokes 0.1)
   (setq suggest-key-bindings 999)
   ;; Disable truncation of printed s-expressions
   ;; in the message buffer (C-x_C-e `eval-last-sexp') and scratch buffer (C-j `eval-print-last-sexp')
@@ -420,6 +421,8 @@
   (setq require-final-newline t)
 
   ;; isearch
+  ;; @tip `isearch-mode-map'
+  ;; M-e/M-p/M-n -> enable `minibuffer-local-isearch-map' which derived from `minibuffer-local-map'
   (setq lazy-highlight-initial-delay 0)
   (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
         isearch-allow-motion t) ; change action of C-v/M-v/M-</M->
@@ -498,6 +501,7 @@
   ;; (setq ring-bell-function #'ignore
   ;;       visible-bell nil)
   (setq-default show-trailing-whitespace t)
+  ;; (setq-default indicate-empty-lines t)
   (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
   )
 
@@ -940,15 +944,56 @@
 ;; minibuffer completion with vertical UI
 (use-package vertico
   :defer 0.2
-  :bind ( :map vertico-map
+  :bind ( :map vertico-map ; derived from `minibuffer-local-map'
           ;; @tip
           ;; M-w -> `vertico-save' Save current candidate to kill ring.
-          ;; M-RET -> `vertico-exit-input' Exiting with input when create a new buffer/file
-          ;; -- Non-existing candidates can be submitted by moving the point to the prompt.
-          ;; -- Reserve for `embark-export'
+          ;; M-RET -> `vertico-exit-input', reserve for `embark-export'
+          ;; -- Other method for exiting with input when create a new buffer/file
+          ;; -- 1.moving the point to the prompt.
+          ;; -- 2.C-u RET
           ("M-RET" . nil))
   :config
-  (vertico-mode +1))
+  (vertico-mode +1)
+  (vertico-mouse-mode +1)
+  (vertico-indexed-mode +1)
+  (keymap-set vertico-map "M-q" #'vertico-quick-insert)
+  (keymap-set vertico-map "C-q" #'vertico-quick-exit)
+
+  ;; @tip [C-x ESC ESC] -> `repeat-complex-command'
+  ;; Repeat Vertico sessions
+  (keymap-global-set "M-z" #'vertico-repeat)
+  (keymap-set vertico-map "M-x" #'vertico-repeat-select)
+  (keymap-set vertico-map "M-P" #'vertico-repeat-previous)
+  (keymap-set vertico-map "M-N" #'vertico-repeat-next)
+  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
+
+  ;; Suspend the current Vertico session
+  (keymap-global-set "M-Z" #'vertico-suspend)
+
+  ;; Ido-like directory navigation
+  (keymap-set vertico-map "RET" #'vertico-directory-enter)
+  (keymap-set vertico-map "DEL" #'vertico-directory-delete-char)
+  ;; (keymap-set vertico-map "M-DEL" #'vertico-directory-delete-word)
+  (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+
+  ;; Toggling between the different display modes
+  ;;   M-B -> `vertico-multiform-buffer'
+  ;;   M-F -> `vertico-multiform-flat'
+  ;;   M-G -> `vertico-multiform-grid'
+  ;;   M-R -> `vertico-multiform-reverse'
+  ;;   M-U -> `vertico-multiform-unobtrusive'
+  ;;   M-V -> `vertico-multiform-vertical'
+  (setq vertico-multiform-commands
+        '((imenu buffer reverse)
+          (switch-to-buffer buffer (vertico-buffer-display-action . (display-buffer-same-window)))
+          (execute-extended-command (:not indexed))
+          (execute-extended-command-for-buffer (:not indexed mouse))))
+  (setq vertico-multiform-categories
+        '((file buffer)
+          (buffer buffer)
+          (symbol (vertico-sort-function . vertico-sort-alpha))))
+  (vertico-multiform-mode +1)
+  )
 
 (use-package orderless
   :after vertico
@@ -973,7 +1018,7 @@
 ;; to perform context-sensitive actions on target(s) at point
 ;; which works both in minibuffer and normal buffers
 (use-package embark
-  :defer 0.5
+  ;; :defer 0.5
   :bind
   ;; @see `embark-keymap-alist'
   ;; `embark-act' acts as a right-click context menu at point and `embark-dwim' acts like left-click
@@ -987,7 +1032,7 @@
    ;;
    ("M-RET" . embark-export) ; @see `embark-exporters-alist', falls back to the generic `embark-collect'
    ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf.
-   ("C-<return>" . embark-live)
+   ("C-M-<return>" . embark-live)
    ;;
    ("C-h B" . embark-bindings)  ; alternative for `describe-bindings'
    :map minibuffer-local-map
@@ -1009,6 +1054,7 @@
 ;; -- `grep-mode' for `consult-grep' `consult-git-grep' `consult-ripgrep'
 ;; 2. `embark-live' collectors: add to `embark-candidate-collectors' for `outline-minor-mode' and `imenu'
 (use-package embark-consult
+  :after embark :demand t ;; load consult after embark to provide `consult-imenu' for `embark-export'
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 

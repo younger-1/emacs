@@ -110,6 +110,7 @@
   (setq undo-limit (* 10 160000) ; 10x
         undo-strong-limit (* 10 240000)
         undo-outer-limit (* 10 24000000))
+  (setq echo-keystrokes 0.1)
   (setq suggest-key-bindings 999)
   (setq eval-expression-print-length nil
         eval-expression-print-level nil)
