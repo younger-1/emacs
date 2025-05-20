@@ -766,8 +766,6 @@
          :map Info-mode-map
          ("M-n" . nil) ; `clone-buffer'
          ("S-SPC" . nil) ; `Info-scroll-down', available as DEL(<backspace>)
-         ("j" . #'next-line)
-         ("k" . #'previous-line)
          ("." . #'Info-search-next)
          ("a" . #'info-apropos)))
 
@@ -933,7 +931,7 @@
 ;;   :ensure nil
 ;;   :defer 0.2
 ;;   :config
-;;   ;; -- Enable Icomplete’s in-buffer display for C-M-i (`completion-at-point'), and disable *Completions* buffer
+;;   ;; -- Enable Icomplete’s in-buffer display for M-TAB (`completion-at-point'), and disable *Completions* buffer
 ;;   ;; -- 1.must set before `icomplete-mode' / `fido-mode'
 ;;   ;; -- 2.only for non-vertical version
 ;;   ;; (progn
@@ -964,8 +962,12 @@
           ;; -- Other ways for exiting with input when create a new buffer/file
           ;; -- 1.moving the point to the prompt.
           ;; -- 2.C-u RET
-          ("M-RET" . nil))
+          ("M-RET" . nil)
+          ("C-j" . vertico-next-group) ; as M-} / M-{
+          ("C-k" . vertico-previous-group))
   :config
+  (setq vertico-count 15)
+  (setq vertico-resize nil)
   (vertico-mode +1)
   (vertico-mouse-mode +1)
   (vertico-indexed-mode +1)
@@ -1009,7 +1011,109 @@
   (vertico-multiform-mode +1))
 
 ;; Consult provides search and navigation commands based on `completing-read'
+(use-package consult
+  :bind (("C-c M-x" . consult-mode-command)
+         ("C-c h" . consult-history)
+         ("C-c k" . consult-kmacro)
+         ("C-c m" . consult-man)
+         ("C-c i" . consult-info)
+         ([remap Info-search] . consult-info)
+         ;; C-x bindings in `ctl-x-map'
+         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+         ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+         ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("C-M-y" . #'yank-pop) ; show the view of kill history
+         ("M-y" . consult-yank-pop) ; show the view of kill ring
+         ;; [M-Y] alone is same as `consult-yank-pop'
+         ;; [C-y M-Y] yank without moving the last-yank pointer
+         ("M-Y" . consult-yank-replace)
+         ;; M-g bindings in `goto-map'
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings in `search-map'
+         ("M-s d" . consult-find)                  ;; Alternative: consult-fd
+         ("M-s c" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI.
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+
+  ;; Tweak the register preview for `consult-register-load',
+  ;; `consult-register-store' and the built-in commands.  This improves the
+  ;; register formatting, adds thin separator lines, register sorting and hides
+  ;; the window mode line.
+  (advice-add #'register-preview :override #'consult-register-window)
+  (setq register-preview-delay 0.5)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+
+  ;; Configure other variables and modes in the :config section,
+  ;; after lazily loading the package.
+  :config
+
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key "M-.")
+  ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep consult-man
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   ;; :preview-key "M-."
+   :preview-key '(:debounce 0.4 any))
+
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; "C-+"
+
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
+  )
 
 (use-package orderless
   :after vertico
@@ -1086,7 +1190,8 @@
 ;;   (global-completion-preview-mode +1))
 
 ;; COmpletion in Region FUnction
-;; in-buffer completion with a child frame popup for `completion-in-region'
+;; in-buffer completion with a child frame popup by setting `completion-in-region-function'
+;; Command `completion-at-point' -> Function `completion-in-region' -> Variable `completion-in-region-function'
 (use-package corfu
   :defer 0.2
   :bind ( :map corfu-map
@@ -1115,11 +1220,11 @@
                           completion-category-defaults nil))))
 
 ;; Completion At Point Extensions
+;; Capfs(`completion-at-point-functions') are completion backends used by `completion-at-point' command
 (use-package cape
   :bind ("C-c p" . cape-prefix-map)
   :init
   (setq text-mode-ispell-word-completion #'cape-dict)
-  ;; The completion backends used by `completion-at-point' are called `completion-at-point-functions' (Capfs).
   ;; Add more completion backends. The latters take precedence over formers.
   (add-hook 'completion-at-point-functions #'cape-dict)
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
