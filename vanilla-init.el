@@ -19,10 +19,23 @@
 (keymap-global-set "C-," (defun xy/open-init-dir ()
                            (interactive)
                            (dired user-emacs-directory)))
-(keymap-global-set "C-h C-y" (defun xy/select-font ()
+(keymap-global-set "C-c y f" (defun xy/select-font ()
                                (interactive)
                                (set-face-attribute 'default nil
                                                    :family (completing-read "Default font: " (font-family-list)))))
+
+(defun xy/load-theme (theme &optional no-confirm no-enable)
+  "Load a single theme interactively. Without prefix argument, disable all other enabled themes."
+  (interactive (eval (cadr (interactive-form 'load-theme))))
+  (if (called-interactively-p)
+      (message "[xy]: load theme: %s" theme))
+  (unless current-prefix-arg
+    (mapc #'disable-theme custom-enabled-themes))
+  (funcall-interactively 'load-theme theme :no-confirm no-enable))
+
+(keymap-global-set "C-c y l" #'xy/load-theme)
+(keymap-global-set "C-c y u" #'disable-theme)
+
 (global-set-key [down-mouse-3] #'context-menu-open)
 (global-set-key [M-down-mouse-3] `(menu-item ,(purecopy "Menu Bar") ignore :filter ,(lambda (_) (mouse-menu-bar-map))))
 (keymap-global-set "M-s-," #'customize-group)
@@ -87,6 +100,9 @@
   (setq tab-always-indent 'complete)
   (setq backward-delete-char-untabify-method 'hungry)
 
+  ;; mark
+  ;; (setq mark-even-if-inactive nil)
+
   ;; kill
   (setq kill-do-not-save-duplicates t)
   (setq save-interprogram-paste-before-kill t)
@@ -132,6 +148,8 @@
   (setq require-final-newline t)
 
   ;; isearch
+  (setq isearch-lazy-count t)
+  (setq isearch-lazy-highlight 'all-windows)
   (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
         isearch-allow-motion t) ; change action of C-v/M-v/M-</M->
   (setq isearch-yank-on-move 'shift)
@@ -195,7 +213,7 @@
   (setq describe-bindings-outline t)
   (setq describe-bindings-show-prefix-commands t)
 
-  (defun xy/find-feature ()
+  (defun xy/loaded-feature ()
     "Find loaded features"
     (interactive)
     (require 'loadhist)
@@ -214,49 +232,33 @@
     (require 'apropos)
     (apropos-describe-plist (symbol-at-point)))
 
-  :bind (("C-h R" . #'info-display-manual)
-         ("C-h S" . #'info-lookup-symbol)
-         ("C-h F" . #'Info-goto-emacs-command-node)
-         ("C-h K" . #'Info-goto-emacs-key-command-node)
+  :bind (;; @see `help-map'
+         ("C-h C-h" . #'help-for-help)
+         ("C-h ?" . #'help-for-help)
+         ("C-h ." . #'display-local-help)
          ;;
-         ("C-h C-f" . #'find-function)
+         ("C-h C-f" . #'find-function) ; `view-emacs-FAQ'
          ("C-h C-v" . #'find-variable)
          ("C-h C-k" . #'find-function-on-key)
+         ("C-h C-l" . #'find-library)
          ("C-h C-b" . #'describe-keymap)
-         ("C-h C-p" . #'finder-by-keyword)
+         ("C-h C-p" . #'finder-by-keyword) ; `view-emacs-problems'
          ;;
          ("C-h f" . #'describe-function)
-         ("C-h c" . #'describe-command)
+         ("C-h c" . #'describe-command) ; `describe-key-briefly'
          ("C-h v" . #'describe-variable)
          ("C-h k" . #'describe-key)
          ("C-h b" . #'describe-bindings)
-         ("C-h s" . #'describe-symbol)
+         ("C-h s" . #'describe-symbol) ; `describe-syntax'
          ("C-h m" . #'describe-mode)
-         ("C-h n" . #'describe-minor-mode)
-         ("C-h x" . #'list-command-history)
-         ("C-h X" . #'command-history)
+         ("C-h n" . #'describe-minor-mode) ; `view-emacs-news'
+         ("C-h x" . #'command-history) ; `describe-command'.  @tip Use x to repeat the command on the current line.
          ;;
-         ("C-h l" . #'xy/find-feature) ; `view-lossage'
-         ("C-h L" . #'unload-feature) ; `describe-language-environment'
-         ("C-h C-l" . #'find-library)
-         ("C-h M-l" . #'locate-library)
-         ;;
-         ("C-h j i" . #'describe-icon)
-         ("C-h j c" . #'describe-char)
-         ("C-h j f" . #'describe-face)
-         ("C-h j F" . #'list-faces-display)
-         ("C-h j g" . #'describe-font)
-         ("C-h j h" . #'describe-fontset)
-         ("C-h j t" . #'describe-theme)
-         ("C-h j s" . #'describe-syntax)
-         ("C-h j w" . #'describe-widget) ; or "C-u C-h ."
-         ("C-h j b" . #'button-describe)
-         ("C-h j W" . #'widget-describe)
-         ("C-h j I" . #'describe-input-method)
-         ("C-h j l" . #'describe-language-environment)
-         ("C-h j p" . #'describe-text-properties)
-         ("C-h j C" . #'describe-current-coding-system)
-         ("C-h j y" . #'cl-describe-type)
+         ("C-h i" . #'info)
+         ("C-h R" . #'info-display-manual)
+         ("C-h S" . #'info-lookup-symbol)
+         ("C-h F" . #'Info-goto-emacs-command-node)
+         ("C-h K" . #'Info-goto-emacs-key-command-node)
          ;;
          ("C-h a" . nil) ; `apropos-command'
          ("C-h a a" . #'apropos)
@@ -264,57 +266,143 @@
          ("C-h a d" . #'apropos-documentation)
          ("C-h a w" . #'apropos-value)
          ("C-h a W" . #'apropos-local-value)
-         ("C-h a u" . #'apropos-user-option)
+         ("C-h a o" . #'apropos-user-option)
          ("C-h a l" . #'apropos-library)
          ("C-h a f" . #'apropos-function)
          ("C-h a v" . #'apropos-variable)
          ("C-h a V" . #'apropos-local-variable)
          ;;
+         ("C-h d" . nil) ; `apropos-documentation'
+         ("C-h d i" . #'describe-icon)
+         ("C-h d c" . #'describe-char)
+         ("C-h d f" . #'describe-face)
+         ("C-h d F" . #'list-faces-display)
+         ("C-h d g" . #'describe-font)
+         ("C-h d h" . #'describe-fontset)
+         ("C-h d t" . #'describe-theme)
+         ("C-h d s" . #'describe-syntax)
+         ("C-h d w" . #'describe-widget) ; or "C-u C-h ."
+         ("C-h d b" . #'button-describe)
+         ("C-h d W" . #'widget-describe)
+         ("C-h d I" . #'describe-input-method)
+         ("C-h d l" . #'describe-language-environment)
+         ("C-h d p" . #'describe-text-properties)
+         ("C-h d C" . #'describe-coding-system)
+         ("C-h d y" . #'cl-describe-type)
+         ;;
          ("C-h h" . nil) ; `view-hello-file'
-         ("C-h h a" . #'display-about-screen)
          ("C-h h q" . #'view-emacs-FAQ)
          ("C-h h p" . #'view-emacs-problems)
          ("C-h h n" . #'view-emacs-news)
          ("C-h h t" . #'view-emacs-todo)
          ("C-h h d" . #'view-emacs-debugging)
-         ("C-h h e" . #'view-echo-area-messages)
-         ("C-h h l" . #'view-lossage)
          ;;
-         ("C-h e" . nil) ; `view-echo-area-messages'
-         ("C-h e e" . #'pp-eval-last-sexp)
-         ("C-h e p" . #'pp-eval-expression)
-         ("C-h e j" . #'eval-print-last-sexp)
-         ("C-h e f" . #'eval-defun)
-         ("C-h e b" . #'eval-buffer)
-         ("C-h e r" . #'eval-region)
-         ("C-h e d" . #'edebug-defun)
+         ("C-h o" . nil) ; `describe-symbol'
+         ("C-h o s" . #'shortdoc)
+         ("C-h o l" . #'xy/loaded-feature)
+         ("C-h o u" . #'unload-feature)
+         ;;
+         ("C-h u f" . #'add-file-local-variable)
+         ("C-h u d" . #'add-dir-local-variable)
          ;;
          ("C-h w" . nil) ; `where-is'
          ("C-h w c" . #'where-is)
          ("C-h w k" . #'describe-key-briefly)
          ;;
-         ("C-h o" . nil) ; `describe-symbol'
-         ("C-h o f" . #'add-file-local-variable)
-         ("C-h o d" . #'add-dir-local-variable)
-         ;;
+         ;; j u y z
+         ("C-h e" . #'view-echo-area-messages)
+         ("C-h l" . #'view-lossage)
          ("C-h t" . #'help-with-tutorial)
-         ("C-h u" . #'shortdoc)
+         ("C-h g" . nil) ; `describe-gnu-project'
+         ("C-h q" . nil) ; `help-quit'
+         ("C-h C" . nil) ; `describe-input-method'
+         ("C-h I" . nil) ; `describe-coding-system'
+         ("C-h P" . nil) ; `describe-package'
          ;;
-         ("C-h d" . nil)
-         ("C-h I" . nil)
-         ("C-h C" . nil)
-         ("C-h C-c" . nil)
-         ("C-h C-d" . nil)
-         ("C-h C-e" . nil)
-         ("C-h C-m" . nil)
-         ("C-h C-n" . nil)
-         ("C-h C-o" . nil)
-         ("C-h C-w" . nil)
+         ("C-h C-a" . #'about-emacs)
+         ("C-h C-q" . #'help-quick-toggle)
+         ("C-h C-s" . #'search-forward-help-for-help)
+         ("C-h C-c" . nil) ; `describe-copying'
+         ("C-h C-d" . nil) ; `view-emacs-debugging'
+         ("C-h C-e" . nil) ; `view-external-packages'
+         ("C-h C-m" . nil) ; `view-order-manuals'
+         ("C-h C-n" . nil) ; `view-emacs-news'
+         ("C-h C-o" . nil) ; `describe-distribution'
+         ("C-h C-t" . nil) ; `view-emacs-todo'
+         ("C-h C-w" . nil) ; `describe-no-warranty'
          :map help-mode-map
          ("C" . #'set-variable)
          ("P" . #'xy/help-show-plist)
          ("b" . #'beginning-of-buffer)
          ("e" . #'end-of-buffer)))
+
+(use-package info
+  :ensure nil
+  :init
+  (defun xy/info-elisp () (interactive) (info "elisp"))
+  (defun xy/info-eintr () (interactive) (info "eintr"))
+  :bind (("C-h r" . nil) ; `info-emacs-manual'
+         ("C-h r r" . #'info-emacs-manual)
+         ("C-h r e" . #'xy/info-elisp)
+         ("C-h r t" . #'xy/info-eintr)
+         :map Info-mode-map
+         ("." . #'Info-search-next)
+         ("a" . #'info-apropos)))
+
+(use-package package
+  :init
+  (defun xy/open-package-quickstart ()
+    (interactive)
+    (find-file package-quickstart-file))
+  (defun xy/open-elpa-d ()
+    (interactive)
+    (let ((default-directory (file-name-as-directory package-user-dir)))
+      (call-interactively 'find-file)))
+  :bind (("C-h p" . nil) ; `finder-by-keyword'
+         ("C-h p p" . #'describe-package)
+         ("C-h p R" . package-refresh-contents)
+         ("C-h p q" . package-quickstart-refresh)
+         ("C-h p l" . package-list-packages-no-fetch)
+         ("C-h p L" . package-list-packages)
+         ("C-h p r" . package-reinstall)
+         ("C-h p d" . package-delete)
+         ("C-h p D" . package-autoremove)
+         ;;
+         ("C-h p i" . package-install)
+         ("C-h p I" . package-install-selected-packages)
+         ("C-h p u" . package-upgrade)
+         ("C-h p U" . package-upgrade-all)
+         ;;
+         ("C-h p v i" . package-vc-install)
+         ("C-h p v I" . package-vc-install-selected-packages)
+         ("C-h p v u" . package-vc-upgrade)
+         ("C-h p v U" . package-vc-upgrade-all)
+         ("C-h p v r" . package-vc-rebuild)
+         ;;
+         ("C-h p q" . #'xy/open-package-quickstart)
+         ("C-h p a" . #'xy/open-elpa-d)
+         ("C-h p j" . #'use-package-jump-to-package-form)
+         ("C-h p k" . #'use-package-report)))
+
+(use-package cus-edit
+  :bind
+  ("C-h , ," . #'customize)
+  ("C-h , ." . #'customize-group)
+  ("C-h , b" . #'customize-browse)
+  ("C-h , m" . #'customize-mode)
+  ("C-h , o" . #'customize-option)
+  ("C-h , t" . #'customize-themes)
+  ("C-h , f" . #'customize-face)
+  ("C-h , i" . #'customize-icon)
+  ("C-h , a a" . #'customize-apropos)
+  ("C-h , a o" . #'customize-apropos-options)
+  ("C-h , a f" . #'customize-apropos-faces)
+  ("C-h , a g" . #'customize-apropos-groups)
+  ;;
+  ("C-h , c" . #'customize-changed)
+  ("C-h , s" . #'customize-saved)
+  ("C-h , u" . #'customize-unsaved)
+  ("C-h , r" . #'customize-rogue))
 
 
 ;;; history
@@ -346,7 +434,7 @@
                                         comint-input-ring))
   (setq history-length (* 100 2)
         history-delete-duplicates t)
-  (setq list-command-history-max (* 32 2))
+  (setq list-command-history-max (* 32 6))
   (setq kill-ring-max (* 120 1))
   (setq mark-ring-max (* 16 2)
         global-mark-ring-max (* 16 2))
@@ -467,6 +555,24 @@
   (setq dired-create-destination-dirs 'ask)
   (setq dired-vc-rename-file t)
   (setq dired-omit-verbose nil))
+
+
+;;; lisp
+(use-package lisp-mode
+  :init
+  (defun xy/check-parens-before-save ()
+    (add-hook 'before-save-hook #'check-parens 0 :local))
+  (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
+  (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
+  :bind (("C-c e e" . #'pp-eval-last-sexp)
+         ("C-c e p" . #'pp-eval-expression)
+         ("C-c e j" . #'eval-print-last-sexp)
+         ("C-c e f" . #'eval-defun)
+         ("C-c e b" . #'eval-buffer)
+         ("C-c e r" . #'eval-region)
+         ("C-c e d" . #'edebug-defun)
+         :map lisp-mode-shared-map
+         ("C-c e c" . #'check-parens)))
 
 
 ;;; ui
