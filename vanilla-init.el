@@ -150,12 +150,31 @@
   ;; isearch
   (setq isearch-lazy-count t)
   (setq isearch-lazy-highlight 'all-windows)
-  (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
-        isearch-allow-motion t) ; change action of C-v/M-v/M-</M->
+  (setq isearch-allow-scroll 'unlimited
+        isearch-allow-motion t
+        isearch-motion-changes-direction t)
   (setq isearch-yank-on-move 'shift)
 
+  (defun xy/isearch-exit-mark-match ()
+    "Exit isearch and mark the current match."
+    (interactive)
+    (isearch-exit)
+    (push-mark isearch-other-end)
+    (activate-mark))
+  (keymap-set isearch-mode-map "C-<return>" #'xy/isearch-exit-mark-match)
+
+  (defun xy/isearch-project ()
+    "Run `project-find-regexp' using the last search string as the regexp"
+    (interactive)
+    (isearch-exit)
+    (let ((query (if isearch-regexp
+                     isearch-string
+                   (regexp-quote isearch-string))))
+      (project-find-regexp query)))
+  (keymap-set isearch-mode-map "M-s p" #'xy/isearch-project)
+
   ;; `simple.el'
-  (setq what-cursor-show-names t) ; For `C-x ='
+  (setq what-cursor-show-names t)
   (setq set-mark-command-repeat-pop t)
   ;; `files.el'
   (setq delete-by-moving-to-trash t)
@@ -249,6 +268,7 @@
          ("C-h v" . #'describe-variable)
          ("C-h k" . #'describe-key)
          ("C-h b" . #'describe-bindings)
+         ("C-h B" . #'describe-personal-keybindings)
          ("C-h s" . #'describe-symbol) ; `describe-syntax'
          ("C-h m" . #'describe-mode)
          ("C-h n" . #'describe-minor-mode) ; `view-emacs-news'

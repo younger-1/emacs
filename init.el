@@ -130,6 +130,7 @@
 
 ;;; keymap
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
+;; @see (info "(elisp) Key Binding Conventions") to know which keys are safe for users
 (keymap-global-set "C-," (defun xy/open-init-file ()
                            (interactive)
                            (find-file user-init-file)))
@@ -425,12 +426,35 @@
 
   ;; isearch
   ;; @tip `isearch-mode-map'
-  ;; M-e/M-p/M-n -> enable `minibuffer-local-isearch-map' which derived from `minibuffer-local-map'
+  ;; [M-s M-.] -> `isearch-forward-thing-at-point' can use active region
+  ;; To enable `minibuffer-local-isearch-map' which derived from `minibuffer-local-map'
+  ;; -- 1.M-e -> `isearch-edit-string'
+  ;; -- 2.M-p/M-n -> `isearch-ring-retreat' / `isearch-ring-advance'
+  ;; -- 3.[C-s RET] -> `isearch-exit' do nonincremental search
   (setq isearch-lazy-count t)
   (setq isearch-lazy-highlight 'all-windows)
   (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
-        isearch-allow-motion t) ; change action of C-v/M-v/M-</M->
+        isearch-allow-motion t ; change action of C-v/M-v/M-</M->
+        isearch-motion-changes-direction t)
   (setq isearch-yank-on-move 'shift)
+
+  (defun xy/isearch-exit-mark-match ()
+    "Exit isearch and mark the current match."
+    (interactive)
+    (isearch-exit)
+    (push-mark isearch-other-end)
+    (activate-mark))
+  (keymap-set isearch-mode-map "C-<return>" #'xy/isearch-exit-mark-match)
+
+  (defun xy/isearch-project ()
+    "Run `project-find-regexp' using the last search string as the regexp"
+    (interactive)
+    (isearch-exit)
+    (let ((query (if isearch-regexp
+                     isearch-string
+                   (regexp-quote isearch-string))))
+      (project-find-regexp query)))
+  (keymap-set isearch-mode-map "M-s p" #'xy/isearch-project)
 
   ;; abbrev
   (setq dabbrev-upcase-means-case-search t)
@@ -479,6 +503,8 @@
   (setq set-mark-command-repeat-pop t)
   ;; Recenter to the middle of the window for `compile-goto-error', `wgrep', `embark-export'.
   (setq next-error-recenter '(4))
+  ;; (setq next-error-message-highlight 'keep)
+  ;; (setq list-matching-lines-jump-to-current-line t)
   ;; By default, emacs "updates" its ui more often than it needs to
   (setq idle-update-delay 1.0)
   ;; `files.el'
@@ -666,6 +692,7 @@
          ("C-h v" . #'describe-variable)
          ("C-h k" . #'describe-key)
          ("C-h b" . #'describe-bindings)
+         ("C-h B" . #'describe-personal-keybindings)
          ("C-h s" . #'describe-symbol) ; `describe-syntax'
          ("C-h m" . #'describe-mode)
          ("C-h n" . #'describe-minor-mode) ; `view-emacs-news'
@@ -901,6 +928,7 @@
   ;; (setq completion-cycle-threshold nil)
 
   ;; completion buffer
+  ;; -- `completion-list-mode-map', which derived from `special-mode-map'
   ;; -- `completion-auto-help' demo for basic style
   ;; 1. t
   ;; "buf" TAB|TAB       |"f" TAB     |TAB            |"t" TAB
@@ -1283,7 +1311,43 @@
   :defer 0.2
   :config
   (repeat-mode +1)
-  (setq repeat-exit-key "RET"))
+  (setq repeat-exit-key "RET")
+
+  (define-keymap
+    :keymap undo-repeat-map
+    "U" #'undo-only
+    "r" #'undo-redo) ; useful to shorten "undo records" by balancing out previous `undo'
+
+  (defvar-keymap xy/paragraph-repeat-map
+    :repeat t
+    "{" #'backward-paragraph
+    "}" #'forward-paragraph)
+
+  (defvar-keymap xy/navi-repeat-map
+    :repeat (:hints
+             ((kill-backward-up-list . "kill-backward-up-list")
+              (up-list . "up-list")))
+    ;; sexp
+    "f" #'forward-sexp
+    "b" #'backward-sexp
+    ;; list
+    "n" #'forward-list
+    "p" #'backward-list
+    "d" #'down-list
+    "u" #'backward-up-list
+    "N" #'up-list
+    ;; edit
+    "t" #'transpose-sexps
+    "k" #'kill-sexp
+    "DEL" #'backward-kill-sexp
+    "U" #'kill-backward-up-list
+    "r" #'raise-sexp
+    "SPC" #'mark-sexp
+    ;; defun
+    "a" #'beginning-of-defun
+    "e" #'end-of-defun
+    "h" #'mark-defun
+    "x" #'eval-defun))
 
 (use-package which-key
   :ensure nil
