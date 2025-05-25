@@ -260,6 +260,7 @@
   (package-refresh-contents))
 
 (setq use-package-always-ensure t)
+(setq use-package-always-defer t)
 (setq use-package-enable-imenu-support t)
 (setq use-package-expand-minimally t)
 (setq use-package-compute-statistics init-file-debug)
@@ -1263,7 +1264,7 @@
 ;; in-buffer completion with a child frame popup by setting `completion-in-region-function'
 ;; Command `completion-at-point' -> Function `completion-in-region' -> Variable `completion-in-region-function'
 (use-package corfu
-  :defer 0.3
+  :defer 0.2
   :bind ( :map corfu-map
           ;; ("RET" . nil) ; Free RET for newline etc.
           ;; ("TAB" . corfu-next) ; Use TAB for cycling
@@ -1335,7 +1336,7 @@
 
 (use-package repeat
   :ensure nil
-  :defer 0.2
+  :defer 0.3
   :config
   (repeat-mode +1)
   (setq repeat-exit-key "RET")
@@ -1378,7 +1379,7 @@
 
 (use-package which-key
   :ensure nil
-  :defer 1
+  :defer 0.3
   :config
   (which-key-mode +1)
   (setq which-key-lighter nil)
@@ -1390,7 +1391,7 @@
         which-key-sort-uppercase-first nil))
 
 (use-package keyfreq
-  :defer 1
+  :defer 0.3
   :bind ("C-h w f" . keyfreq-show)
   :config
   (setq keyfreq-excluded-commands
@@ -1439,7 +1440,7 @@
 ;;; window
 (use-package winner
   :ensure nil
-  :defer 1
+  :defer 0.5
   :bind
   ("C-x 4 u" . #'winner-undo)
   ("C-x 4 r" . #'winner-redo)
@@ -1448,7 +1449,7 @@
 
 ;; (use-package windmove
 ;;   :ensure nil
-;;   :defer 1
+;;   :defer 0.5
 ;;   :config
 ;;   (windmove-default-keybindings 'ctrl)
 ;;   (windmove-swap-states-default-keybindings '(ctrl shift)))
@@ -1573,7 +1574,6 @@
 ;; M-? -> `xref-find-references'
 (use-package xref
   :ensure nil
-  :defer t
   :config
   ;; Use completion system instead of popup window.
   (setq xref-show-definitions-function 'xref-show-definitions-completing-read
@@ -1582,7 +1582,6 @@
 
 (use-package eldoc
   :ensure nil
-  :defer t
   :config
   ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   (setq eldoc-minor-mode-string nil)
@@ -1590,7 +1589,6 @@
 
 (use-package ediff
   :ensure nil
-  :defer t
   :config
   ;; use a single frame and split windows horizontally
   (setq ediff-window-setup-function #'ediff-setup-windows-plain
@@ -1601,7 +1599,6 @@
 ;;; tool
 (use-package flymake
   :ensure nil
-  :defer t
   ;; :hook (emacs-lisp-mode)
   :bind ( :map flymake-mode-map
           ("M-g n" . flymake-goto-next-error)
@@ -1614,7 +1611,6 @@
 
 (use-package org
   :ensure nil
-  :defer t
   :bind
   ("C-z o d" . #'xy/open-org-dir)
   ("C-z o o" . #'xy/open-org-notes)
@@ -1661,7 +1657,7 @@
   (keymap-global-set "M-<mouse-5>" (defun xy/scroll-up++ () (interactive) (scroll-up-line 5)))
 
   (use-package xt-mouse
-    :defer 1
+    :defer 0.5
     :config
     (xterm-mouse-mode +1))
 
@@ -1669,7 +1665,7 @@
   ;; Allow Emacs to copy to and paste from the GUI clipboard when running in a text terminal
   (when (and xy/linux-p (executable-find "xclip"))
     (use-package xclip
-      :defer 1
+      :defer 0.5
       :config
       (xclip-mode +1))))
 

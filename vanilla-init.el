@@ -47,6 +47,7 @@
 (package-activate-all)
 
 (setq use-package-always-ensure nil)
+(setq use-package-always-defer t)
 (setq use-package-enable-imenu-support t)
 (setq use-package-expand-minimally t)
 (setq use-package-compute-statistics init-file-debug)
@@ -523,13 +524,13 @@
   (ffap-bindings))
 
 (use-package repeat
-  :defer 0.2
+  :defer 0.3
   :config
   (repeat-mode +1)
   (setq repeat-exit-key "RET"))
 
 (use-package which-key
-  :defer 1
+  :defer 0.3
   :config
   (which-key-mode +1)
   (setq which-key-lighter nil)
@@ -554,7 +555,7 @@
 
 ;;; window
 (use-package winner
-  :defer 1
+  :defer 0.5
   :bind
   ("C-x 4 u" . #'winner-undo)
   ("C-x 4 r" . #'winner-redo)
@@ -603,7 +604,7 @@
 
 ;;; util
 (use-package autorevert
-  :defer 0.2
+  :defer 0.5
   :config
   (global-auto-revert-mode +1)
   (setq global-auto-revert-non-file-buffers t)
@@ -617,18 +618,15 @@
   (setq outline-minor-mode-use-buttons 'in-margins))
 
 (use-package xref
-  :defer t
   :config
   (setq xref-history-storage 'xref-window-local-history))
 
 (use-package eldoc
-  :defer t
   :config
   ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   (setq eldoc-minor-mode-string nil))
 
 (use-package ediff
-  :defer t
   :config
   (setq ediff-window-setup-function #'ediff-setup-windows-plain
         ediff-split-window-function #'split-window-horizontally
