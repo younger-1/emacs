@@ -984,8 +984,9 @@
 ;;   (setq icomplete-compute-delay 0.01))
 
 (use-package nerd-icons-completion
+  :defer 0.2
   :config
-  (nerd-icons-completion-mode)
+  (nerd-icons-completion-mode +1)
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
 ;; VERTical Interactive COmpletion
@@ -1000,6 +1001,7 @@
           ;; -- 1.moving the point to the prompt.
           ;; -- 2.C-u RET
           ("M-RET" . nil)
+          ("S-<return>" . vertico-exit-input)
           ("C-j" . vertico-next-group) ; as M-} / M-{
           ("C-k" . vertico-previous-group))
   :config
@@ -1024,7 +1026,8 @@
   ;; Ido-like directory navigation
   (keymap-set vertico-map "RET" #'vertico-directory-enter)
   (keymap-set vertico-map "DEL" #'vertico-directory-delete-char)
-  ;; (keymap-set vertico-map "M-DEL" #'vertico-directory-delete-word)
+  ;; Deletion without kill in most cases, use C-<backspace> to kill
+  (keymap-set vertico-map "M-DEL" #'vertico-directory-delete-word)
   (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
 
   ;; Toggling between the different display modes
@@ -1073,7 +1076,7 @@
          ;; [C-y M-Y] yank without moving the last-yank pointer
          ("M-Y" . consult-yank-replace)
          ;;
-         ("C-h C-m" . consult-mode-command) ; C-c M-x
+         ("C-h C-m" . consult-mode-command) ; as `execute-extended-command-for-buffer'
          ("C-h C-n" . consult-minor-mode-menu)
          ("C-c y t" . consult-theme)
          ;; M-g bindings in `goto-map'
@@ -1158,12 +1161,16 @@
   (consult-info-define 'completion
                        "vertico" "consult" "marginalia" "orderless" "embark" "corfu" "cape"))
 
+;; Emacs completion style that matches multiple regexps in any order
+;; -- `orderless-matching-styles'
+;; -- `orderless-affix-dispatch-alist'
 (use-package orderless
-  :after vertico
+  :after vertico :demand t
   :config
   (setq completion-styles '(orderless basic))
   (setq completion-category-defaults nil)
 
+  ;; @corfu/readme
   (defun xy/-orderless-fast-dispatch (word index total)
     (and (= index 0) (= total 1) (length< word 4)
          (cons 'orderless-literal-prefix word)))
@@ -1172,8 +1179,18 @@
     (orderless-matching-styles '(orderless-literal orderless-regexp))))
 
 ;; Enriches the completion display with annotation
+;; 1.provide classifiers for embark
+;; -- `marginalia-classifiers'
+;; 2.provide annotators for minibuffer
+;; -- `marginalia-annotator-registry'
+;; -- `marginalia--symbol-class'
 (use-package marginalia
-  :after vertico
+  :after vertico :demand t
+  :bind ( :map minibuffer-local-map
+          ("M-A" . marginalia-cycle)
+          ;; To make the binding available in the *Completions* buffer
+          :map completion-list-mode-map
+          ("M-A" . marginalia-cycle))
   :config
   (marginalia-mode +1))
 
@@ -1182,7 +1199,6 @@
 ;; to perform context-sensitive actions on target(s) at point
 ;; which works both in minibuffer and normal buffers
 (use-package embark
-  ;; :defer 0.5
   :bind
   ;; @see `embark-keymap-alist'
   ;; `embark-act' acts as a right-click context menu at point and `embark-dwim' acts like left-click
@@ -1198,9 +1214,9 @@
    ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf.
    ("C-M-<return>" . embark-live)
    ;;
-   ("C-h B" . embark-bindings)  ; alternative for `describe-bindings'
+   ("C-h TAB" . embark-bindings)  ; as `execute-extended-command-for-buffer'
    :map minibuffer-local-map
-   ("M-." . embark-become)) ; @see `embark-become-keymaps'
+   ("M-," . embark-become)) ; @see `embark-become-keymaps'
   :init
   ;; Used for backup of `which-key-C-h-dispatch', saved as `which-key--prefix-help-cmd-backup'
   ;; (setq prefix-help-command #'embark-prefix-help-command)
@@ -1211,7 +1227,18 @@
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
-                 (window-parameters (mode-line-format . none)))))
+                 (window-parameters (mode-line-format . none))))
+
+  ;; @consult/wiki
+  ;; -- Manual preview for non-Consult commands using Embark
+  (define-key minibuffer-local-map (kbd "M-.") #'xy/embark-preview)
+  (defun xy/embark-preview ()
+    "Previews candidate in minibuffer, unless it's a consult command"
+    (interactive)
+    (unless (bound-and-true-p consult--preview-function)
+      (save-selected-window
+        (let ((embark-quit-after-action nil))
+          (embark-dwim))))))
 
 ;; 1. `embark-export' exporters:
 ;; -- `occur-mode' for `consult-line' `consult-outline' `consult-mark'
@@ -1236,7 +1263,7 @@
 ;; in-buffer completion with a child frame popup by setting `completion-in-region-function'
 ;; Command `completion-at-point' -> Function `completion-in-region' -> Variable `completion-in-region-function'
 (use-package corfu
-  :defer 0.2
+  :defer 0.3
   :bind ( :map corfu-map
           ;; ("RET" . nil) ; Free RET for newline etc.
           ;; ("TAB" . corfu-next) ; Use TAB for cycling
@@ -1257,7 +1284,7 @@
   ;; (corfu-indexed-mode +1)
   ;; Buffer-local/Corfu-only completion styles
   (add-hook 'corfu-mode-hook
-            (defun xy/in-buffer-completion-style ()
+            (defun xy/-in-buffer-completion-style ()
               (setq-local completion-styles '(xy/orderless-fast basic)
                           completion-category-overrides nil
                           completion-category-defaults nil))))
@@ -1277,7 +1304,7 @@
   )
 
 (use-package nerd-icons-corfu
-  :after corfu
+  :after corfu :demand t
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
@@ -1509,7 +1536,7 @@
 ;;; util
 (use-package autorevert
   :ensure nil
-  :defer 0.2
+  :defer 0.5
   :config
   (global-auto-revert-mode +1)
   ;; @tip "C-x x g" is `revert-buffer-quick', "s-u" is `revert-buffer'
