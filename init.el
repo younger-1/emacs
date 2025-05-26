@@ -177,13 +177,15 @@
 (keymap-global-unset "C-<wheel-up>")
 
 ;; @tip from `term/ns-win'
-;; (keymap-global-set "s-t" #'menu-set-font)
-;; (keymap-global-set "s-," #'customize)
+;; s-t -> menu-set-font
+;; s-, -> customize
 (keymap-global-set "M-s-," #'customize-group)
 (keymap-global-set "s-x" #'execute-extended-command)
 (keymap-global-set "s-X" #'execute-extended-command-for-buffer)
 (keymap-global-set "s-<return>" #'toggle-frame-fullscreen) ; <f11>
 (keymap-global-set "S-s-<return>" #'toggle-frame-maximized) ; M-<f10>
+;; s-z -> undo
+(keymap-global-set "s-Z" #'undo-redo)
 
 ;; @tip I should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
@@ -211,6 +213,7 @@
                                     fill-column)))
                              (call-interactively #'fill-paragraph))))
 
+
 ;;; path
 (defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
 (add-to-list 'exec-path xy/mason-bin-dir)
@@ -424,38 +427,6 @@
   (setq sentence-end-double-space nil)
   ;; According to the POSIX, a line is defined as "a sequence of zero or more non-newline characters followed by a terminating newline".
   (setq require-final-newline t)
-
-  ;; isearch
-  ;; @tip `isearch-mode-map'
-  ;; [M-s M-.] -> `isearch-forward-thing-at-point' can use active region
-  ;; To enable `minibuffer-local-isearch-map' which derived from `minibuffer-local-map'
-  ;; -- 1.M-e -> `isearch-edit-string'
-  ;; -- 2.M-p/M-n -> `isearch-ring-retreat' / `isearch-ring-advance'
-  ;; -- 3.[C-s RET] -> `isearch-exit' do nonincremental search
-  (setq isearch-lazy-count t)
-  (setq isearch-lazy-highlight 'all-windows)
-  (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
-        isearch-allow-motion t ; change action of C-v/M-v/M-</M->
-        isearch-motion-changes-direction t)
-  (setq isearch-yank-on-move 'shift)
-
-  (defun xy/isearch-exit-mark-match ()
-    "Exit isearch and mark the current match."
-    (interactive)
-    (isearch-exit)
-    (push-mark isearch-other-end)
-    (activate-mark))
-  (keymap-set isearch-mode-map "C-<return>" #'xy/isearch-exit-mark-match)
-
-  (defun xy/isearch-project ()
-    "Run `project-find-regexp' using the last search string as the regexp"
-    (interactive)
-    (isearch-exit)
-    (let ((query (if isearch-regexp
-                     isearch-string
-                   (regexp-quote isearch-string))))
-      (project-find-regexp query)))
-  (keymap-set isearch-mode-map "M-s p" #'xy/isearch-project)
 
   ;; abbrev
   (setq dabbrev-upcase-means-case-search t)
@@ -677,7 +648,7 @@
     (apropos-describe-plist (symbol-at-point)))
 
   :bind (;; @see `help-map'
-         ("C-h C-h" . #'help-for-help)
+         ("C-h C-h" . nil)
          ("C-h ?" . #'help-for-help)
          ("C-h ." . #'display-local-help)
          ;;
@@ -755,7 +726,7 @@
          ("C-h w k" . #'describe-key-briefly)
          ;;
          ;; j u y z
-         ("C-h e" . #'view-echo-area-messages)
+         ("C-h e" . #'view-echo-area-messages) ; or click echo area
          ("C-h l" . #'view-lossage)
          ("C-h t" . #'help-with-tutorial)
          ("C-h g" . nil) ; `describe-gnu-project'
@@ -911,16 +882,53 @@
   (savehist-mode +1))
 
 
+;;; isearch
+(use-package isearch
+  :ensure nil
+  :config
+  ;; @tip `isearch-mode-map'
+  ;; [M-s M-.] -> `isearch-forward-thing-at-point' can use active region
+  ;; To enable `minibuffer-local-isearch-map' which derived from `minibuffer-local-map'
+  ;; -- 1.M-e -> `isearch-edit-string'
+  ;; -- 2.M-p/M-n -> `isearch-ring-retreat' / `isearch-ring-advance'
+  ;; -- 3.[C-s RET] -> `isearch-exit' do nonincremental search
+  (setq isearch-lazy-count t)
+  (setq isearch-lazy-highlight 'all-windows)
+  (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
+        isearch-allow-motion t ; change action of C-v/M-v/M-</M->
+        isearch-motion-changes-direction t)
+  (setq isearch-yank-on-move 'shift)
+
+  (defun xy/isearch-exit-mark-match ()
+    "Exit isearch and mark the current match."
+    (interactive)
+    (isearch-exit)
+    (push-mark isearch-other-end)
+    (activate-mark))
+  (keymap-set isearch-mode-map "C-<return>" #'xy/isearch-exit-mark-match)
+
+  (defun xy/isearch-project ()
+    "Run `project-find-regexp' using the last search string as the regexp"
+    (interactive)
+    (isearch-exit)
+    (let ((query (if isearch-regexp
+                     isearch-string
+                   (regexp-quote isearch-string))))
+      (project-find-regexp query)))
+  (keymap-set isearch-mode-map "M-s p" #'xy/isearch-project))
+
+
 ;;; minibuffer
 (use-package minibuffer
   :ensure nil
   ;; @see `minibuffer-local-map' or (info "(emacs) Minibuffer History")
+  ;; @see `minibuffer-local-completion-map'
   :config
   ;; completion
   (setq completions-detailed t)
   (setq completion-styles '(basic initials substring partial-completion flex)) ; @see `completion-styles-alist' for available style
   (setq completion-category-overrides ; @see `completion-category-defaults' for available category
-        '((file (styles partial-completion)))) ; partial-completion enable open multiple files with `find-file' using wildcards
+        '((file (styles basic partial-completion)))) ; partial-completion enable open multiple files with `find-file' using wildcards
   (setq completion-ignore-case t
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t)
@@ -1276,13 +1284,16 @@
   (setq corfu-cycle t)
   ;; Recommended enable globally since many modes provide Capfs and Dabbrev can be used globally (M-/).
   (global-corfu-mode +1)
+
   ;; Sort completions by history
   (corfu-history-mode +1)
+
   ;; Show documentation in popup.
   ;; @tip M-g:`corfu-info-location', M-h:`corfu-info-documentation'
   (corfu-popupinfo-mode +1)
   (setq corfu-popupinfo-delay '(1 . 0.5))
   ;; (corfu-indexed-mode +1)
+
   ;; Buffer-local/Corfu-only completion styles
   (add-hook 'corfu-mode-hook
             (defun xy/-in-buffer-completion-style ()
@@ -1323,16 +1334,16 @@
 
 
 ;;; keymap
-(use-package ffap
-  :ensure nil
-  :defer 1
-  :bind
-  ("C-x M-f" . #'ffap-menu)
-  :config
-  ;; @tip
-  ;; (keymap-global-set "S-<mouse-3>" 'ffap-at-mouse)
-  ;; (keymap-global-set "C-S-<mouse-3>" 'ffap-menu)
-  (ffap-bindings))
+;; (use-package ffap
+;;   :ensure nil
+;;   :defer 1
+;;   :bind
+;;   ("C-x M-f" . #'ffap-menu)
+;;   :config
+;;   ;; @tip
+;;   ;; (keymap-global-set "S-<mouse-3>" 'ffap-at-mouse)
+;;   ;; (keymap-global-set "C-S-<mouse-3>" 'ffap-menu)
+;;   (ffap-bindings))
 
 (use-package repeat
   :ensure nil
@@ -1612,14 +1623,14 @@
 (use-package org
   :ensure nil
   :bind
-  ("C-z o d" . #'xy/open-org-dir)
-  ("C-z o o" . #'xy/open-org-notes)
-  ("C-z o c" . #'org-capture)
-  ("C-z o a" . #'org-agenda)
-  ("C-z o l" . #'org-insert-link)
-  ("C-z o L" . #'org-store-link)
-  ("C-z o ;" . #'org-toggle-link-display)
-  ("C-z o p" . #'org-publish)
+  ("C-c o d" . #'xy/open-org-dir)
+  ("C-c o o" . #'xy/open-org-notes)
+  ("C-c o c" . #'org-capture)
+  ("C-c o a" . #'org-agenda)
+  ("C-c o l" . #'org-insert-link)
+  ("C-c o L" . #'org-store-link)
+  ("C-c o ;" . #'org-toggle-link-display)
+  ("C-c o p" . #'org-publish)
   :init
   (defun xy/open-org-dir ()
     (interactive)
@@ -1629,7 +1640,12 @@
     (interactive)
     (find-file org-default-notes-file))
   :config
-  (add-hook 'org-mode-hook #'visual-line-mode)
+  ;; (add-hook 'org-mode-hook #'visual-line-mode)
+  (setq org-startup-folded 'content)
+  (setq org-hide-leading-stars t)
+  (setq org-special-ctrl-a/e t
+        org-special-ctrl-k t)
+
   ;; Alignment of tags at the end of headlines
   (setq  org-auto-align-tags t
          org-tags-column 0)
@@ -1669,6 +1685,7 @@
       :config
       (xclip-mode +1))))
 
+
 ;;; shell
 ;; @see https://www.masteringemacs.org/article/running-shells-in-emacs-overview
 (use-package comint

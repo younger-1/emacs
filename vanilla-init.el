@@ -148,32 +148,6 @@
   (setq sentence-end-double-space nil)
   (setq require-final-newline t)
 
-  ;; isearch
-  (setq isearch-lazy-count t)
-  (setq isearch-lazy-highlight 'all-windows)
-  (setq isearch-allow-scroll 'unlimited
-        isearch-allow-motion t
-        isearch-motion-changes-direction t)
-  (setq isearch-yank-on-move 'shift)
-
-  (defun xy/isearch-exit-mark-match ()
-    "Exit isearch and mark the current match."
-    (interactive)
-    (isearch-exit)
-    (push-mark isearch-other-end)
-    (activate-mark))
-  (keymap-set isearch-mode-map "C-<return>" #'xy/isearch-exit-mark-match)
-
-  (defun xy/isearch-project ()
-    "Run `project-find-regexp' using the last search string as the regexp"
-    (interactive)
-    (isearch-exit)
-    (let ((query (if isearch-regexp
-                     isearch-string
-                   (regexp-quote isearch-string))))
-      (project-find-regexp query)))
-  (keymap-set isearch-mode-map "M-s p" #'xy/isearch-project)
-
   ;; `simple.el'
   (setq what-cursor-show-names t)
   (setq set-mark-command-repeat-pop t)
@@ -253,7 +227,7 @@
     (apropos-describe-plist (symbol-at-point)))
 
   :bind (;; @see `help-map'
-         ("C-h C-h" . #'help-for-help)
+         ("C-h C-h" . nil)
          ("C-h ?" . #'help-for-help)
          ("C-h ." . #'display-local-help)
          ;;
@@ -465,6 +439,35 @@
   (savehist-mode +1))
 
 
+;;; isearch
+(use-package isearch
+  :config
+  (setq isearch-lazy-count t)
+  (setq isearch-lazy-highlight 'all-windows)
+  (setq isearch-allow-scroll 'unlimited
+        isearch-allow-motion t
+        isearch-motion-changes-direction t)
+  (setq isearch-yank-on-move 'shift)
+
+  (defun xy/isearch-exit-mark-match ()
+    "Exit isearch and mark the current match."
+    (interactive)
+    (isearch-exit)
+    (push-mark isearch-other-end)
+    (activate-mark))
+  (keymap-set isearch-mode-map "C-<return>" #'xy/isearch-exit-mark-match)
+
+  (defun xy/isearch-project ()
+    "Run `project-find-regexp' using the last search string as the regexp"
+    (interactive)
+    (isearch-exit)
+    (let ((query (if isearch-regexp
+                     isearch-string
+                   (regexp-quote isearch-string))))
+      (project-find-regexp query)))
+  (keymap-set isearch-mode-map "M-s p" #'xy/isearch-project))
+
+
 ;;; minibuffer
 (use-package minibuffer
   :config
@@ -472,7 +475,7 @@
   (setq completions-detailed t)
   (setq completion-styles '(basic initials substring partial-completion flex))
   (setq completion-category-overrides
-        '((file (styles partial-completion))))
+        '((file (styles basic partial-completion))))
   (setq completion-ignore-case t
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t)
@@ -516,12 +519,12 @@
 
 
 ;;; keymap
-(use-package ffap
-  :defer 1
-  :bind
-  ("C-x M-f" . #'ffap-menu)
-  :config
-  (ffap-bindings))
+;; (use-package ffap
+;;   :defer 1
+;;   :bind
+;;   ("C-x M-f" . #'ffap-menu)
+;;   :config
+;;   (ffap-bindings))
 
 (use-package repeat
   :defer 0.3
