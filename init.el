@@ -129,6 +129,14 @@
 
 
 ;;; keymap
+;; free keys: C-x c/g/j/z
+;; [C-x e] `kmacro-end-and-call-macro'
+;; [C-x f] `set-fill-column'
+;; [C-x i] `insert-file'
+;; [C-x l] `count-lines-page'
+;; [C-x m] `compose-mail'
+;; [C-x q] `kbd-macro-query'
+;;
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 ;; @see (info "(elisp) Key Binding Conventions") to know which keys are safe for users
 (keymap-global-set "C-," (defun xy/open-init-file ()
@@ -158,6 +166,12 @@
 (keymap-global-set "<backtab>" #'back-to-indentation)
 ;; M-; -> `comment-dwim'
 (keymap-global-set "C-;" #'comment-line)
+
+;; @tip from `indent'
+;; C-x TAB -> `indent-rigidly'
+;; C-M-\ -> `indent-region'
+;; M-i -> `tab-to-tab-stop'
+;; C-M-q -> `indent-pp-sexp' ; from `emacs-lisp-mode-map'
 
 ;; @tip from `files' / `window'
 (keymap-global-set "S-<return>" #'save-buffer)
@@ -843,8 +857,9 @@
   :ensure nil
   :defer 0.1
   :bind
-  ("C-x f" . recentf-open)
-  ("C-x F" . recentf-open-files)
+  ("C-x f" . nil)
+  ("C-x f r" . recentf-open)
+  ("C-x f R" . recentf-open-files)
   :config
   (recentf-mode +1)
   (add-to-list 'recentf-exclude xy/elpa-lisp-d)
@@ -972,6 +987,13 @@
   (setq use-dialog-box nil)
   (setq resize-mini-windows 'grow-only))
 
+;; @todo
+;; https://www.masteringemacs.org/article/introduction-to-ido-mode
+;; http://xahlee.info/emacs/emacs/emacs_ido_mode.html
+;; (setq ido-enable-flex-matching t)
+;; (setq ido-everywhere t)
+;; (ido-mode +1)
+
 ;; @see (info "(emacs) Icomplete")
 ;; (use-package icomplete
 ;;   :ensure nil
@@ -1047,15 +1069,13 @@
   ;;   M-U -> `vertico-multiform-unobtrusive'
   ;;   M-V -> `vertico-multiform-vertical'
   (setq vertico-multiform-commands
-        '((imenu buffer reverse)
-          (switch-to-buffer buffer (vertico-buffer-display-action . (display-buffer-same-window)))
+        '((imenu buffer (vertico-buffer-display-action . (display-buffer-same-window)))
           (execute-extended-command-for-buffer (:not indexed mouse))))
   (setq vertico-multiform-categories ; categories at `marginalia-annotator-registry'
         '((file buffer)
           (project-file buffer)
           (buffer buffer)
-          (command (:not indexed))
-          (symbol (vertico-sort-function . vertico-sort-alpha))))
+          (command (:not indexed))))
   (vertico-multiform-mode +1))
 
 ;; Consult provides search and navigation commands based on `completing-read'
@@ -1072,7 +1092,8 @@
          ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
          ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
          ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
-         ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+         ("C-x f b" . consult-bookmark)
+         ("C-x f f" . consult-recent-file)
          ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
          ;; Custom M-# bindings for fast register access
          ("M-#" . consult-register-load)
@@ -1201,7 +1222,16 @@
           :map completion-list-mode-map
           ("M-A" . marginalia-cycle))
   :config
-  (marginalia-mode +1))
+  (marginalia-mode +1)
+
+  ;; Define a new annotator for face category
+  (defun xy/face-annotator (cand)
+    (when-let (sym (intern-soft cand))
+      (concat (propertize " " 'display '(space :align-to center))
+              (propertize "The quick brown fox jumps over the lazy dog" 'face sym))))
+
+  (add-to-list 'marginalia-annotator-registry
+               '(face marginalia-annotate-face xy/face-annotator builtin none)))
 
 ;; Emacs Mini-Buffer Actions Rooted in Keymaps
 ;; a keyboard-based version of a right-click contextual menu
@@ -1421,8 +1451,8 @@
 (use-package ibuffer
   :ensure nil
   :bind
-  ("C-x C-b" . #'ibuffer-jump)
-  ("C-x M-b" . #'ibuffer)
+  ("C-x C-b" . #'ibuffer) ; useful to kill multiple buffers
+  ;; ("C-x M-b" . #'ibuffer-jump)
   ("C-x 4 C-b" . #'ibuffer-other-window)
   :hook (ibuffer-mode . ibuffer-auto-mode)
   :config
@@ -1458,12 +1488,20 @@
   :config
   (winner-mode +1))
 
-;; (use-package windmove
-;;   :ensure nil
-;;   :defer 0.5
-;;   :config
-;;   (windmove-default-keybindings 'ctrl)
-;;   (windmove-swap-states-default-keybindings '(ctrl shift)))
+(use-package windmove
+  :ensure nil
+  :defer 0.5
+  :config
+  (windmove-default-keybindings 'shift)
+  (windmove-swap-states-default-keybindings '(ctrl shift)))
+
+(use-package ace-window
+  :bind  ([remap other-window] . ace-window)
+  :config
+  ;; (custom-set-faces
+  ;;  '(aw-leading-char-face
+  ;;    ((t (:inherit ace-jump-face-foreground :height 2.0)))))
+  (set-face-attribute 'aw-leading-char-face nil :height 2.0))
 
 
 ;;; ui
@@ -1625,10 +1663,9 @@
   :bind
   ("C-c o d" . #'xy/open-org-dir)
   ("C-c o o" . #'xy/open-org-notes)
-  ("C-c o c" . #'org-capture)
   ("C-c o a" . #'org-agenda)
-  ("C-c o l" . #'org-insert-link)
-  ("C-c o L" . #'org-store-link)
+  ("C-c o c" . #'org-capture)
+  ("C-c o l" . #'org-store-link)
   ("C-c o ;" . #'org-toggle-link-display)
   ("C-c o p" . #'org-publish)
   :init
@@ -1647,8 +1684,8 @@
         org-special-ctrl-k t)
 
   ;; Alignment of tags at the end of headlines
-  (setq  org-auto-align-tags t
-         org-tags-column 0)
+  (setq org-auto-align-tags t
+        org-tags-column 0)
   (setq org-reverse-note-order t) ; Put newer notes on top of the file
   (setq org-directory "~/org/"
         org-default-notes-file (concat org-directory "notes.org"))

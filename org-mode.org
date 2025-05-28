@@ -7,9 +7,6 @@
     some text
 *** Third level
     more text
-* Another top level headline
-
-
 * Lord of the Rings
   My favorite scenes are (in this order)
   1. The attack of the Rohirrim
@@ -20,9 +17,61 @@
   - Elijah Wood :: He plays Frodo
   - Sean Astin :: He plays Sam, Frodo's friend.
 
-* table
+* Show
+
+** table
 
 | Name  | Phone | Age |
 |-------+-------+-----|
 | Peter |  1234 |  17 |
 | Anna  |  4321 |  18 |
+
+| 产品 | 单价 | 数量 | 小计        |
+|------+------+------+-------------|
+| 苹果 |  5.0 |    3 | $5*3$       |
+| 香蕉 |  3.5 |    4 | $3.5*4$     |
+| 橙子 |  6.0 |    2 | $6*2$       |
+|------+------+------+-------------|
+| 总计 |      |      | $SUM(4..6)$ |
+
+** src block
+
+#+begin_src python
+  def main():
+      print("Hello from uv-example!")
+
+  if __name__ == "__main__":
+      main()
+#+end_src
+
+** todo
+*** TODO exp :tag1:
+DEADLINE: <2025-05-27 Tue>
+*** DONE what it :tag2:
+
+
+
+* Emacs
+repos, videos, articles, books of learning/showing emacs.
+** [[https://www.youtube.com/playlist?list=PL9KxKa8NpFxIcNQa9js7dQQIHc81b0-Xg][Using Emacs]]
+- config: https://github.com/zamansky/dot-emacs
+- blog: [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/stories/emacs/]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-introduction/][Using Emacs - Introduction]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-1-setup/][Using Emacs - Setting up the Package Manager]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-2-org/][Using Emacs - Intro to Org Mode]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-3-elisp/][Using Emacs - 3 - How to think about Emacs]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-4-buffers/][Using Emacs - 4 - Buffers]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-5-windows/][Using Emacs - 5 - Windows]]
+** [[https://sachachua.com/blog/2015/01/developing-emacs-micro-habits-text-automation/]]
+** Mastering Emacs
+- [[https://www.masteringemacs.org/reading-guide]]
+
+** Why I Prefer Emacs Over VSCode and vim
+- https://www.youtube.com/watch?v=cxoE2FhOIgI
+
+* Org
+** [[https://www.youtube.com/watch?v=SzA2YODtgK4][Getting Started With Org Mode]]
+- config: [[https://github.com/hrs/dotfiles/blob/main/emacs/.config/emacs/init.el]]
+* tmux
+
+[[https://www.youtube.com/watch?v=DzNmUNvnB04][Tmux has forever changed the way I write code]]

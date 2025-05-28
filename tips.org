@@ -1,4 +1,4 @@
-#+title: The glories of Emacs
+#+title: The glories of Emacs - a clunky old editor from 1970s
 #+author: Xavier Young
 
 * The Emacs Editor
@@ -227,3 +227,5 @@ A prefix argument restricts replacement to matches that are surrounded by word b
 *** Command Index::       An item for each standard command name.
 *** Variable Index::      An item for each variable documented in this manual.
 *** Concept Index::       An item for concepts and other general subjects.
+
+* Emacs Lisp
