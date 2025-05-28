@@ -62,6 +62,8 @@ repos, videos, articles, books of learning/showing emacs.
   - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-3-elisp/][Using Emacs - 3 - How to think about Emacs]]
   - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-4-buffers/][Using Emacs - 4 - Buffers]]
   - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-5-windows/][Using Emacs - 5 - Windows]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-6-swiper/][Using Emacs - 6 - Searching a Swiper]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-7-avy/][Using Emacs - 7- Navigation with Avy]]
 ** [[https://sachachua.com/blog/2015/01/developing-emacs-micro-habits-text-automation/]]
 ** Mastering Emacs
 - [[https://www.masteringemacs.org/reading-guide]]

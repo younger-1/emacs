@@ -987,6 +987,12 @@
   (setq use-dialog-box nil)
   (setq resize-mini-windows 'grow-only))
 
+(use-package nerd-icons-completion
+  :defer 0.2
+  :config
+  (nerd-icons-completion-mode +1)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
 ;; @todo
 ;; https://www.masteringemacs.org/article/introduction-to-ido-mode
 ;; http://xahlee.info/emacs/emacs/emacs_ido_mode.html
@@ -1014,11 +1020,70 @@
 ;;   ;; Do not delay displaying completion candidates
 ;;   (setq icomplete-compute-delay 0.01))
 
-(use-package nerd-icons-completion
-  :defer 0.2
-  :config
-  (nerd-icons-completion-mode +1)
-  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+;; ;; @see https://github.com/abo-abo/swiper/blob/master/doc/ivy.org
+;; ;; Ivy, a generic completion mechanism for Emacs.
+;; (use-package ivy
+;;   :defer 0.2
+;;   :config
+;;   (ivy-mode 1)
+;;   (setq ivy-use-virtual-buffers t)
+;;   (setq ivy-count-format "(%d/%d) "))
+;;
+;; ;; Swiper, an Ivy-enhanced alternative to Isearch.
+;; (use-package swiper
+;;   :defer 0.2
+;;   :config
+;;   ;; (keymap-global-set "C-s" #'swiper)
+;;   (keymap-global-set "C-s" #'swiper-isearch))
+;;
+;; ;; Counsel, a collection of Ivy-enhanced versions of common Emacs commands.
+;; ;; - Symbol completion for Elisp, Common Lisp, Python, Clojure, C, C++.
+;; ;; - Describe functions for Elisp: function, variable, library, command, bindings, theme.
+;; ;; - Navigation functions: imenu, ace-line, semantic, outline.
+;; ;; - Git utilities: git-files, git-grep, git-log, git-stash, git-checkout.
+;; ;; - Grep utilities: grep, ag, pt, recoll, ack, rg.
+;; ;; - System utilities: process list, rhythmbox, linux-app.
+;; (use-package counsel
+;;   :defer 0.2
+;;   :config
+;;   (keymap-global-set "C-x b" #'ivy-switch-buffer)
+;;   (keymap-global-set "C-c v" #'ivy-push-view)
+;;   (keymap-global-set "C-c V" #'ivy-pop-view)
+;;   (keymap-global-set "C-c C-r" #'ivy-resume)
+;;
+;;   ;; Remap some global key binding, see `counsel-mode-map'
+;;   ;; (counsel-mode)
+;;   ;;
+;;   ;; Ivy-based interface to standard commands
+;;   (keymap-global-set "M-x" #'counsel-M-x)
+;;   (keymap-global-set "C-x C-f" #'counsel-find-file)
+;;   (keymap-global-set "M-y" #'counsel-yank-pop)
+;;   (keymap-global-set "<f1> f" #'counsel-describe-function)
+;;   (keymap-global-set "<f1> v" #'counsel-describe-variable)
+;;   (keymap-global-set "<f1> o" #'counsel-describe-symbol)
+;;   (keymap-global-set "<f1> l" #'counsel-find-library)
+;;   (keymap-global-set "<f2> i" #'counsel-info-lookup-symbol)
+;;   (keymap-global-set "<f2> u" #'counsel-unicode-char)
+;;   (keymap-global-set "<f2> j" #'counsel-set-variable)
+;;   ;;
+;;   (keymap-global-set "C-c b" #'counsel-bookmark)
+;;   (keymap-global-set "C-c d" #'counsel-descbinds)
+;;   (keymap-global-set "C-c o" #'counsel-outline)
+;;   (keymap-global-set "C-c t" #'counsel-load-theme)
+;;   (keymap-global-set "C-c F" #'counsel-org-file)
+;;
+;;   ;; Ivy-based interface to shell and system tools
+;;   (keymap-global-set "C-c c" #'counsel-compile)
+;;   (keymap-global-set "C-c g" #'counsel-git)
+;;   (keymap-global-set "C-c j" #'counsel-git-grep)
+;;   (keymap-global-set "C-c L" #'counsel-git-log)
+;;   (keymap-global-set "C-c k" #'counsel-rg)
+;;   (keymap-global-set "C-c m" #'counsel-linux-app)
+;;   (keymap-global-set "C-c n" #'counsel-fzf)
+;;   (keymap-global-set "C-x l" #'counsel-locate)
+;;   (keymap-global-set "C-c J" #'counsel-file-jump)
+;;   (keymap-global-set "C-S-o" #'counsel-rhythmbox)
+;;   (keymap-global-set "C-c w" #'counsel-wmctrl))
 
 ;; VERTical Interactive COmpletion
 ;; minibuffer completion with vertical UI
@@ -1503,6 +1568,28 @@
   ;;    ((t (:inherit ace-jump-face-foreground :height 2.0)))))
   (set-face-attribute 'aw-leading-char-face nil :height 2.0))
 
+;; @see https://emacs.stackexchange.com/questions/5371/how-to-change-emacs-windows-from-vertical-split-to-horizontal-split
+(defun xy/window-split-toggle ()
+  "Toggle between horizontal and vertical split with two windows."
+  (interactive)
+  (if (> (length (window-list)) 2)
+      (error "Can't toggle with more than 2 windows!")
+    (let ((func (if (window-full-height-p)
+                    #'split-window-vertically
+                  #'split-window-horizontally)))
+      (delete-other-windows)
+      (funcall func)
+      (save-selected-window
+        (other-window 1)
+        (switch-to-buffer (other-buffer))))))
+(keymap-global-set "C-x 4 t" #'xy/window-split-toggle)
+
+;; Native frame transposition coming to Emacs 31
+;; -- https://p.bauherren.ovh/blog/tech/new_window_cmds
+;; -- https://news.ycombinator.com/item?id=43619437
+;; (use-package window-x
+;;   :bind ("C-x 4 t" . #'rotate-windows))
+
 
 ;;; ui
 (use-package hl-line
@@ -1768,3 +1855,14 @@
 
 ;; @see https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs
 ;; (use-package pcomplete)
+
+;;; motion
+(use-package avy
+  :bind (("M-s ;" . avy-resume)
+         ("M-s j" . avy-goto-char)
+         ("M-s M-j" . avy-goto-word-1)
+         ("M-s n" . avy-goto-char-2)
+         ("M-s M-n" . avy-goto-line)
+         ("M-s /" . avy-goto-char-timer)
+         :map isearch-mode-map
+         ("M-s j" . avy-isearch)))
