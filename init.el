@@ -37,7 +37,7 @@
   ;; (load-theme 'modus-vivendi)
   ;; (load-theme 'modus-operandi)
   (load-theme 'modus-operandi-deuteranopia)
-  (keymap-global-set "<f12>" #'modus-themes-toggle))
+  (keymap-global-set "C-c y t" #'modus-themes-toggle))
 
 (defun xy/load-theme (theme &optional no-confirm no-enable)
   "Load a single theme interactively. Without prefix argument, disable all other enabled themes."
@@ -441,11 +441,6 @@
   (setq sentence-end-double-space nil)
   ;; According to the POSIX, a line is defined as "a sequence of zero or more non-newline characters followed by a terminating newline".
   (setq require-final-newline t)
-
-  ;; abbrev
-  (setq dabbrev-upcase-means-case-search t)
-  (setq dabbrev-ignored-buffer-modes
-        '(archive-mode image-mode docview-mode tags-table-mode pdf-view-mode))
 
   ;; proced
   (setq proced-auto-update-interval 1)
@@ -1173,7 +1168,7 @@
          ;;
          ("C-h C-m" . consult-mode-command) ; as `execute-extended-command-for-buffer'
          ("C-h C-n" . consult-minor-mode-menu)
-         ("C-c y t" . consult-theme)
+         ("C-c y c" . consult-theme)
          ;; M-g bindings in `goto-map'
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
@@ -1415,12 +1410,22 @@
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
-;; (keymap-global-set "M-/" #'hippie-expand)
+;;; abbrev
+;; @todo
+;; https://www.emacswiki.org/emacs/AbbrevMode
+;; https://www.emacswiki.org/emacs/HippieExpand
+;; @see (info "(emacs) Dynamic Abbrevs")
 (use-package dabbrev
+  :ensure nil
+  ;; or (keymap-global-set "M-/" #'hippie-expand)
   ;; Swap M-/ and C-M-/
   :bind (("M-/" . dabbrev-completion)
          ("C-M-/" . dabbrev-expand))
   :config
+  (setq dabbrev-upcase-means-case-search t)
+  (setq dabbrev-ignored-buffer-modes
+        '(archive-mode image-mode docview-mode tags-table-mode pdf-view-mode))
+
   (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
   (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
   (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
@@ -1557,8 +1562,9 @@
   :ensure nil
   :defer 0.5
   :config
-  (windmove-default-keybindings 'shift)
-  (windmove-swap-states-default-keybindings '(ctrl shift)))
+  ;; @note shift and ctrl-shift is used by Org-Mode
+  ;; (windmove-default-keybindings 'ctrl)
+  (windmove-swap-states-default-keybindings '(ctrl)))
 
 (use-package ace-window
   :bind  ([remap other-window] . ace-window)
@@ -1866,3 +1872,48 @@
          ("M-s /" . avy-goto-char-timer)
          :map isearch-mode-map
          ("M-s j" . avy-isearch)))
+
+;;; theme
+(use-package doom-themes
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+
+  ;; (load-theme 'doom-one t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (nerd-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+(use-package ef-themes
+  :bind (("C-c y e" . ef-themes-select-light)
+         ("C-c y E" . ef-themes-select-dark)
+         ("C-c y M-e" . ef-themes-select)
+         ("C-c y f" . ef-themes-toggle)
+         ("C-c y F" . ef-themes-rotate)
+         ("C-c y M-f" . ef-themes-load-random))
+  :config
+  ;; EF themes: `ef-themes-collection', `ef-themes-dark-themes', `ef-themes-light-themes'
+  (setq ef-themes-to-toggle '(ef-summer ef-spring))
+  (setq ef-themes-mixed-fonts t
+        ef-themes-variable-pitch-ui t)
+  (setq ef-themes-headings
+      '((0 variable-pitch light 1.9)
+        (1 variable-pitch light 1.8)
+        (2 variable-pitch regular 1.7)
+        (3 variable-pitch regular 1.6)
+        (4 variable-pitch regular 1.5)
+        (5 variable-pitch 1.4) ; absence of weight means `bold'
+        (6 variable-pitch 1.3)
+        (7 variable-pitch 1.2)
+        (t variable-pitch 1.1)))
+
+  ;; (load-theme 'ef-summer :no-confirm)
+  )

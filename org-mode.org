@@ -46,7 +46,7 @@
 
 ** todo
 *** TODO exp :tag1:
-DEADLINE: <2025-05-27 Tue>
+DEADLINE: <2025-06-22 Sun>
 *** DONE what it :tag2:
 
 
@@ -64,6 +64,7 @@ repos, videos, articles, books of learning/showing emacs.
   - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-5-windows/][Using Emacs - 5 - Windows]]
   - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-6-swiper/][Using Emacs - 6 - Searching a Swiper]]
   - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-7-avy/][Using Emacs - 7- Navigation with Avy]]
+  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-8-autocomplete/][Using Emacs - 8 - Autocomplete]]
 ** [[https://sachachua.com/blog/2015/01/developing-emacs-micro-habits-text-automation/]]
 ** Mastering Emacs
 - [[https://www.masteringemacs.org/reading-guide]]
