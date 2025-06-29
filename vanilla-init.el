@@ -294,11 +294,13 @@
          ;;
          ("C-h o" . nil) ; `describe-symbol'
          ("C-h o s" . #'shortdoc)
-         ("C-h o l" . #'xy/loaded-feature)
-         ("C-h o u" . #'unload-feature)
          ;;
          ("C-h u f" . #'add-file-local-variable)
          ("C-h u d" . #'add-dir-local-variable)
+         ("C-h u l" . #'xy/loaded-feature)
+         ("C-h u u" . #'unload-feature)
+         ("C-h u c" . #'set-variable)
+         ("C-h u p" . #'xy/help-show-plist)
          ;;
          ("C-h w" . nil) ; `where-is'
          ("C-h w c" . #'where-is)
@@ -634,3 +636,21 @@
   (setq ediff-window-setup-function #'ediff-setup-windows-plain
         ediff-split-window-function #'split-window-horizontally
         ediff-merge-split-window-function #'split-window-horizontally))
+
+;;; treesit
+(use-package treesit
+  :ensure nil
+  :bind (("C-h o i" . treesit-inspect-mode)
+         ("C-h o e" . treesit-explore-mode))
+  :config
+  ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+  (setq treesit-font-lock-level 4))
+
+(use-package go-ts-mode
+  :ensure nil
+  :mode (("\\.go\\'" . go-ts-mode)
+         ("/go\\.mod\\'" . go-mod-ts-mode))
+  :config
+  ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
+  (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
+  (add-to-list 'treesit-language-source-alist '(gomod "https://github.com/camdencheek/tree-sitter-go-mod")))

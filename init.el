@@ -512,7 +512,7 @@
   ;; (setq ring-bell-function #'ignore
   ;;       visible-bell nil)
   (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
-  (setq-default show-trailing-whitespace t)
+  ;; (setq-default show-trailing-whitespace t)
   ;; (setq-default indicate-empty-lines t)
   (setq-default indicate-buffer-boundaries 'left))
 
@@ -655,6 +655,53 @@
     (interactive)
     (require 'apropos)
     (apropos-describe-plist (symbol-at-point)))
+  (defun xy/set-variable ()
+    "Like \\[set-variable] but also run :set property of user options
+
+Once variable is read in minibuffer, C-h will run \\[describe-variable] on it.
+
+With a prefix argument, set VARIABLE to VALUE buffer-locally.
+
+When called interactively, the user is prompted for VARIABLE and
+then VALUE.  The current value of VARIABLE will be put in the
+minibuffer history so that it can be accessed with \\`M-n', which
+makes it easier to edit it."
+    (interactive)
+    (let* ((default-var (variable-at-point))
+           (ov (if (custom-variable-p default-var) "option" "variable"))
+           ;; `read-variable' only show user options
+           ;; (var (read-variable
+           ;;       (format "Set (default: %s %s): " ov default-var)
+           ;;       default-var))
+           ;; @see `describe-variable'
+           (var (intern (completing-read
+                         (format "Set (default: %s %s): " ov default-var)
+                         #'help--symbol-completion-table
+                         (lambda (vv)
+                           (or (get vv 'variable-documentation)
+                               (and (not (keywordp vv))
+                                    (boundp vv))))
+                         t nil nil
+                         (if (symbolp default-var) (symbol-name default-var)))))
+           (ov (if (custom-variable-p var) "option" "variable"))
+           (minibuffer-help-form `(describe-variable ',var))
+           (scope (cond ((local-variable-p var)
+			 "(buffer-local)")
+			((or current-prefix-arg
+			     (local-variable-if-set-p var))
+			 "buffer-locally")
+		        (t "globally")))
+           (prompt (format "Set %s %s %s to value: " ov var scope))
+           (val (read-from-minibuffer prompt nil
+                                      read-expression-map t
+                                      'set-variable-value-history
+                                      (format "%S" (symbol-value var)))))
+      (if (or current-prefix-arg
+              (local-variable-if-set-p var))
+          (progn
+            (make-local-variable var)
+            (set var val))
+        (eval `(setopt ,var ,val)))))
 
   :bind (;; @see `help-map'
          ("C-h C-h" . nil)
@@ -724,11 +771,13 @@
          ;;
          ("C-h o" . nil) ; `describe-symbol'
          ("C-h o s" . #'shortdoc)
-         ("C-h o l" . #'xy/loaded-feature)
-         ("C-h o u" . #'unload-feature)
          ;;
          ("C-h u f" . #'add-file-local-variable)
          ("C-h u d" . #'add-dir-local-variable)
+         ("C-h u l" . #'xy/loaded-feature)
+         ("C-h u u" . #'unload-feature)
+         ("C-h u c" . #'xy/set-variable)
+         ("C-h u p" . #'xy/help-show-plist)
          ;;
          ("C-h w" . nil) ; `where-is'
          ("C-h w c" . #'where-is)
@@ -761,7 +810,7 @@
          ;; ("I" . #'help-goto-lispref-info)
          ;; ("s" . #'help-view-source)
          ;; ("c" . #'help-customize)
-         ("C" . #'set-variable)
+         ("C" . #'xy/set-variable)
          ("P" . #'xy/help-show-plist)
          ("S-SPC" . nil) ; `scroll-down-command', available as M-v/DEL(<backspace>)
          ("b" . #'beginning-of-buffer)
@@ -1371,6 +1420,7 @@
   :config
   ;; (setq corfu-preview-current nil)
   (setq corfu-auto t)
+  (setq corfu-auto-prefix 2)
   (setq corfu-cycle t)
   ;; Recommended enable globally since many modes provide Capfs and Dabbrev can be used globally (M-/).
   (global-corfu-mode +1)
@@ -1562,7 +1612,7 @@
   :ensure nil
   :defer 0.5
   :config
-  ;; @note shift and ctrl-shift is used by Org-Mode
+  ;; @tip shift and ctrl-shift is used by Org-Mode
   ;; (windmove-default-keybindings 'ctrl)
   (windmove-swap-states-default-keybindings '(ctrl)))
 
@@ -1786,12 +1836,17 @@
         '((sequence "TODO(t)" "PROJ(p)" "LOOP(r)" "STRT(s)" "WAIT(w)" "HOLD(h)" "IDEA(i)" "|" "DONE(d)" "KILL(k)")
           (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)")
           (sequence "|" "OKAY(o)" "YES(y)" "NO(n)")))
+  ;; (setq org-log-done 'note)
   (setq org-publish-timestamp-directory ; Where to place the directory containing the timestamps about changed files
         (concat user-emacs-directory "org-timestamps/"))
   (setq org-html-checkbox-type 'unicode
         org-html-prefer-user-labels t
         org-html-self-link-headlines t))
 
+(use-package wakatime-mode
+  :defer 1
+  :config
+  (global-wakatime-mode))
 
 ;;; terminal
 (unless (display-graphic-p)
@@ -1917,3 +1972,21 @@
 
   ;; (load-theme 'ef-summer :no-confirm)
   )
+
+;;; treesit
+(use-package treesit
+  :ensure nil
+  :bind (("C-h o i" . treesit-inspect-mode)
+         ("C-h o e" . treesit-explore-mode))
+  :config
+  ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+  (setq treesit-font-lock-level 4))
+
+(use-package go-ts-mode
+  :ensure nil
+  :mode (("\\.go\\'" . go-ts-mode)
+         ("/go\\.mod\\'" . go-mod-ts-mode))
+  :config
+  ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
+  (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
+  (add-to-list 'treesit-language-source-alist '(gomod "https://github.com/camdencheek/tree-sitter-go-mod")))
