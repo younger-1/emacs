@@ -56,18 +56,14 @@
 ;;; basic
 (use-package emacs
   :init
-  (show-paren-mode)
-  (electric-indent-mode)
-  (electric-pair-mode)
-  (global-subword-mode)
+  ;; (show-paren-mode +1) ;; default
+  ;; (electric-indent-mode +1) ;; default
+  (electric-pair-mode +1)
+  (global-subword-mode +1)
   :hook
-  ;; (prog-mode . show-paren-local-mode)
-  ;; (prog-mode . electric-indent-local-mode)
-  ;; (prog-mode . electric-pair-local-mode)
-  ;; (prog-mode . subword-mode)
   ;; (emacs-startup . global-display-line-numbers-mode)
-  ;; (emacs-startup . column-number-mode) ; modeline
-  ;; (emacs-startup . size-indication-mode) ; modeline
+  (emacs-startup . column-number-mode) ; modeline
+  (emacs-startup . size-indication-mode) ; modeline
   ;; (emacs-startup . pixel-scroll-precision-mode)
   (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
@@ -126,11 +122,11 @@
   (setq undo-limit (* 10 160000) ; 10x
         undo-strong-limit (* 10 240000)
         undo-outer-limit (* 10 24000000))
+  (setq eval-expression-print-length (* 12 3) ; 3x
+        eval-expression-print-level (* 4 3))
+  (setq message-log-max 3000)
   (setq echo-keystrokes 0.1)
   (setq suggest-key-bindings 999)
-  (setq eval-expression-print-length nil
-        eval-expression-print-level nil)
-  (setq message-log-max 3000)
 
   ;; lock/backup/auto-save
   (setq create-lockfiles nil)
@@ -532,7 +528,7 @@
   :defer 0.3
   :config
   (repeat-mode +1)
-  (setq repeat-exit-key "RET"))
+  (setq repeat-exit-key "q"))
 
 (use-package which-key
   :defer 0.3

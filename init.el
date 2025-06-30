@@ -152,6 +152,10 @@
 ;; `global-map' `ctl-x-map' `esc-map'
 
 ;; @tip from `bindings'
+;;   <next> /   C-v /   [fn-down] -> `scroll-up-command'
+;; M-<next> / M-C-v / [M-fn-down] -> `scroll-other-window'
+;; C-<next> / C-x < -> `scroll-left'
+;;
 ;; C-M-a / C-M-e -> `beginning-of-defun' / `end-of-defun'
 ;; C-M-h / C-M-x -> `mark-defun' / `eval-defun'
 ;; C-M-k / C-M-<backspace> -> `kill-sexp' / `backward-kill-sexp'
@@ -370,14 +374,13 @@
   (setq undo-limit (* 10 160000) ; 10x
         undo-strong-limit (* 10 240000)
         undo-outer-limit (* 10 24000000))
-  (setq echo-keystrokes 0.1)
-  (setq suggest-key-bindings 999)
-  ;; Disable truncation of printed s-expressions
-  ;; in the message buffer (C-x_C-e `eval-last-sexp') and scratch buffer (C-j `eval-print-last-sexp')
-  (setq eval-expression-print-length nil
-        eval-expression-print-level nil)
   (setq message-log-max 3000)
   ;; (lossage-size 500)
+  ;; Reduce truncation of printed s-expressions in the message buffer (C-x_C-e `eval-last-sexp') and scratch buffer (C-j `eval-print-last-sexp')
+  (setq eval-expression-print-length (* 12 3) ; 3x
+        eval-expression-print-level (* 4 3))
+  (setq echo-keystrokes 0.1)
+  (setq suggest-key-bindings 999)
 
   ;; lock
   (setq create-lockfiles nil)
@@ -520,11 +523,17 @@
 ;;; hooks and keymaps
 (use-package emacs
   :ensure nil
+  :init
+  ;; (show-paren-mode +1) ;; default
+  ;; (electric-indent-mode +1) ;; default
+  ;; (electric-pair-mode +1)
+  ;; (global-subword-mode +1)
   :hook
-  (prog-mode . show-paren-local-mode)
-  (prog-mode . electric-indent-local-mode)
+  ;; (prog-mode . show-paren-local-mode)
+  ;; (prog-mode . electric-indent-local-mode)
   (prog-mode . electric-pair-local-mode)
   (prog-mode . subword-mode)
+  ;;
   (emacs-startup . global-display-line-numbers-mode)
   (emacs-startup . column-number-mode) ; modeline
   (emacs-startup . size-indication-mode) ; modeline
@@ -539,7 +548,7 @@
   (before-save . delete-trailing-whitespace)
   ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
 
-  :init
+  :config
   (defun xy/scratch ()
     "Jump to the *scratch* buffer. If it does not exist, create it."
     (interactive)
@@ -627,6 +636,8 @@
   :init
   ;; (setq help-window-select t)
   ;; (setq help-window-keep-selected t)
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("*Help*" display-buffer-same-window))
   (setq help-enable-autoload t
         help-enable-completion-autoload t
         help-enable-symbol-autoload t)
@@ -1500,7 +1511,8 @@ makes it easier to edit it."
   :defer 0.3
   :config
   (repeat-mode +1)
-  (setq repeat-exit-key "RET")
+  ;; (setq repeat-exit-key "RET")
+  (setq repeat-exit-key "q")
 
   (define-keymap
     :keymap undo-repeat-map
@@ -1513,9 +1525,11 @@ makes it easier to edit it."
     "}" #'forward-paragraph)
 
   (defvar-keymap xy/navi-repeat-map
-    :repeat (:hints
-             ((kill-backward-up-list . "kill-backward-up-list")
-              (up-list . "up-list")))
+    :repeat ( :enter (forward-word backward-word forward-page backward-page)
+              :exit (transpose-sexps kill-sexp backward-kill-sexp kill-backward-up-list raise-sexp mark-sexp)
+              :hints
+              ((kill-backward-up-list . "kill-backward-up-list")
+               (up-list . "up-list")))
     ;; sexp
     "f" #'forward-sexp
     "b" #'backward-sexp
@@ -1680,6 +1694,30 @@ makes it easier to edit it."
 (use-package macrostep
   :bind ( :map lisp-mode-shared-map
           ("C-c e m" . macrostep-expand)))
+
+;; (use-package paredit
+;;   ;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
+;;   :hook lisp-data-mode
+;;   :bind (:map paredit-mode-map
+;;               ;; ("M-s" . nil) ;; `paredit-splice-sexp'
+;;               ;; ("M-r" . nil) ;; `paredit-raise-sexp'
+;;               ;; ("M-;" . nil) ;; `paredit-comment-dwim'
+;;               ;; ("C-j" . nil) ;; `paredit-C-j'
+;;               ;; ("M-)" . paredit-splice-sexp)
+;;               ;; ("M-K" . paredit-raise-sexp)
+;;               ;; ("ESC M-;" . paredit-comment-dwim)
+;;               ("M-U" . paredit-backward-slurp-sexp)
+;;               ("M-D" . paredit-backward-barf-sexp)
+;;               ("M-N" . paredit-forward-slurp-sexp)
+;;               ("M-P" . paredit-forward-barf-sexp))
+;;   :config
+;;   ;; (electric-indent-mode -1)
+;;   ;; ElDoc can safely print docstring after these commands
+;;   (eldoc-add-command
+;;    'paredit-backward-delete
+;;    'paredit-close-round
+;;    'paredit-close-square
+;;    'paredit-close-curly))
 
 
 ;;; dired
@@ -1974,6 +2012,7 @@ makes it easier to edit it."
   )
 
 ;;; treesit
+;; @see doc of `treesit-major-mode-setup'
 (use-package treesit
   :ensure nil
   :bind (("C-h o i" . treesit-inspect-mode)

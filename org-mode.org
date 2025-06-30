@@ -1,5 +1,7 @@
 #+title: The glories of Org
 #+author: Xavier Young
+#+TAGS: @work @home @tennisclub
+#+TAGS: laptop car pc sailboat
 
 * Top level headline
 ** Second level
@@ -17,7 +19,7 @@
   - Elijah Wood :: He plays Frodo
   - Sean Astin :: He plays Sam, Frodo's friend.
 
-* Show
+* Show :tag2:
 
 ** table
 
@@ -44,10 +46,28 @@
       main()
 #+end_src
 
-** todo
-*** TODO exp :tag1:
-DEADLINE: <2025-06-22 Sun>
-*** DONE what it :tag2:
+** TODO wh [3/4]
+- CLOSING NOTE [2025-05-30 Fri 07:32]
+*** DONE exp :tag1:water:
+CLOSED: [2025-05-29 Thu 00:11]
+- CLOSING NOTE [2023-05-30 Tue 00:11]
+*** DONE what it :tag2:@
+*** DONE
+CLOSED: [2025-05-30 Fri 08:01]
+*** TODO [1/5]
+**** TODO
+**** DONE
+**** TODO
+**** TODO
+CLOSED: [2025-05-30 Fri 07:31]
+**** TODO [1/2]
+- State "DONE"       from "TODO"       [2025-05-30 Fri 00:17]
+- [X] fwehi
+- [-] hi [75%]
+  1. [X] what-cursor-show-names
+  2. [X] fawe
+  3. [ ] ahf
+  4. [X] fwh
 
 
 
@@ -55,26 +75,91 @@ DEADLINE: <2025-06-22 Sun>
 repos, videos, articles, books of learning/showing emacs.
 ** [[https://www.youtube.com/playlist?list=PL9KxKa8NpFxIcNQa9js7dQQIHc81b0-Xg][Using Emacs]]
 - config: https://github.com/zamansky/dot-emacs
-- blog: [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/stories/emacs/]]
+- blog: [9/10] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/stories/emacs/]]
   - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-introduction/][Using Emacs - Introduction]]
-  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-1-setup/][Using Emacs - Setting up the Package Manager]]
-  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-2-org/][Using Emacs - Intro to Org Mode]]
-  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-3-elisp/][Using Emacs - 3 - How to think about Emacs]]
-  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-4-buffers/][Using Emacs - 4 - Buffers]]
-  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-5-windows/][Using Emacs - 5 - Windows]]
-  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-6-swiper/][Using Emacs - 6 - Searching a Swiper]]
-  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-7-avy/][Using Emacs - 7- Navigation with Avy]]
-  - [ ] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-8-autocomplete/][Using Emacs - 8 - Autocomplete]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-1-setup/][Using Emacs - Setting up the Package Manager]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-2-org/][Using Emacs - Intro to Org Mode]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-3-elisp/][Using Emacs - 3 - How to think about Emacs]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-4-buffers/][Using Emacs - 4 - Buffers]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-5-windows/][Using Emacs - 5 - Windows]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-6-swiper/][Using Emacs - 6 - Searching a Swiper]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-7-avy/][Using Emacs - 7- Navigation with Avy]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-8-autocomplete/][Using Emacs - 8 - Autocomplete]]
+  - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-9-themes/][Using Emacs - 9 - Themes]]
 ** [[https://sachachua.com/blog/2015/01/developing-emacs-micro-habits-text-automation/]]
 ** Mastering Emacs
-- [[https://www.masteringemacs.org/reading-guide]]
+- [X] https://www.masteringemacs.org/book
+- [ ] [[https://www.masteringemacs.org/reading-guide]]
+- [ ] [[https://www.masteringemacs.org/article/beginners-guide-to-emacs]]
+- [X] https://www.masteringemacs.org/article/how-to-get-started-tree-sitter
+- [X] https://www.masteringemacs.org/article/tree-sitter-complications-of-parsing-languages
+- [ ] https://www.masteringemacs.org/article/working-multiple-files-dired
+- [X] https://www.masteringemacs.org/article/wdired-editable-dired-buffers
 
 ** Why I Prefer Emacs Over VSCode and vim
 - https://www.youtube.com/watch?v=cxoE2FhOIgI
 
+** [[https://www.youtube.com/playlist?list=PL5--8gKSku15uYCnmxWPO17Dq6hVabAB4][The Church of Emacs]]
+
+** [[https://www.youtube.com/playlist?list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ][Emacs From Scratch]]
+
+** [[https://www.youtube.com/watch?v=48JlgiBpw_I&t=4126s][The Absolute Beginner's Guide to Emacs]]
+
+* Config
+*** https://github.com/cyrus-and/dotfiles/blob/master/emacs/.emacs
+- (outshine-mode)
+- (rainbow-mode)
+
 * Org
 ** [[https://www.youtube.com/watch?v=SzA2YODtgK4][Getting Started With Org Mode]]
 - config: [[https://github.com/hrs/dotfiles/blob/main/emacs/.config/emacs/init.el]]
-* tmux
+** [[https://www.youtube.com/watch?v=0-brF21ShRk][You Should Really Learn Org Mode - It's Easy]]
 
+* Tmux
 [[https://www.youtube.com/watch?v=DzNmUNvnB04][Tmux has forever changed the way I write code]]
+
+* Clojure
+- [ ] [[https://www.braveclojure.com/basic-emacs/][How to Use Emacs, an Excellent Clojure Editor]]
+
+* Raycast
+- [ ] [[https://www.youtube.com/watch?v=NuIpZoQwuVY][101 Things You Can Do With Raycast]]
+
+* Mac
+** shortcuts
+- [ ] https://support.apple.com/en-us/102650 https://support.apple.com/zh-cn/102650
+- [X] [[https://techbydavey.com/option-key-macos/][The Option key (⌥) on your macOS is more than just ‘Alt’ key]]
+  The Option Key: A Powerful macOS Modifier Key
+  - It’s a versatile modifier that unlocks hidden features, shortcuts, and functionalities across macOS
+  - It dynamically changes menu items (menu-bar/context-menu) and reveals alternative actions when pressed.
+    - system icon:
+      - *About This Mac* -> *System Information*
+    - dock icon:
+      - *Hide* -> *Hide Others*
+      - *Quit* -> *Force Quit*
+    - Finder:
+      - Cut-Paste files/folders
+      - Change default apps: *Open With* -> *Always Open With*
+      - *Close Window* -> *Close All Windows*
+  Fundamental Functions of the Option Key (⌥)
+  - Option-drag files create instant copies
+  - Option-Command-Backspace deletes selected files permanently, skipping the trash bin
+  - Option-double-click a folder opens it in a new window while closing the current one
+  Advanced System Interactions With The Option Key (⌥)
+  - Option with Volume/Brightness function keys open corresponding system preference panes
+  - Option-Shift with Volume/Brightness function key to precisely control the volume
+  - Option-click the Wi-Fi/Bluetooth icon in the menu reveals details of the network connection
+  - Option-Command-ESC: Force quit applications
+  - Option-Command-Power Button: Put Mac to sleep instantly
+
+- [X] [[https://www.geeky-gadgets.com/mac-option-key-shortcuts/][Master the Mac Option Key for Ultimate Efficiency]]
+  Streamline Window Management: maintain a clean, organized desktop, allowing you to focus on your current task without distractions.
+  - Command-Option-H: hide all applications except the one you’re currently using, creating a distraction-free environment.
+  - Option-click the green button to maximize a window without entering full-screen mode
+  - Option-click the yellow button to minimize all windows of an app
+  - Option-click the red button to close all windows in an app
+** aerospace
+- [[https://www.youtube.com/watch?v=gjR2eiomRwo][Aerospace Changes Your macOS Window Management FOREVER!]]
+  config: https://github.com/mehd-io/dotfiles/blob/main/sketchybar/sketchybarrc
+- [[https://www.youtube.com/watch?v=-FoWClVHG5g][Aerospace Is The Best Tiling Window Manager I've Tried On macOS]]
+- [[https://www.youtube.com/watch?v=5nwnJjr5eOo][Aerospace Is Probably The Best MacOS Tiling Manager I've Ever Used]]
+  config: https://github.com/omerxx/dotfiles/blob/master/sketchybar/sketchybarrc
