@@ -1840,8 +1840,6 @@ makes it easier to edit it."
         ediff-split-window-function #'split-window-horizontally
         ediff-merge-split-window-function #'split-window-horizontally))
 
-
-;;; tool
 (use-package flymake
   :ensure nil
   ;; :hook (emacs-lisp-mode)
@@ -1854,6 +1852,13 @@ makes it easier to edit it."
   ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 
+(use-package wakatime-mode
+  :defer 1
+  :config
+  (global-wakatime-mode))
+
+
+;;; tool
 (use-package org
   :ensure nil
   :bind
@@ -1896,10 +1901,14 @@ makes it easier to edit it."
         org-html-prefer-user-labels t
         org-html-self-link-headlines t))
 
-(use-package wakatime-mode
-  :defer 1
+(use-package markdown-mode
+  :mode ("README\\.md\\'" . gfm-mode)
   :config
-  (global-wakatime-mode))
+  ;; Markdown processor: not required for editing, for rendering HTML for preview and export.
+  ;; (setq markdown-command "multimarkdown")
+  :bind (:map markdown-mode-map
+              ("C-c C-e" . markdown-do)))
+
 
 ;;; terminal
 (unless (display-graphic-p)
@@ -2042,8 +2051,8 @@ makes it easier to edit it."
   ;; Remapping major mode: (add-to-list 'major-mode-remap-alist '(XXX-mode . XXX-ts-mode))
   ;; (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
   ;; (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
-  :mode (("\\.go\\'" . go-ts-mode)
-         ("/go\\.mod\\'" . go-mod-ts-mode))
+  ;; :mode (("\\.go\\'" . go-ts-mode)
+  ;;        ("/go\\.mod\\'" . go-mod-ts-mode))
   :config
   ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
   (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
@@ -2094,3 +2103,54 @@ makes it easier to edit it."
   ;; (global-ts-fold-indicators-mode +1)
   (add-hook 'tree-sitter-after-on-hook #'ts-fold-mode)
   (add-hook 'tree-sitter-after-on-hook #'ts-fold-indicators-mode))
+
+;;; go
+(defun xy/install-go-tool (pkg)
+  "Install or update go tools."
+  (interactive)
+  (unless (executable-find "go")
+    (user-error "Unable to find `go' in `exec-path'!"))
+  (message "Installing go tool...")
+  (set-process-sentinel
+   (start-process "go-tool" "*Go Tool*" "go" "install" "-v" "-x" (concat pkg "@latest"))
+   (lambda (proc _)
+     (let ((status (process-exit-status proc)))
+       (if (= 0 status)
+           (message "Installed %s" pkg)
+         (message "Failed to install %s: %d" pkg status))))))
+
+(use-package go-mode
+  ;; :bind (:map go-mode-map
+  ;;             ("\C-c \C-c" . compile)
+  ;;             ("\C-c \C-g" . go-goto-imports)
+  ;;             ("\C-c \C-k" . godoc)
+  ;;             ("M-j" . godef-jump))
+  :config
+  ;; goimports updates your Go import lines, adding missing ones and removing unreferenced ones
+  ;; it also formats your code in the same style as gofmt so it can be used as a replacement for your editor's gofmt-on-save hook
+  (unless (executable-find "goimports")
+    (xy/install-go-tool "golang.org/x/tools/cmd/goimports"))
+  (setq gofmt-command "goimports")
+
+  (add-hook 'go-mode-hook (lambda ()
+                            (setq-local tab-width 4)
+                            (add-hook 'before-save-hook #'gofmt-before-save nil t))))
+
+;; Edit struct field tag
+(use-package go-tag
+  :after go-mode
+  :bind (:map go-mode-map
+              ("C-c C-a" . go-tag-add)
+              ("C-c C-r" . go-tag-remove))
+  :init
+  ;; (setq go-tag-args (list "-transform" "snakecase"))
+  :config
+  (unless (executable-find "gomodifytags")
+    (xy/install-go-tool "github.com/fatih/gomodifytags")))
+
+;; Fill struct literal with default values
+(use-package go-fill-struct
+  :after go-mode
+  :config
+  (unless (executable-find "fillstruct")
+    (xy/install-go-tool "github.com/davidrjenni/reftools/cmd/fillstruct")))
