@@ -67,6 +67,7 @@
   ;; (emacs-startup . pixel-scroll-precision-mode)
   (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
+  (emacs-startup . undelete-frame-mode)
   :bind
   ("<backtab>" . #'back-to-indentation)
   ("C-;" . #'comment-line)
@@ -191,6 +192,14 @@
              (tab-width . 8)))))
   (dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
     (dir-locals-set-directory-class (file-truename dir) :read-only)))
+
+(use-package server
+  :ensure nil
+  :defer 1
+  :config
+  (setq server-use-tcp t)
+  (unless (or (server-running-p) (daemonp))
+    (server-start)))
 
 
 ;;; help
@@ -593,7 +602,6 @@
          ("C-c e b" . #'eval-buffer)
          ("C-c e r" . #'eval-region)
          ("C-c e d" . #'edebug-defun)
-         :map lisp-mode-shared-map
          ("C-c e c" . #'check-parens)))
 
 
