@@ -1,6 +1,12 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
 
 ;;; preface
+(message "** [xy] boot init.el")
+
+(eval-and-compile
+  (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+  (add-to-list 'load-path (expand-file-name "site-lisp" user-emacs-directory)))
+
 ;; (set-default-coding-systems 'utf-8)
 (prefer-coding-system 'utf-8)
 
@@ -438,6 +444,7 @@
   (blink-cursor-mode -1)
 
   ;; edit
+  (setq next-line-add-newlines t)
   (setq comment-empty-lines t)
   ;; (setq comment-multi-line t)
   (setq-default fill-column 80)
@@ -601,6 +608,7 @@
   (put 'scroll-left 'disabled nil)
   (put 'downcase-region 'disabled nil)
   (put 'upcase-region 'disabled nil)
+  (put 'set-goal-column 'disabled nil)
   (put 'erase-buffer 'disabled nil)
   (put 'dired-find-alternate-file 'disabled nil)
   (put 'list-timers 'disabled nil)
@@ -949,6 +957,11 @@ makes it easier to edit it."
   :ensure nil
   :defer 0.1
   :config
+  ;; `completing-read' and `read-from-minibuffer'
+  ;; - The argument HISTORY specifies which history list variable to use for saving the input and for minibuffer history commands.
+  ;; - It defaults to ‘minibuffer-history’
+  ;; `savehist-minibuffer-history-variables'
+  ;; `savehist-ignored-variables'
   (setq savehist-additional-variables '(kill-ring      ; clipboard
                                         register-alist ; keyboard macro
                                         mark-ring global-mark-ring ; mark
@@ -1798,6 +1811,7 @@ makes it easier to edit it."
   (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
 (use-package outline
+  :ensure nil
   :hook
   (emacs-lisp-mode . outline-minor-mode)
   :config
@@ -1856,6 +1870,31 @@ makes it easier to edit it."
   :defer 1
   :config
   (global-wakatime-mode))
+
+;; https://www.emacswiki.org/emacs/VisibleMark
+(use-package visible-mark
+  :defer 0.5
+  :config
+  (global-visible-mark-mode +1)
+  (setq visible-mark-max 2)
+  (setq visible-mark-faces `(visible-mark-face1 visible-mark-face2)))
+
+;; https://www.emacswiki.org/emacs/AutoMark
+(use-package auto-mark
+  :ensure nil ; site-lisp
+  :defer 0.5
+  :config
+  (setq auto-mark-command-class-alist
+        '((anything . anything)
+          (goto-line . jump)
+          (indent-for-tab-command . ignore)
+          (undo . ignore)))
+  (setq auto-mark-command-classifiers
+        (list (lambda (command)
+                (if (and (eq command 'self-insert-command)
+                         (eq last-command-char ? ))
+                    'ignore))))
+  (global-auto-mark-mode +1))
 
 
 ;;; tool
