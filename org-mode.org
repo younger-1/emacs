@@ -88,13 +88,41 @@ repos, videos, articles, books of learning/showing emacs.
   - [X] [[https://cestlaz.zamansky.net/cestlaz-old-hugo.github.io/posts/using-emacs-9-themes/][Using Emacs - 9 - Themes]]
 ** [[https://sachachua.com/blog/2015/01/developing-emacs-micro-habits-text-automation/]]
 ** Mastering Emacs
-- [X] https://www.masteringemacs.org/book
-- [ ] [[https://www.masteringemacs.org/reading-guide]]
-- [ ] [[https://www.masteringemacs.org/article/beginners-guide-to-emacs]]
+- [ ] https://www.masteringemacs.org/book
+
+- [X] https://www.masteringemacs.org/reading-guide
+- [X] https://www.masteringemacs.org/article/beginners-guide-to-emacs
+
+- [X] https://www.masteringemacs.org/article/why-emacs-has-buffers
+- [ ] https://www.masteringemacs.org/article/demystifying-emacs-window-manager
+- [X] https://www.masteringemacs.org/article/effective-editing-movement
+- [ ] https://www.masteringemacs.org/article/mastering-key-bindings-emacs
+- [ ] https://www.masteringemacs.org/article/keyboard-macros-are-misunderstood
+- [ ] https://www.masteringemacs.org/article/repeating-commands-emacs
+- [ ] https://www.masteringemacs.org/article/evaluating-elisp-emacs
+
 - [X] https://www.masteringemacs.org/article/how-to-get-started-tree-sitter
 - [X] https://www.masteringemacs.org/article/tree-sitter-complications-of-parsing-languages
+
 - [ ] https://www.masteringemacs.org/article/working-multiple-files-dired
+- [ ] https://www.masteringemacs.org/article/dired-shell-commands-find-xargs-replacement
 - [X] https://www.masteringemacs.org/article/wdired-editable-dired-buffers
+
+- [X] https://www.masteringemacs.org/article/running-shells-in-emacs-overview
+- [X] https://www.masteringemacs.org/article/executing-shell-commands-emacs
+- [ ] https://www.masteringemacs.org/article/comint-writing-command-interpreter
+- [ ] https://www.masteringemacs.org/article/shell-comint-secrets-history-commands
+
+- [ ] https://www.masteringemacs.org/article/complete-guide-mastering-eshell
+- [ ] https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs
+
+- [ ] https://www.masteringemacs.org/article/compiling-running-scripts-emacs
+- [ ] https://www.masteringemacs.org/article/sorting-text-line-field-regexp-emacs
+- [ ] https://www.masteringemacs.org/article/displaying-interacting-processes-proced
+- [ ] https://www.masteringemacs.org/article/network-utilities-emacs
+
+- [ ] https://www.masteringemacs.org/article/introduction-magit-emacs-mode-git
+
 
 ** Why I Prefer Emacs Over VSCode and vim
 - https://www.youtube.com/watch?v=cxoE2FhOIgI

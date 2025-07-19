@@ -457,15 +457,6 @@
   (setq proced-auto-update-interval 1)
   (setq-default proced-auto-update-flag t)
 
-  ;; eglot
-  (setq eglot-sync-connect 1
-        eglot-autoshutdown t)
-  (setq eglot-extend-to-xref t)
-  ;; optimization
-  (setq eglot-events-buffer-size 0)
-  ;; prevent eglot minibuffer spam
-  (setq eglot-report-progress nil)
-
   ;; flyspell
   ;; (setq flyspell-issue-welcome-flag nil)
   ;; Greatly improves flyspell performance by preventing messages from being displayed for each word when checking the entire buffer.
@@ -958,8 +949,8 @@ makes it easier to edit it."
   :defer 0.1
   :config
   ;; `completing-read' and `read-from-minibuffer'
-  ;; - The argument HISTORY specifies which history list variable to use for saving the input and for minibuffer history commands.
-  ;; - It defaults to ‘minibuffer-history’
+  ;; -- The argument HISTORY specifies which history list variable to use for saving the input and for minibuffer history commands.
+  ;; -- It defaults to ‘minibuffer-history’
   ;; `savehist-minibuffer-history-variables'
   ;; `savehist-ignored-variables'
   (setq savehist-additional-variables '(kill-ring      ; clipboard
@@ -1013,6 +1004,13 @@ makes it easier to edit it."
                    (regexp-quote isearch-string))))
       (project-find-regexp query)))
   (keymap-set isearch-mode-map "M-s p" #'xy/isearch-project))
+
+;; (use-package smartscan
+;;   :bind ( :map smartscan-map
+;;           ("M-n" . smartscan-symbol-go-forward)
+;;           ("M-p" . smartscan-symbol-go-backward))
+;;   :config
+;;   (global-smartscan-mode +1))
 
 
 ;;; minibuffer
@@ -1074,98 +1072,6 @@ makes it easier to edit it."
   :config
   (nerd-icons-completion-mode +1)
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
-
-;; @todo
-;; https://www.masteringemacs.org/article/introduction-to-ido-mode
-;; http://xahlee.info/emacs/emacs/emacs_ido_mode.html
-;; (setq ido-enable-flex-matching t)
-;; (setq ido-everywhere t)
-;; (ido-mode +1)
-
-;; @see (info "(emacs) Icomplete")
-;; (use-package icomplete
-;;   :ensure nil
-;;   :defer 0.2
-;;   :config
-;;   ;; -- Enable Icomplete’s in-buffer display for M-TAB (`completion-at-point'), and disable *Completions* buffer
-;;   ;; -- 1.must set before `icomplete-mode' / `fido-mode'
-;;   ;; -- 2.only for non-vertical version
-;;   ;; (progn
-;;   ;;   (setq icomplete-in-buffer t)
-;;   ;;   (advice-add 'completion-at-point :after #'minibuffer-hide-completions))
-;;   ;; (icomplete-mode +1)
-;;   ;; (fido-mode +1)
-;;   ;; -- vertical version
-;;   ;; (icomplete-vertical-mode +1)
-;;   ;; (fido-vertical-mode +1)
-;;   ;;
-;;   ;; Do not delay displaying completion candidates
-;;   (setq icomplete-compute-delay 0.01))
-
-;; ;; @see https://github.com/abo-abo/swiper/blob/master/doc/ivy.org
-;; ;; Ivy, a generic completion mechanism for Emacs.
-;; (use-package ivy
-;;   :defer 0.2
-;;   :config
-;;   (ivy-mode 1)
-;;   (setq ivy-use-virtual-buffers t)
-;;   (setq ivy-count-format "(%d/%d) "))
-;;
-;; ;; Swiper, an Ivy-enhanced alternative to Isearch.
-;; (use-package swiper
-;;   :defer 0.2
-;;   :config
-;;   ;; (keymap-global-set "C-s" #'swiper)
-;;   (keymap-global-set "C-s" #'swiper-isearch))
-;;
-;; ;; Counsel, a collection of Ivy-enhanced versions of common Emacs commands.
-;; ;; - Symbol completion for Elisp, Common Lisp, Python, Clojure, C, C++.
-;; ;; - Describe functions for Elisp: function, variable, library, command, bindings, theme.
-;; ;; - Navigation functions: imenu, ace-line, semantic, outline.
-;; ;; - Git utilities: git-files, git-grep, git-log, git-stash, git-checkout.
-;; ;; - Grep utilities: grep, ag, pt, recoll, ack, rg.
-;; ;; - System utilities: process list, rhythmbox, linux-app.
-;; (use-package counsel
-;;   :defer 0.2
-;;   :config
-;;   (keymap-global-set "C-x b" #'ivy-switch-buffer)
-;;   (keymap-global-set "C-c v" #'ivy-push-view)
-;;   (keymap-global-set "C-c V" #'ivy-pop-view)
-;;   (keymap-global-set "C-c C-r" #'ivy-resume)
-;;
-;;   ;; Remap some global key binding, see `counsel-mode-map'
-;;   ;; (counsel-mode)
-;;   ;;
-;;   ;; Ivy-based interface to standard commands
-;;   (keymap-global-set "M-x" #'counsel-M-x)
-;;   (keymap-global-set "C-x C-f" #'counsel-find-file)
-;;   (keymap-global-set "M-y" #'counsel-yank-pop)
-;;   (keymap-global-set "<f1> f" #'counsel-describe-function)
-;;   (keymap-global-set "<f1> v" #'counsel-describe-variable)
-;;   (keymap-global-set "<f1> o" #'counsel-describe-symbol)
-;;   (keymap-global-set "<f1> l" #'counsel-find-library)
-;;   (keymap-global-set "<f2> i" #'counsel-info-lookup-symbol)
-;;   (keymap-global-set "<f2> u" #'counsel-unicode-char)
-;;   (keymap-global-set "<f2> j" #'counsel-set-variable)
-;;   ;;
-;;   (keymap-global-set "C-c b" #'counsel-bookmark)
-;;   (keymap-global-set "C-c d" #'counsel-descbinds)
-;;   (keymap-global-set "C-c o" #'counsel-outline)
-;;   (keymap-global-set "C-c t" #'counsel-load-theme)
-;;   (keymap-global-set "C-c F" #'counsel-org-file)
-;;
-;;   ;; Ivy-based interface to shell and system tools
-;;   (keymap-global-set "C-c c" #'counsel-compile)
-;;   (keymap-global-set "C-c g" #'counsel-git)
-;;   (keymap-global-set "C-c j" #'counsel-git-grep)
-;;   (keymap-global-set "C-c L" #'counsel-git-log)
-;;   (keymap-global-set "C-c k" #'counsel-rg)
-;;   (keymap-global-set "C-c m" #'counsel-linux-app)
-;;   (keymap-global-set "C-c n" #'counsel-fzf)
-;;   (keymap-global-set "C-x l" #'counsel-locate)
-;;   (keymap-global-set "C-c J" #'counsel-file-jump)
-;;   (keymap-global-set "C-S-o" #'counsel-rhythmbox)
-;;   (keymap-global-set "C-c w" #'counsel-wmctrl))
 
 ;; VERTical Interactive COmpletion
 ;; minibuffer completion with vertical UI
@@ -1498,6 +1404,7 @@ makes it easier to edit it."
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
+
 ;;; abbrev
 ;; @todo
 ;; https://www.emacswiki.org/emacs/AbbrevMode
@@ -1541,18 +1448,19 @@ makes it easier to edit it."
   ;; (setq repeat-exit-key "RET")
   (setq repeat-exit-key "q")
 
-  (define-keymap
+  (defvar-keymap xy/undo-repeat-map
     :keymap undo-repeat-map
     "U" #'undo-only
     "r" #'undo-redo) ; useful to shorten "undo records" by balancing out previous `undo'
 
-  (defvar-keymap xy/paragraph-repeat-map
+  (defvar-keymap xy/page-navigation-repeat-map
+    :keymap page-navigation-repeat-map
     :repeat t
-    "{" #'backward-paragraph
+    "{" #'backward-paragrafph
     "}" #'forward-paragraph)
 
   (defvar-keymap xy/navi-repeat-map
-    :repeat ( :enter (forward-word backward-word forward-page backward-page)
+    :repeat ( :enter (forward-word backward-word) ;; forward-page backward-page
               :exit (transpose-sexps kill-sexp backward-kill-sexp kill-backward-up-list raise-sexp mark-sexp)
               :hints
               ((kill-backward-up-list . "kill-backward-up-list")
@@ -1658,7 +1566,8 @@ makes it easier to edit it."
   (windmove-swap-states-default-keybindings '(ctrl)))
 
 (use-package ace-window
-  :bind  ([remap other-window] . ace-window)
+  :bind ;; ([remap other-window] . ace-window)
+  ("M-o" . ace-window)
   :config
   ;; (custom-set-faces
   ;;  '(aw-leading-char-face
@@ -1839,12 +1748,25 @@ makes it easier to edit it."
         xref-show-xrefs-function 'xref-show-definitions-completing-read)
   (setq xref-history-storage 'xref-window-local-history))
 
+(use-package dumb-jump
+  :defer 1
+  :config
+  ;; @see `dumb-jump-find-rules'
+  (setq dumb-jump-prefer-searcher 'rg)
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+
+;; (info "(emacs) Programming Language Doc")
 (use-package eldoc
   :ensure nil
+  :init
+  ;; (global-eldoc-mode +1) ;; default
+  ;; :hook
+  ;; (prog-mode . eldoc-mode)
+  :bind ("C-h ." . #'eldoc-doc-buffer)
   :config
   ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-  (setq eldoc-minor-mode-string nil)
-  (setq eldoc-echo-area-display-truncation-message nil))
+  ;; (setq eldoc-echo-area-display-truncation-message nil)
+  (setq eldoc-minor-mode-string nil))
 
 (use-package ediff
   :ensure nil
@@ -1986,6 +1908,8 @@ makes it easier to edit it."
          ;; Auto subsitution: !! expands to the last command; ^a^b replaces a with b
          ("SPC" . #'comint-magic-space))
   :config
+  (setq shell-command-prompt-show-cwd t)
+  ;;
   (setq comint-input-ignoredups t
         comint-prompt-read-only t
         comint-scroll-to-bottom-on-input 'this
@@ -2018,6 +1942,7 @@ makes it easier to edit it."
 ;; @see https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs
 ;; (use-package pcomplete)
 
+
 ;;; motion
 (use-package avy
   :bind (("M-s ;" . avy-resume)
@@ -2029,6 +1954,7 @@ makes it easier to edit it."
          :map isearch-mode-map
          ("M-s j" . avy-isearch)))
 
+
 ;;; theme
 (use-package doom-themes
   :config
@@ -2074,6 +2000,7 @@ makes it easier to edit it."
   ;; (load-theme 'ef-summer :no-confirm)
   )
 
+
 ;;; treesit
 ;; @see doc of `treesit-major-mode-setup'
 (use-package treesit
@@ -2097,53 +2024,8 @@ makes it easier to edit it."
   (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
   (add-to-list 'treesit-language-source-alist '(gomod "https://github.com/camdencheek/tree-sitter-go-mod")))
 
-;;; tree-sitter
-;; @see https://emacs-tree-sitter.github.io/syntax-highlighting/interface-for-modes/
-;; Major modes that want to integrate with `tree-sitter-hl-mode' should set the variable `tree-sitter-hl-default-patterns'. It plays a similar role to `font-lock-defaults'.
-;; Minor modes that want to customize syntax highlighting should call the function `tree-sitter-hl-add-patterns'. It plays a similar role to `font-lock-add-keywords'.
-(use-package tree-sitter
-  :init
-  ;; Turn on `tree-sitter-mode' for each major mode.
-  (global-tree-sitter-mode)
-  ;; @see `tree-sitter-major-mode-language-alist' for the full list of supported major modes
-  ;; (add-hook 'prog-mode-hook #'tree-sitter-mode)
-
-  ;; Replace the regex-based highlighting provided by font-lock-mode.
-  ;; If `tree-sitter-hl-default-patterns' is nil, turning on this mode does nothing, and does not interfere with `font-lock-mode'.
-  ;; TODO (let ((major-mode 'go-mode)) (tree-sitter-mode) (font-lock-update))
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
-
-  :config
-  (dolist (mode-pair '((lisp-interaction-mode . elisp)
-                       (lisp-data-mode . elisp)
-                       (python-ts-mode . python)
-                       (typescript-ts-mode . tsx)
-                       (tsx-ts-mode . tsx)
-                       (clojure-ts-mode . clojure)
-                       (swift-ts-mode . swift)))
-    (add-to-list 'tree-sitter-major-mode-language-alist mode-pair)))
-
-;; The language bundle `tree-sitter-langs' provides highlighting queries for several languages.
-;; These queries will be used when the corresponding major modes do not set `tree-sitter-hl-default-patterns'. eg. by calling (tree-sitter-langs--hl-default-patterns 'go)
-(use-package tree-sitter-langs
-  :demand t)
-
-;; @see https://tony-zorman.com/posts/use-package-vc.html
-;; (info "(use-package) Install package")
-;; (info "(emacs) Fetching Package Sources")
-;; `package-vc-selected-packages'
-(use-package ts-fold
-  :vc ( :url "https://github.com/emacs-tree-sitter/ts-fold"
-        :rev :newest)
-  :bind
-  ("C-c z" . ts-fold-toggle)
-  :init
-  ;; (global-ts-fold-mode +1)
-  ;; (global-ts-fold-indicators-mode +1)
-  (add-hook 'tree-sitter-after-on-hook #'ts-fold-mode)
-  (add-hook 'tree-sitter-after-on-hook #'ts-fold-indicators-mode))
-
-;;; go
+
+;;; go-lang
 (defun xy/install-go-tool (pkg)
   "Install or update go tools."
   (interactive)
@@ -2193,3 +2075,33 @@ makes it easier to edit it."
   :config
   (unless (executable-find "fillstruct")
     (xy/install-go-tool "github.com/davidrjenni/reftools/cmd/fillstruct")))
+
+
+;;; lsp
+(defvar xy/lsp-want-modes
+  '(go-mode go-ts-mode
+    sh-mode))
+
+;; Eglot ("Emacs Polyglot") is an Emacs LSP client
+;; (info "(eglot) Eglot Variables")
+;; @see news at https://elpa.gnu.org/devel/eglot.html
+(use-package eglot
+  :init
+  (dolist (mode xy/lsp-want-modes)
+    (add-hook (intern (format "%s-hook" mode)) #'eglot-ensure))
+  :bind (("C-c c e" . #'eglot)
+          :map eglot-mode-map
+          ("C-c c r" . #'eglot-rename)
+          ("C-c c a" . #'eglot-code-actions)
+          ("C-c c ?" . #'eglot-show-workspace-configuration)
+          ("C-c c !" . #'eglot-signal-didChangeConfiguration)
+          ;; ("M-." . #'xref-find-definitions)
+          ;; ("C-h ." . #'eldoc-doc-buffer)
+          :map eglot-diagnostics-map)
+  :config
+  (add-to-list 'eglot-server-programs
+               '(conf-toml-mode . ("taplo" "lsp" "stdio")))
+  (setq eglot-sync-connect 0)
+  (setq eglot-autoshutdown t)
+  (setq eglot-events-buffer-config '(:size 2000 :format full))
+  (setq eglot-extend-to-xref t))

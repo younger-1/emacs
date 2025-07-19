@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
 
+(eval-and-compile
+  (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+  (add-to-list 'load-path (expand-file-name "site-lisp" user-emacs-directory)))
+
 (add-hook 'emacs-startup-hook
           (defun xy/-print-init-time ()
             (message "** [xy] Emacs ready in %s seconds with %d garbage collections."
@@ -68,6 +72,7 @@
   (emacs-startup . delete-selection-mode)
   (emacs-startup . window-divider-mode)
   (emacs-startup . undelete-frame-mode)
+  (before-save . delete-trailing-whitespace)
   :bind
   ("<backtab>" . #'back-to-indentation)
   ("C-;" . #'comment-line)
