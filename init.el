@@ -444,7 +444,7 @@
   (blink-cursor-mode -1)
 
   ;; edit
-  (setq next-line-add-newlines t)
+  ;; (setq next-line-add-newlines t)
   (setq comment-empty-lines t)
   ;; (setq comment-multi-line t)
   (setq-default fill-column 80)
@@ -541,10 +541,9 @@
   (emacs-startup . window-divider-mode)
   (emacs-startup . undelete-frame-mode)
   ;; (emacs-startup . context-menu-mode)
-  ;; (emacs-startup . tab-bar-mode)
-  ;; (emacs-startup . tab-bar-history-mode)
-  ;; (emacs-startup . global-tab-line-mode)
-  ;; (emacs-startup . global-display-fill-column-indicator-mode)
+  (emacs-startup . tab-bar-mode)
+  (emacs-startup . tab-bar-history-mode)
+  (emacs-startup . global-display-fill-column-indicator-mode)
   (before-save . delete-trailing-whitespace)
   ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
 
@@ -1091,6 +1090,7 @@ makes it easier to edit it."
   :config
   (setq vertico-count 15)
   (setq vertico-resize nil)
+  (setq vertico-cycle t)
   (vertico-mode +1)
   (vertico-mouse-mode +1)
   (vertico-indexed-mode +1)
@@ -1230,13 +1230,7 @@ makes it easier to edit it."
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
 
-  ;; Optionally configure the narrowing key.
-  ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key "<") ;; "C-+"
-
-  ;; Optionally make narrowing help available in the minibuffer.
-  ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
+  (setq consult-narrow-key "<")
 
   (consult-info-define "emacs" "efaq" "elisp" "eintr" "cl")
   (consult-info-define 'all "widget" "ediff" "eglot" "flymake" "eshell" "tramp" "org" "gnus" "calc" "eww")
@@ -1598,6 +1592,25 @@ makes it easier to edit it."
 
 
 ;;; ui
+(use-package tab-line
+  :hook
+  (emacs-startup . global-tab-line-mode)
+  :config
+  (defun xy/tab-line-close-tab (buffer)
+    "Close the tab associated with BUFFER, and `delete-window' if only one tab"
+    (cond
+     ((length= (tab-line-tabs-window-buffers) 1)
+      (delete-window))
+     ((eq buffer (current-buffer))
+      (bury-buffer))
+     (t
+      (set-window-prev-buffers nil
+                               (assq-delete-all buffer (window-prev-buffers)))
+      (set-window-next-buffers nil
+                               (delq buffer (window-next-buffers))))))
+  (setq tab-line-close-tab-function #'xy/tab-line-close-tab))
+
+
 (use-package hl-line
   :ensure nil
   :hook
@@ -1767,6 +1780,13 @@ makes it easier to edit it."
   ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   ;; (setq eldoc-echo-area-display-truncation-message nil)
   (setq eldoc-minor-mode-string nil))
+
+(use-package diff
+  :ensure nil
+  :config
+  (setq diff-refine 'font-lock)
+  (setq diff-font-lock-prettify nil)
+  (setq diff-font-lock-syntax t))
 
 (use-package ediff
   :ensure nil
@@ -2104,4 +2124,22 @@ makes it easier to edit it."
   (setq eglot-sync-connect 0)
   (setq eglot-autoshutdown t)
   (setq eglot-events-buffer-config '(:size 2000 :format full))
-  (setq eglot-extend-to-xref t))
+  (setq eglot-extend-to-xref t)
+  ;; (setq eglot-confirm-server-edits '((t . diff)))
+  )
+
+(use-package consult-eglot
+  ;; `consult-eglot-narrow'
+  :bind ( :map eglot-mode-map
+          ("C-c c s" . consult-eglot-symbols)))
+
+(use-package consult-eglot-embark
+  :after (embark consult-eglot) :demand t
+  :config
+  (consult-eglot-embark-mode +1))
+
+;; (use-package eglot-signature-eldoc-talkative
+;;   :after eglot :demand t
+;;   :config
+;;   (advice-add #'eglot-signature-eldoc-function
+;;               :override #'eglot-signature-eldoc-talkative))
