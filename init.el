@@ -272,6 +272,7 @@
 
 ;;; builtin package setup
 (setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+                         ("gnu-dev". "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu-devel/")
                          ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
                          ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
 (setq package-archive-priorities '(("gnu"    . 90)
@@ -391,6 +392,7 @@
 
   ;; lock
   (setq create-lockfiles nil)
+  (setq remote-file-name-inhibit-locks t)
 
   ;; backup
   (setq make-backup-files nil)
@@ -577,6 +579,8 @@
   ;; ("C-x l" . #'count-words)
   ("C-x x v" . #'view-buffer)
   ("C-x x f" . #'follow-mode)
+  ;;
+  ("C-x D" . #'diff-buffer-with-file)
   ;;
   ("C-z" . nil) ; `suspend-frame'
   ("C-z C-r" . #'redraw-display)
@@ -1781,6 +1785,11 @@ makes it easier to edit it."
   ;; (setq eldoc-echo-area-display-truncation-message nil)
   (setq eldoc-minor-mode-string nil))
 
+(use-package eldoc-diffstat
+  :defer 1
+  :config
+  (global-eldoc-diffstat-mode))
+
 (use-package diff
   :ensure nil
   :config
@@ -2117,6 +2126,8 @@ makes it easier to edit it."
           ("C-c c !" . #'eglot-signal-didChangeConfiguration)
           ;; ("M-." . #'xref-find-definitions)
           ;; ("C-h ." . #'eldoc-doc-buffer)
+          ("C-c c t" . #'eglot-show-type-hierarchy)
+          ("C-c c h" . #'eglot-show-call-hierarchy)
           :map eglot-diagnostics-map)
   :config
   (add-to-list 'eglot-server-programs
@@ -2125,6 +2136,7 @@ makes it easier to edit it."
   (setq eglot-autoshutdown t)
   (setq eglot-events-buffer-config '(:size 2000 :format full))
   (setq eglot-extend-to-xref t)
+  (setq eglot-advertise-cancellation t)
   ;; (setq eglot-confirm-server-edits '((t . diff)))
   )
 
@@ -2143,3 +2155,7 @@ makes it easier to edit it."
 ;;   :config
 ;;   (advice-add #'eglot-signature-eldoc-function
 ;;               :override #'eglot-signature-eldoc-talkative))
+
+(use-package eglot-inactive-regions
+  :after eglot
+  :hook (c-mode cpp-mode))
