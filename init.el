@@ -43,7 +43,9 @@
   ;; (load-theme 'modus-vivendi)
   ;; (load-theme 'modus-operandi)
   (load-theme 'modus-operandi-deuteranopia)
-  (keymap-global-set "C-c y t" #'modus-themes-toggle))
+  (setq modus-themes-to-toggle '(modus-operandi-deuteranopia modus-vivendi))
+  (keymap-global-set "C-c y m t" #'modus-themes-toggle)
+  (keymap-global-set "C-c y m s" #'modus-themes-select))
 
 (defun xy/load-theme (theme &optional no-confirm no-enable)
   "Load a single theme interactively. Without prefix argument, disable all other enabled themes."
@@ -495,10 +497,11 @@
   ;; `files.el'
   (setq delete-by-moving-to-trash t)
   (setq confirm-kill-emacs #'yes-or-no-p)
+  ;; (setq confirm-kill-processes nil)
   (setq remote-file-name-inhibit-cache 50)
   (setq remote-file-name-inhibit-delete-by-moving-to-trash t)
   ;; (setq find-file-suppress-same-file-warnings t)
-  ;; Resolve symlinks so that operations are conducted from the file's directory
+  ;; Resolve symlinks so that operations are conducted from the real file's directory
   (setq find-file-visit-truename t
         vc-follow-symlinks t)
   ;; `paren.el'
@@ -581,6 +584,7 @@
   ("C-x x f" . #'follow-mode)
   ;;
   ("C-x D" . #'diff-buffer-with-file)
+  ;; ("C-x D" . #'diff-buffers)
   ;;
   ("C-z" . nil) ; `suspend-frame'
   ("C-z C-r" . #'redraw-display)
@@ -1514,6 +1518,71 @@ makes it easier to edit it."
   (keyfreq-autosave-mode +1))
 
 
+;;; file
+(use-package autorevert
+  :ensure nil
+  :defer 0.5
+  :config
+  (global-auto-revert-mode +1)
+  ;; @tip "C-x x g" is `revert-buffer-quick', "s-u" is `revert-buffer'
+  (setq global-auto-revert-non-file-buffers t)
+  ;; Set to nil if too slow
+  (setq auto-revert-remote-files t))
+
+(use-package trashed
+  :bind ("C-x C-d" . trashed)
+  :config
+  (setq trashed-action-confirmer 'y-or-n-p)
+  (setq trashed-use-header-line t)
+  (setq trashed-sort-key '("Date deleted" . t))
+  (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
+
+
+;;; dired
+(use-package dired
+  :ensure nil
+  :hook
+  (dired-mode . dired-hide-details-mode)
+  (dired-mode . dired-omit-mode)
+  :config
+  ;; @tip see `dired-mode-map' for summary and usage
+  ;; Flags for `insert-directory-program'. Or: -alh, --group-directories-first
+  ;; (setq dired-listing-switches "-laGgh1v --group-directories-first --time-style=long-iso")
+  (setq dired-listing-switches "-lhFA -v")
+  (setq dired-kill-when-opening-new-dired-buffer t)
+  ;; Propose a target for intelligent moving or copying.
+  ;; e.g. use next windows as target for file copy, rename etc
+  (setq dired-dwim-target t)
+  (setq dired-recursive-copies 'always)
+  (setq dired-create-destination-dirs 'ask)
+  (setq dired-vc-rename-file t)
+  (setq dired-omit-verbose nil)
+  ;; (setq dired-omit-files (concat "\\`[.]\\'"))
+  (setq ls-lisp-dirs-first t)
+  (setq image-dired-thumb-size 150
+        image-dired-thumb-margin 1
+        image-dired-thumb-relief 0
+        ;; Store thumbnails in the system-wide thumbnail location
+        ;; e.g. ~/.local/cache/thumbnails to make them reusable by other programs
+        image-dired-thumbnail-storage 'standard-large))
+
+(use-package nerd-icons-dired
+  :hook (dired-mode))
+
+(use-package dired-subtree
+  :after dired
+  :bind ( :map dired-mode-map
+          ("<tab>" . dired-subtree-toggle)
+          ("<backtab>" . dired-subtree-remove)
+          ("C-<tab>" . dired-subtree-cycle)
+          ;; ("TAB" . dired-subtree-toggle)
+          ;; ("S-TAB" . dired-subtree-remove)
+          ;; ("C-TAB" . dired-subtree-cycle)
+          )
+  :config
+  (setq dired-subtree-use-backgrounds nil))
+
+
 ;;; buffer
 (use-package ibuffer
   :ensure nil
@@ -1614,7 +1683,6 @@ makes it easier to edit it."
                                (delq buffer (window-next-buffers))))))
   (setq tab-line-close-tab-function #'xy/tab-line-close-tab))
 
-
 (use-package hl-line
   :ensure nil
   :hook
@@ -1626,202 +1694,7 @@ makes it easier to edit it."
   (package-menu-mode . hl-line-mode))
 
 
-;;; lisp
-(use-package lisp-mode
-  :ensure nil
-  :init
-  (defun xy/check-parens-before-save ()
-    (add-hook 'before-save-hook #'check-parens 0 :local))
-  (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
-  (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
-  :bind (("C-c e e" . #'pp-eval-last-sexp)
-         ("C-c e p" . #'pp-eval-expression)
-         ("C-c e j" . #'eval-print-last-sexp)
-         ("C-c e f" . #'eval-defun)
-         ("C-c e b" . #'eval-buffer)
-         ("C-c e r" . #'eval-region)
-         ("C-c e d" . #'edebug-defun)
-         ;; :map lisp-mode-shared-map
-         ("C-c e c" . #'check-parens)))
-
-(use-package macrostep
-  :bind (;; :map lisp-mode-shared-map
-          ("C-c e m" . macrostep-expand)))
-
-;; (use-package paredit
-;;   ;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
-;;   :hook lisp-data-mode
-;;   :bind (:map paredit-mode-map
-;;               ;; ("M-s" . nil) ;; `paredit-splice-sexp'
-;;               ;; ("M-r" . nil) ;; `paredit-raise-sexp'
-;;               ;; ("M-;" . nil) ;; `paredit-comment-dwim'
-;;               ;; ("C-j" . nil) ;; `paredit-C-j'
-;;               ;; ("M-)" . paredit-splice-sexp)
-;;               ;; ("M-K" . paredit-raise-sexp)
-;;               ;; ("ESC M-;" . paredit-comment-dwim)
-;;               ("M-U" . paredit-backward-slurp-sexp)
-;;               ("M-D" . paredit-backward-barf-sexp)
-;;               ("M-N" . paredit-forward-slurp-sexp)
-;;               ("M-P" . paredit-forward-barf-sexp))
-;;   :config
-;;   ;; (electric-indent-mode -1)
-;;   ;; ElDoc can safely print docstring after these commands
-;;   (eldoc-add-command
-;;    'paredit-backward-delete
-;;    'paredit-close-round
-;;    'paredit-close-square
-;;    'paredit-close-curly))
-
-
-;;; dired
-(use-package dired
-  :ensure nil
-  :hook
-  (dired-mode . dired-hide-details-mode)
-  (dired-mode . dired-omit-mode)
-  :config
-  ;; @tip see `dired-mode-map' for summary and usage
-  ;; Flags for `insert-directory-program'. Or: -alh, --group-directories-first
-  ;; (setq dired-listing-switches "-laGgh1v --group-directories-first --time-style=long-iso")
-  (setq dired-listing-switches "-lhFA -v")
-  (setq dired-kill-when-opening-new-dired-buffer t)
-  ;; Propose a target for intelligent moving or copying.
-  ;; e.g. use next windows as target for file copy, rename etc
-  (setq dired-dwim-target t)
-  (setq dired-recursive-copies 'always)
-  (setq dired-create-destination-dirs 'ask)
-  (setq dired-vc-rename-file t)
-  (setq dired-omit-verbose nil)
-  ;; (setq dired-omit-files (concat "\\`[.]\\'"))
-  (setq ls-lisp-dirs-first t)
-  (setq image-dired-thumb-size 150
-        image-dired-thumb-margin 1
-        image-dired-thumb-relief 0
-        ;; Store thumbnails in the system-wide thumbnail location
-        ;; e.g. ~/.local/cache/thumbnails to make them reusable by other programs
-        image-dired-thumbnail-storage 'standard-large))
-
-(use-package nerd-icons-dired
-  :hook (dired-mode))
-
-(use-package dired-subtree
-  :after dired
-  :bind ( :map dired-mode-map
-          ("<tab>" . dired-subtree-toggle)
-          ("<backtab>" . dired-subtree-remove)
-          ("C-<tab>" . dired-subtree-cycle)
-          ;; ("TAB" . dired-subtree-toggle)
-          ;; ("S-TAB" . dired-subtree-remove)
-          ;; ("C-TAB" . dired-subtree-cycle)
-          )
-  :config
-  (setq dired-subtree-use-backgrounds nil))
-
-
 ;;; util
-(use-package autorevert
-  :ensure nil
-  :defer 0.5
-  :config
-  (global-auto-revert-mode +1)
-  ;; @tip "C-x x g" is `revert-buffer-quick', "s-u" is `revert-buffer'
-  (setq global-auto-revert-non-file-buffers t)
-  (setq auto-revert-remote-files t))
-
-(use-package trashed
-  :bind ("C-x C-d" . trashed)
-  :config
-  (setq trashed-action-confirmer 'y-or-n-p)
-  (setq trashed-use-header-line t)
-  (setq trashed-sort-key '("Date deleted" . t))
-  (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
-
-(use-package outline
-  :ensure nil
-  :hook
-  (emacs-lisp-mode . outline-minor-mode)
-  :config
-  ;; @tip Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
-  ;; @tip RET at beginning of headers line trigger `outline-cycle'. And for S-RET:
-  (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
-  ;; For TAB/S-TAB
-  ;; (setq outline-minor-mode-cycle t)
-  ;; C-q `outline-hide-sublevels': Obly top n (default 1, can prefix) headers visible
-  ;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
-  (setopt outline-minor-mode-prefix (kbd "C-c v")) ; v for view
-  ;;; UI
-  ;; (setq outline-minor-mode-highlight 'append)
-  (setq outline-minor-mode-use-buttons 'in-margins))
-
-;; @tip
-;; M-. / M-, -> `xref-find-definitions' / `xref-go-back'
-;; C-M-. / C-M-, -> `xref-find-apropos' / `xref-go-forward'
-;; M-? -> `xref-find-references'
-(use-package xref
-  :ensure nil
-  :config
-  ;; Use completion system instead of popup window.
-  (setq xref-show-definitions-function 'xref-show-definitions-completing-read
-        xref-show-xrefs-function 'xref-show-definitions-completing-read)
-  (setq xref-history-storage 'xref-window-local-history))
-
-(use-package dumb-jump
-  :defer 1
-  :config
-  ;; @see `dumb-jump-find-rules'
-  (setq dumb-jump-prefer-searcher 'rg)
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
-
-;; (info "(emacs) Programming Language Doc")
-(use-package eldoc
-  :ensure nil
-  :init
-  ;; (global-eldoc-mode +1) ;; default
-  ;; :hook
-  ;; (prog-mode . eldoc-mode)
-  :bind ("C-h ." . #'eldoc-doc-buffer)
-  :config
-  ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-  ;; (setq eldoc-echo-area-display-truncation-message nil)
-  (setq eldoc-minor-mode-string nil))
-
-(use-package eldoc-diffstat
-  :defer 1
-  :config
-  (global-eldoc-diffstat-mode))
-
-(use-package diff
-  :ensure nil
-  :config
-  (setq diff-refine 'font-lock)
-  (setq diff-font-lock-prettify nil)
-  (setq diff-font-lock-syntax t))
-
-(use-package ediff
-  :ensure nil
-  :config
-  ;; use a single frame and split windows horizontally
-  (setq ediff-window-setup-function #'ediff-setup-windows-plain
-        ediff-split-window-function #'split-window-horizontally
-        ediff-merge-split-window-function #'split-window-horizontally))
-
-(use-package flymake
-  :ensure nil
-  ;; :hook (emacs-lisp-mode)
-  :bind ( :map flymake-mode-map
-          ("M-g n" . flymake-goto-next-error)
-          ("M-g p" . flymake-goto-prev-error)
-          ("M-g e" . flymake-show-buffer-diagnostics)
-          ("M-g E" . flymake-show-project-diagnostics))
-  :config
-  ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
-  (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
-
-(use-package wakatime-mode
-  :defer 1
-  :config
-  (global-wakatime-mode))
-
 ;; https://www.emacswiki.org/emacs/VisibleMark
 (use-package visible-mark
   :defer 0.5
@@ -1847,8 +1720,117 @@ makes it easier to edit it."
                     'ignore))))
   (global-auto-mark-mode +1))
 
+(use-package gcmh
+  :hook (after-init)
+  :config
+  (setq gcmh-high-cons-threshold (* 128 1024 1024)))
+
 
 ;;; tool
+(use-package outline
+  :ensure nil
+  ;; :hook
+  ;; (emacs-lisp-mode . outline-minor-mode)
+  :config
+  ;; @tip Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
+  ;; @tip RET at beginning of headers line trigger `outline-cycle'. And for S-RET:
+  (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
+  ;; For TAB/S-TAB
+  ;; (setq outline-minor-mode-cycle t)
+  ;; C-q `outline-hide-sublevels': Obly top n (default 1, can prefix) headers visible
+  ;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
+  (setopt outline-minor-mode-prefix (kbd "C-c v")) ; v for view
+  ;;; UI
+  ;; (setq outline-minor-mode-highlight 'append)
+  (setq outline-minor-mode-use-buttons 'in-margins))
+
+(use-package wakatime-mode
+  :defer 1
+  :config
+  (global-wakatime-mode))
+
+
+;;; motion
+(use-package avy
+  :bind (("M-s ;" . avy-resume)
+         ("M-s j" . avy-goto-char)
+         ("M-s M-j" . avy-goto-word-1)
+         ("M-s n" . avy-goto-char-2)
+         ("M-s M-n" . avy-goto-line)
+         ("M-s /" . avy-goto-char-timer)
+         :map isearch-mode-map
+         ("M-s j" . avy-isearch)))
+
+
+;;; prog
+;; (info "(emacs) Programming Language Doc")
+(use-package eldoc
+  :ensure nil
+  :init
+  ;; (global-eldoc-mode +1) ;; default
+  ;; :hook
+  ;; (prog-mode . eldoc-mode)
+  :bind ("C-h ." . #'eldoc-doc-buffer)
+  :config
+  ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+  ;; (setq eldoc-echo-area-display-truncation-message nil)
+  (setq eldoc-minor-mode-string nil))
+
+;; @tip
+;; M-. / M-, -> `xref-find-definitions' / `xref-go-back'
+;; C-M-. / C-M-, -> `xref-find-apropos' / `xref-go-forward'
+;; M-? -> `xref-find-references'
+(use-package xref
+  :ensure nil
+  :config
+  ;; Use completion system instead of popup window.
+  (setq xref-show-definitions-function 'xref-show-definitions-completing-read
+        xref-show-xrefs-function 'xref-show-definitions-completing-read)
+  (setq xref-history-storage 'xref-window-local-history))
+
+(use-package flymake
+  :ensure nil
+  ;; :hook (emacs-lisp-mode)
+  :bind ( :map flymake-mode-map
+          ("M-g n" . flymake-goto-next-error)
+          ("M-g p" . flymake-goto-prev-error)
+          ("M-g e" . flymake-show-buffer-diagnostics)
+          ("M-g E" . flymake-show-project-diagnostics))
+  :config
+  ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
+  (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+
+(use-package dumb-jump
+  :defer 1
+  :config
+  ;; @see `dumb-jump-find-rules'
+  (setq dumb-jump-prefer-searcher 'rg)
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+
+
+;;; diff
+(use-package diff
+  :ensure nil
+  :config
+  (setq diff-refine 'font-lock)
+  (setq diff-font-lock-prettify nil)
+  (setq diff-font-lock-syntax t))
+
+(use-package ediff
+  :ensure nil
+  :config
+  ;; use a single frame and split windows horizontally
+  (setq ediff-window-setup-function #'ediff-setup-windows-plain
+        ediff-split-window-function #'split-window-horizontally
+        ediff-merge-split-window-function #'split-window-horizontally))
+
+(use-package eldoc-diffstat
+  :defer 1
+  :config
+  (global-eldoc-diffstat-mode))
+
+
+;;; org
 (use-package org
   :ensure nil
   :bind
@@ -1890,14 +1872,6 @@ makes it easier to edit it."
   (setq org-html-checkbox-type 'unicode
         org-html-prefer-user-labels t
         org-html-self-link-headlines t))
-
-(use-package markdown-mode
-  :mode ("README\\.md\\'" . gfm-mode)
-  :config
-  ;; Markdown processor: not required for editing, for rendering HTML for preview and export.
-  ;; (setq markdown-command "multimarkdown")
-  :bind (:map markdown-mode-map
-              ("C-c C-e" . markdown-do)))
 
 
 ;;; terminal
@@ -1972,18 +1946,6 @@ makes it easier to edit it."
 ;; (use-package pcomplete)
 
 
-;;; motion
-(use-package avy
-  :bind (("M-s ;" . avy-resume)
-         ("M-s j" . avy-goto-char)
-         ("M-s M-j" . avy-goto-word-1)
-         ("M-s n" . avy-goto-char-2)
-         ("M-s M-n" . avy-goto-line)
-         ("M-s /" . avy-goto-char-timer)
-         :map isearch-mode-map
-         ("M-s j" . avy-isearch)))
-
-
 ;;; theme
 (use-package doom-themes
   :config
@@ -2004,12 +1966,12 @@ makes it easier to edit it."
   (doom-themes-org-config))
 
 (use-package ef-themes
-  :bind (("C-c y e" . ef-themes-select-light)
-         ("C-c y E" . ef-themes-select-dark)
-         ("C-c y M-e" . ef-themes-select)
-         ("C-c y f" . ef-themes-toggle)
-         ("C-c y F" . ef-themes-rotate)
-         ("C-c y M-f" . ef-themes-load-random))
+  :bind (("C-c y e l" . ef-themes-select-light)
+         ("C-c y e d" . ef-themes-select-dark)
+         ("C-c y e s" . ef-themes-select)
+         ("C-c y e t" . ef-themes-toggle)
+         ("C-c y e r" . ef-themes-rotate)
+         ("C-c y e e" . ef-themes-load-random))
   :config
   ;; EF themes: `ef-themes-collection', `ef-themes-dark-themes', `ef-themes-light-themes'
   (setq ef-themes-to-toggle '(ef-summer ef-spring))
@@ -2052,6 +2014,71 @@ makes it easier to edit it."
   ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
   (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
   (add-to-list 'treesit-language-source-alist '(gomod "https://github.com/camdencheek/tree-sitter-go-mod")))
+
+
+;;; lisp
+(use-package lisp-mode
+  :ensure nil
+  :init
+  (defun xy/check-parens-before-save ()
+    (add-hook 'before-save-hook #'check-parens 0 :local))
+  (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
+  (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
+  :bind (("C-c e e" . #'pp-eval-last-sexp)
+         ("C-c e p" . #'pp-eval-expression)
+         ("C-c e j" . #'eval-print-last-sexp)
+         ("C-c e f" . #'eval-defun)
+         ("C-c e b" . #'eval-buffer)
+         ("C-c e r" . #'eval-region)
+         ("C-c e d" . #'edebug-defun)
+         ;; :map lisp-mode-shared-map
+         ("C-c e c" . #'check-parens)))
+
+(use-package macrostep
+  :bind (;; :map lisp-mode-shared-map
+          ("C-c e m" . macrostep-expand)))
+
+;; (use-package paredit
+;;   ;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
+;;   :hook lisp-data-mode
+;;   :bind (:map paredit-mode-map
+;;               ;; ("M-s" . nil) ;; `paredit-splice-sexp'
+;;               ;; ("M-r" . nil) ;; `paredit-raise-sexp'
+;;               ;; ("M-;" . nil) ;; `paredit-comment-dwim'
+;;               ;; ("C-j" . nil) ;; `paredit-C-j'
+;;               ;; ("M-)" . paredit-splice-sexp)
+;;               ;; ("M-K" . paredit-raise-sexp)
+;;               ;; ("ESC M-;" . paredit-comment-dwim)
+;;               ("M-U" . paredit-backward-slurp-sexp)
+;;               ("M-D" . paredit-backward-barf-sexp)
+;;               ("M-N" . paredit-forward-slurp-sexp)
+;;               ("M-P" . paredit-forward-barf-sexp))
+;;   :config
+;;   ;; (electric-indent-mode -1)
+;;   ;; ElDoc can safely print docstring after these commands
+;;   (eldoc-add-command
+;;    'paredit-backward-delete
+;;    'paredit-close-round
+;;    'paredit-close-square
+;;    'paredit-close-curly))
+
+
+;;; lang
+(use-package markdown-mode
+  :mode ("README\\.md\\'" . gfm-mode)
+  :config
+  ;; Markdown processor: not required for editing, for rendering HTML for preview and export.
+  ;; (setq markdown-command "multimarkdown")
+  :bind (:map markdown-mode-map
+              ("C-c C-e" . markdown-do)))
+
+
+;;; python-lang
+(use-package python
+  :ensure nil
+  :config
+  ;; Remove guess indent python message
+  (setq python-indent-guess-indent-offset-verbose nil))
 
 
 ;;; go-lang
@@ -2108,7 +2135,10 @@ makes it easier to edit it."
 
 ;;; lsp
 (defvar xy/lsp-want-modes
-  '(go-mode go-ts-mode
+  '(go-mode
+    go-ts-mode
+    ;; python-mode python-ts-mode
+    python-base-mode
     sh-mode))
 
 ;; Eglot ("Emacs Polyglot") is an Emacs LSP client
