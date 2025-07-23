@@ -1,4 +1,12 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
+;;
+;; Advantages of Using early-init.el
+;; -- @see https://www.reddit.com/r/emacs/comments/1jlnysh/advantages_of_using_earlyinitel_and_initel_over/
+;; -- set a dark background if you use a dark theme, to prevent the flash of light
+;; -- set the initial frame size to prevent the frame resize "flash" at startup
+;; -- disable some GUI elements before frame pops up (buttons-bar, tool-bar, scroll-bar), this makes startup a bit faster
+;; -- disable native comp jit for some or all files (helpful to prevent recompile of some loaddefs.el.gz files at Emacs start)
+;; -- change the garbage collector threshold very early to speed up Emacs startup even more
 
 (when (< emacs-major-version 30)
   (user-error "[xy] emacs version is %s, require emacs-30." emacs-major-version))

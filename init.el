@@ -1693,6 +1693,11 @@ makes it easier to edit it."
   (dired-mode . hl-line-mode)
   (package-menu-mode . hl-line-mode))
 
+(use-package hide-mode-line
+  :hook
+  (inferior-python-mode) ; `run-python'
+  (completion-list-mode))
+
 
 ;;; util
 ;; https://www.emacswiki.org/emacs/VisibleMark
@@ -1991,6 +1996,21 @@ makes it easier to edit it."
   ;; (load-theme 'ef-summer :no-confirm)
   )
 
+;; Switch themes depending on the time of the day
+(use-package solar
+  :ensure nil
+  :defer 1
+  :config
+  (setq calendar-latitude 40)
+  (setq calendar-longitude 116))
+
+(use-package circadian
+  :after solar :demand t
+  :config
+  (setq circadian-themes '((:sunrise . modus-operandi)
+                           (:sunset  . modus-vivendi)))
+  (circadian-setup))
+
 
 ;;; treesit
 ;; @see doc of `treesit-major-mode-setup'
@@ -2164,7 +2184,7 @@ makes it easier to edit it."
                '(conf-toml-mode . ("taplo" "lsp" "stdio")))
   (setq eglot-sync-connect 0)
   (setq eglot-autoshutdown t)
-  (setq eglot-events-buffer-config '(:size 2000 :format full))
+  (setq eglot-events-buffer-config '(:size 4000 :format full))
   (setq eglot-extend-to-xref t)
   (setq eglot-advertise-cancellation t)
   ;; (setq eglot-confirm-server-edits '((t . diff)))
@@ -2189,3 +2209,12 @@ makes it easier to edit it."
 (use-package eglot-inactive-regions
   :after eglot
   :hook (c-mode cpp-mode))
+
+;; speedier performance and less I/O blocking
+(use-package eglot-booster
+  :vc ( :url "https://github.com/jdtsmith/eglot-booster"
+        :rev :newest)
+  :after eglot :demand t
+  :config
+  (eglot-booster-mode)
+  (setq eglot-booster-io-only t))
