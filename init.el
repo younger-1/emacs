@@ -1992,8 +1992,30 @@ makes it easier to edit it."
         (6 variable-pitch 1.3)
         (7 variable-pitch 1.2)
         (t variable-pitch 1.1)))
-
   ;; (load-theme 'ef-summer :no-confirm)
+  )
+
+;; https://protesilaos.com/codelog/2025-05-13-emacs-doric-themes/
+(use-package doric-themes
+  :bind (("C-c y d t" . doric-themes-toggle)
+         ("C-c y d s" . doric-themes-select)
+         ("C-c y d r" . doric-themes-rotate)
+         ("C-c y d r" . doric-themes-load-random))
+  :config
+  (setq doric-themes-to-toggle '(doric-light doric-dark))
+  (setq doric-themes-to-rotate doric-themes-collection)
+  ;; (doric-themes-select 'doric-light)
+
+  ;; ;; To load a random theme instead, use something like one of these:
+  ;; (doric-themes-load-random)
+  ;; (doric-themes-load-random 'light)
+  ;; (doric-themes-load-random 'dark)
+
+  ;; ;; For optimal results, also define your preferred font family (or use my `fontaine' package):
+  ;;
+  ;; (set-face-attribute 'default nil :family "Aporetic Sans Mono" :height 160)
+  ;; (set-face-attribute 'variable-pitch nil :family "Aporetic Sans" :height 1.0)
+  ;; (set-face-attribute 'fixed-pitch nil :family "Aporetic Sans Mono" :height 1.0)
   )
 
 ;; Switch themes depending on the time of the day
