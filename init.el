@@ -277,9 +277,9 @@
                          ("gnu-dev". "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu-devel/")
                          ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
                          ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
-(setq package-archive-priorities '(("gnu"    . 90)
-                                   ("nongnu" . 80)
-                                   ("melpa"  . 10)))
+;; (setq package-archive-priorities '(("gnu"    . 90)
+;;                                    ("nongnu" . 80)
+;;                                    ("melpa"  . 10)))
 ;; Enable `package-quickstart-refresh'
 (setq package-quickstart t)
 (setq package-install-upgrade-built-in t)
@@ -616,7 +616,8 @@
 
   (dir-locals-set-class-variables
    :read-only
-   '((nil . ((eval . (view-mode-enter nil #'kill-buffer))
+   '((nil . (;; (eval . (view-mode-enter nil #'kill-buffer))
+             (buffer-read-only . t)
              (tab-width . 8)))))
   (dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
     (dir-locals-set-directory-class (file-truename dir) :read-only)))
@@ -855,7 +856,7 @@ makes it easier to edit it."
   :bind (("C-h r" . nil) ; `info-emacs-manual'
          ("C-h r r" . #'info-emacs-manual)
          ("C-h r e" . #'xy/info-elisp)
-         ("C-h r t" . #'xy/info-eintr)
+         ("C-h r i" . #'xy/info-eintr)
          :map Info-mode-map
          ;; ("M-n" . nil) ; `clone-buffer'
          ("S-SPC" . nil) ; `Info-scroll-down', available as DEL(<backspace>)
@@ -1020,6 +1021,16 @@ makes it easier to edit it."
 ;;   (global-smartscan-mode +1))
 
 
+;;; imenu
+(use-package imenu-list
+  :bind
+  ("C-c l" . imenu-list-smart-toggle)
+  :config
+  ;; (setq imenu-list-position 'left)
+  (setq imenu-list-focus-after-activation t)
+  (setq imenu-list-auto-resize t))
+
+
 ;;; minibuffer
 (use-package minibuffer
   :ensure nil
@@ -1142,10 +1153,17 @@ makes it easier to edit it."
 ;; Consult provides search and navigation commands based on `completing-read'
 (use-package consult
   :bind (;; C-c bindings in `mode-specific-map'
-         ("C-c h" . consult-history)
-         ("C-c k" . consult-kmacro)
-         ("C-c m" . consult-man)
-         ("C-c i" . consult-info)
+         ("C-c s f" . consult-fd)
+         ("C-c s d" . consult-find)
+         ("C-c s c" . consult-locate)
+         ("C-c s g" . consult-ripgrep)
+         ;; ("C-c s g" . consult-grep)
+         ("C-c s G" . consult-git-grep)
+         ;;
+         ("C-c s h" . consult-history)
+         ("C-c s k" . consult-kmacro)
+         ("C-c s m" . consult-man)
+         ("C-c s i" . consult-info)
          ([remap Info-search] . consult-info)
          ;; C-x bindings in `ctl-x-map'
          ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
@@ -1181,11 +1199,6 @@ makes it easier to edit it."
          ("M-g i" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
          ;; M-s bindings in `search-map'
-         ("M-s d" . consult-find)                  ;; Alternative: consult-fd
-         ("M-s c" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
          ("M-s l" . consult-line)
          ("M-s L" . consult-line-multi)
          ("M-s k" . consult-keep-lines)
@@ -1541,6 +1554,11 @@ makes it easier to edit it."
 ;;; dired
 (use-package dired
   :ensure nil
+  :bind (("C-x d" . nil)
+         ("C-x d d" . dired)
+         ("C-x d j" . dired-jump)
+         :map dired-mode-map
+         ("v" . dired-view-file))
   :hook
   (dired-mode . dired-hide-details-mode)
   (dired-mode . dired-omit-mode)
@@ -1578,18 +1596,34 @@ makes it easier to edit it."
           ;; ("TAB" . dired-subtree-toggle)
           ;; ("S-TAB" . dired-subtree-remove)
           ;; ("C-TAB" . dired-subtree-cycle)
+          ("[" . dired-subtree-up)
           )
   :config
   (setq dired-subtree-use-backgrounds nil))
 
+(use-package dired-sidebar
+  :bind ("C-x d s" . dired-sidebar-toggle-sidebar)
+  :config
+  (setq dired-sidebar-should-follow-file t)
+  (add-to-list 'dired-sidebar-special-refresh-commands 'dired-sidebar-mouse-subtree-cycle-or-find-file))
+
+(use-package neotree
+  :bind ("C-x d n" . neotree)
+  :config
+  (setq neo-theme (if (display-graphic-p) 'nerd-icons 'arrow)))
+
+(use-package treemacs
+  :bind ( :map global-map
+          ("C-x d m" . treemacs)))
+
 
 ;;; buffer
+;; Useful to kill multiple buffers
 (use-package ibuffer
   :ensure nil
   :bind
-  ("C-x C-b" . #'ibuffer) ; useful to kill multiple buffers
-  ;; ("C-x M-b" . #'ibuffer-jump)
-  ("C-x 4 C-b" . #'ibuffer-other-window)
+  ("C-x C-b" . #'ibuffer-jump) ; @prefix Display ibuffer in other window
+  ("C-x 4 C-b" . #'ibuffer-other-window) ; @prefix Show only file-visiting buffers
   :hook (ibuffer-mode . ibuffer-auto-mode)
   :config
   (defvar xy/boring-buffers '("\\` "
@@ -1608,6 +1642,7 @@ makes it easier to edit it."
                               )
     "List of buffer names of buffers to hide on several occasions.")
 
+  ;; (setq ibuffer-use-other-window t)
   (setq ibuffer-never-show-predicates xy/boring-buffers))
 
 (use-package nerd-icons-ibuffer
@@ -1952,6 +1987,24 @@ makes it easier to edit it."
 
 
 ;;; theme
+;; Switch themes depending on the time of the day
+(use-package solar
+  :ensure nil
+  :defer 1
+  :config
+  (setq calendar-latitude 40)
+  (setq calendar-longitude 116))
+
+(use-package circadian
+  :after solar :demand t
+  :config
+  (setq circadian-themes '((:sunrise . modus-operandi)
+                           (:sunset  . modus-vivendi)))
+  (circadian-setup))
+
+(use-package solarized-theme
+  :bind ("C-c y s" . solarized-toggle-theme))
+
 (use-package doom-themes
   :config
   ;; Global settings (defaults)
@@ -2017,21 +2070,6 @@ makes it easier to edit it."
   ;; (set-face-attribute 'variable-pitch nil :family "Aporetic Sans" :height 1.0)
   ;; (set-face-attribute 'fixed-pitch nil :family "Aporetic Sans Mono" :height 1.0)
   )
-
-;; Switch themes depending on the time of the day
-(use-package solar
-  :ensure nil
-  :defer 1
-  :config
-  (setq calendar-latitude 40)
-  (setq calendar-longitude 116))
-
-(use-package circadian
-  :after solar :demand t
-  :config
-  (setq circadian-themes '((:sunrise . modus-operandi)
-                           (:sunset  . modus-vivendi)))
-  (circadian-setup))
 
 
 ;;; treesit

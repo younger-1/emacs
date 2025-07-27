@@ -351,7 +351,7 @@
   :bind (("C-h r" . nil) ; `info-emacs-manual'
          ("C-h r r" . #'info-emacs-manual)
          ("C-h r e" . #'xy/info-elisp)
-         ("C-h r t" . #'xy/info-eintr)
+         ("C-h r i" . #'xy/info-eintr)
          :map Info-mode-map
          ("." . #'Info-search-next)
          ("a" . #'info-apropos)))
