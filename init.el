@@ -504,6 +504,7 @@
   ;; Resolve symlinks so that operations are conducted from the real file's directory
   (setq find-file-visit-truename t
         vc-follow-symlinks t)
+  (setq view-read-only t)
   ;; `paren.el'
   (setq show-paren-context-when-offscreen 'overlay
         blink-matching-paren-highlight-offscreen t)
@@ -581,6 +582,7 @@
   ("C-x O" . #'switch-to-minibuffer)
   ;; ("C-x l" . #'count-words)
   ("C-x x v" . #'view-buffer)
+  ("C-x x V" . #'view-buffer-other-window)
   ("C-x x f" . #'follow-mode)
   ;;
   ("C-x D" . #'diff-buffer-with-file)
@@ -977,6 +979,16 @@ makes it easier to edit it."
   (setq comint-input-ring-size (* 500 1))
   (savehist-mode +1))
 
+(use-package autorevert
+  :ensure nil
+  :defer 0.5
+  :config
+  (global-auto-revert-mode +1)
+  ;; @tip "C-x x g" is `revert-buffer-quick', "s-u" is `revert-buffer'
+  (setq global-auto-revert-non-file-buffers t)
+  ;; Set to nil if too slow
+  (setq auto-revert-remote-files t))
+
 
 ;;; isearch
 (use-package isearch
@@ -1019,16 +1031,6 @@ makes it easier to edit it."
 ;;           ("M-p" . smartscan-symbol-go-backward))
 ;;   :config
 ;;   (global-smartscan-mode +1))
-
-
-;;; imenu
-(use-package imenu-list
-  :bind
-  ("C-c l" . imenu-list-smart-toggle)
-  :config
-  ;; (setq imenu-list-position 'left)
-  (setq imenu-list-focus-after-activation t)
-  (setq imenu-list-auto-resize t))
 
 
 ;;; minibuffer
@@ -1355,6 +1357,13 @@ makes it easier to edit it."
   :after embark :demand t ;; load consult after embark to provide `consult-imenu' for `embark-export'
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
+(use-package embark-sidebar
+  :after embark :demand t
+  :vc ( :url "https://github.com/kn66/embark-sidebar.el"
+        :rev :newest)
+  :config
+  (embark-sidebar-mode +1))
+
 
 ;;; completion
 ;; (use-package completion-preview
@@ -1444,17 +1453,6 @@ makes it easier to edit it."
 
 
 ;;; keymap
-;; (use-package ffap
-;;   :ensure nil
-;;   :defer 1
-;;   :bind
-;;   ("C-x M-f" . #'ffap-menu)
-;;   :config
-;;   ;; @tip
-;;   ;; (keymap-global-set "S-<mouse-3>" 'ffap-at-mouse)
-;;   ;; (keymap-global-set "C-S-<mouse-3>" 'ffap-menu)
-;;   (ffap-bindings))
-
 (use-package repeat
   :ensure nil
   :defer 0.3
@@ -1515,6 +1513,17 @@ makes it easier to edit it."
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-sort-uppercase-first nil))
 
+;; (use-package ffap
+;;   :ensure nil
+;;   :defer 1
+;;   :bind
+;;   ("C-x M-f" . #'ffap-menu)
+;;   :config
+;;   ;; @tip
+;;   ;; (keymap-global-set "S-<mouse-3>" 'ffap-at-mouse)
+;;   ;; (keymap-global-set "C-S-<mouse-3>" 'ffap-menu)
+;;   (ffap-bindings))
+
 (use-package keyfreq
   :defer 0.3
   :bind ("C-h w f" . keyfreq-show)
@@ -1529,26 +1538,6 @@ makes it easier to edit it."
           mwheel-scroll))
   (keyfreq-mode +1)
   (keyfreq-autosave-mode +1))
-
-
-;;; file
-(use-package autorevert
-  :ensure nil
-  :defer 0.5
-  :config
-  (global-auto-revert-mode +1)
-  ;; @tip "C-x x g" is `revert-buffer-quick', "s-u" is `revert-buffer'
-  (setq global-auto-revert-non-file-buffers t)
-  ;; Set to nil if too slow
-  (setq auto-revert-remote-files t))
-
-(use-package trashed
-  :bind ("C-x C-d" . trashed)
-  :config
-  (setq trashed-action-confirmer 'y-or-n-p)
-  (setq trashed-use-header-line t)
-  (setq trashed-sort-key '("Date deleted" . t))
-  (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
 
 ;;; dired
@@ -1587,6 +1576,14 @@ makes it easier to edit it."
 (use-package nerd-icons-dired
   :hook (dired-mode))
 
+(use-package trashed
+  :bind ("C-x d t" . trashed)
+  :config
+  (setq trashed-action-confirmer 'y-or-n-p)
+  (setq trashed-use-header-line t)
+  (setq trashed-sort-key '("Date deleted" . t))
+  (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
+
 (use-package dired-subtree
   :after dired
   :bind ( :map dired-mode-map
@@ -1616,8 +1613,19 @@ makes it easier to edit it."
   :bind ( :map global-map
           ("C-x d m" . treemacs)))
 
+(use-package projtree
+  :vc ( :url "https://github.com/petergardfjall/emacs-projtree"
+        :rev :newest)
+  :bind ("C-x d p" . projtree-mode))
+
 
 ;;; buffer
+(use-package midnight
+  :ensure nil
+  :defer 2
+  :config
+  (midnight-mode +1))
+
 ;; Useful to kill multiple buffers
 (use-package ibuffer
   :ensure nil
@@ -1735,6 +1743,11 @@ makes it easier to edit it."
 
 
 ;;; util
+(use-package gcmh
+  :hook (after-init)
+  :config
+  (setq gcmh-high-cons-threshold (* 128 1024 1024)))
+
 ;; https://www.emacswiki.org/emacs/VisibleMark
 (use-package visible-mark
   :defer 0.5
@@ -1759,11 +1772,6 @@ makes it easier to edit it."
                          (eq last-command-char ? ))
                     'ignore))))
   (global-auto-mark-mode +1))
-
-(use-package gcmh
-  :hook (after-init)
-  :config
-  (setq gcmh-high-cons-threshold (* 128 1024 1024)))
 
 
 ;;; tool
@@ -1803,6 +1811,14 @@ makes it easier to edit it."
 
 
 ;;; prog
+(use-package imenu-list
+  :bind
+  ("C-c l" . imenu-list-smart-toggle)
+  :config
+  ;; (setq imenu-list-position 'left)
+  (setq imenu-list-focus-after-activation t)
+  (setq imenu-list-auto-resize t))
+
 ;; (info "(emacs) Programming Language Doc")
 (use-package eldoc
   :ensure nil
@@ -2244,7 +2260,7 @@ makes it easier to edit it."
                '(conf-toml-mode . ("taplo" "lsp" "stdio")))
   (setq eglot-sync-connect 0)
   (setq eglot-autoshutdown t)
-  (setq eglot-events-buffer-config '(:size 4000 :format full))
+  (setq eglot-events-buffer-config '(:size 8000 :format full))
   (setq eglot-extend-to-xref t)
   (setq eglot-advertise-cancellation t)
   ;; (setq eglot-confirm-server-edits '((t . diff)))
