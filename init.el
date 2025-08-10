@@ -1540,6 +1540,96 @@ makes it easier to edit it."
   (keyfreq-autosave-mode +1))
 
 
+;;; buffer
+(use-package midnight
+  :ensure nil
+  :defer 2
+  :config
+  (midnight-mode +1))
+
+;; Useful to kill multiple buffers
+(use-package ibuffer
+  :ensure nil
+  :bind
+  ("C-x C-b" . #'ibuffer-jump) ; @prefix Display ibuffer in other window
+  ("C-x 4 C-b" . #'ibuffer-other-window) ; @prefix Show only file-visiting buffers
+  :hook (ibuffer-mode . ibuffer-auto-mode)
+  :config
+  (defvar xy/boring-buffers '("\\` "
+                              ;; "\\`\\*Echo Area"
+                              ;; "\\`\\*Minibuf"
+                              ;; "\\`\\*Completions"
+                              "\\`\\*Flymake log"
+                              "\\`\\*Semantic SymRef"
+                              ;; "\\`\\*Backtrace"
+                              "\\`\\*tramp"
+                              "\\`\\*EGLOT"
+                              ;; And some hidden buffers can be visited by ...
+                              ;; "\\`\\*scratch"        ; "C-z s s"
+                              ;; "\\`\\*Messages"       ; "C-h e"
+                              "\\`\\*Bookmark List"  ; "C-x r l"
+                              )
+    "List of buffer names of buffers to hide on several occasions.")
+
+  ;; (setq ibuffer-use-other-window t)
+  (setq ibuffer-never-show-predicates xy/boring-buffers))
+
+(use-package nerd-icons-ibuffer
+  :hook (ibuffer-mode))
+
+
+;;; window
+(use-package winner
+  :ensure nil
+  :defer 0.5
+  :bind
+  ("C-x 4 u" . #'winner-undo)
+  ("C-x 4 r" . #'winner-redo)
+  :config
+  (winner-mode +1))
+
+(use-package windmove
+  :ensure nil
+  :defer 0.5
+  :config
+  ;; @tip shift and ctrl-shift is used by Org-Mode
+  (windmove-default-keybindings 'ctrl)
+  (windmove-swap-states-default-keybindings '(ctrl shift))
+  (windmove-display-default-keybindings '(ctrl meta))
+  (windmove-delete-default-keybindings))
+
+(use-package ace-window
+  :bind ;; ([remap other-window] . ace-window)
+  ("M-o" . ace-window)
+  :config
+  ;; (custom-set-faces
+  ;;  '(aw-leading-char-face
+  ;;    ((t (:inherit ace-jump-face-foreground :height 2.0)))))
+  (set-face-attribute 'aw-leading-char-face nil :height 2.0))
+
+;; @see https://emacs.stackexchange.com/questions/5371/how-to-change-emacs-windows-from-vertical-split-to-horizontal-split
+(defun xy/window-split-toggle ()
+  "Toggle between horizontal and vertical split with two windows."
+  (interactive)
+  (if (> (length (window-list)) 2)
+      (error "Can't toggle with more than 2 windows!")
+    (let ((func (if (window-full-height-p)
+                    #'split-window-vertically
+                  #'split-window-horizontally)))
+      (delete-other-windows)
+      (funcall func)
+      (save-selected-window
+        (other-window 1)
+        (switch-to-buffer (other-buffer))))))
+(keymap-global-set "C-x 4 t" #'xy/window-split-toggle)
+
+;; Native frame transposition coming to Emacs 31
+;; -- https://p.bauherren.ovh/blog/tech/new_window_cmds
+;; -- https://news.ycombinator.com/item?id=43619437
+;; (use-package window-x
+;;   :bind ("C-x 4 t" . #'rotate-windows))
+
+
 ;;; dired
 (use-package dired
   :ensure nil
@@ -1618,93 +1708,12 @@ makes it easier to edit it."
         :rev :newest)
   :bind ("C-x d p" . projtree-mode))
 
-
-;;; buffer
-(use-package midnight
-  :ensure nil
-  :defer 2
-  :config
-  (midnight-mode +1))
-
-;; Useful to kill multiple buffers
-(use-package ibuffer
-  :ensure nil
-  :bind
-  ("C-x C-b" . #'ibuffer-jump) ; @prefix Display ibuffer in other window
-  ("C-x 4 C-b" . #'ibuffer-other-window) ; @prefix Show only file-visiting buffers
-  :hook (ibuffer-mode . ibuffer-auto-mode)
-  :config
-  (defvar xy/boring-buffers '("\\` "
-                              ;; "\\`\\*Echo Area"
-                              ;; "\\`\\*Minibuf"
-                              ;; "\\`\\*Completions"
-                              "\\`\\*Flymake log"
-                              "\\`\\*Semantic SymRef"
-                              ;; "\\`\\*Backtrace"
-                              "\\`\\*tramp"
-                              "\\`\\*EGLOT"
-                              ;; And some hidden buffers can be visited by ...
-                              ;; "\\`\\*scratch"        ; "C-z s s"
-                              ;; "\\`\\*Messages"       ; "C-h e"
-                              "\\`\\*Bookmark List"  ; "C-x r l"
-                              )
-    "List of buffer names of buffers to hide on several occasions.")
-
-  ;; (setq ibuffer-use-other-window t)
-  (setq ibuffer-never-show-predicates xy/boring-buffers))
-
-(use-package nerd-icons-ibuffer
-  :hook (ibuffer-mode))
-
-
-;;; window
-(use-package winner
-  :ensure nil
-  :defer 0.5
-  :bind
-  ("C-x 4 u" . #'winner-undo)
-  ("C-x 4 r" . #'winner-redo)
-  :config
-  (winner-mode +1))
-
-(use-package windmove
-  :ensure nil
-  :defer 0.5
-  :config
-  ;; @tip shift and ctrl-shift is used by Org-Mode
-  ;; (windmove-default-keybindings 'ctrl)
-  (windmove-swap-states-default-keybindings '(ctrl)))
-
-(use-package ace-window
-  :bind ;; ([remap other-window] . ace-window)
-  ("M-o" . ace-window)
-  :config
-  ;; (custom-set-faces
-  ;;  '(aw-leading-char-face
-  ;;    ((t (:inherit ace-jump-face-foreground :height 2.0)))))
-  (set-face-attribute 'aw-leading-char-face nil :height 2.0))
-
-;; @see https://emacs.stackexchange.com/questions/5371/how-to-change-emacs-windows-from-vertical-split-to-horizontal-split
-(defun xy/window-split-toggle ()
-  "Toggle between horizontal and vertical split with two windows."
-  (interactive)
-  (if (> (length (window-list)) 2)
-      (error "Can't toggle with more than 2 windows!")
-    (let ((func (if (window-full-height-p)
-                    #'split-window-vertically
-                  #'split-window-horizontally)))
-      (delete-other-windows)
-      (funcall func)
-      (save-selected-window
-        (other-window 1)
-        (switch-to-buffer (other-buffer))))))
-(keymap-global-set "C-x 4 t" #'xy/window-split-toggle)
-
-;; Native frame transposition coming to Emacs 31
-;; -- https://p.bauherren.ovh/blog/tech/new_window_cmds
-;; -- https://news.ycombinator.com/item?id=43619437
-;; (use-package window-x
-;;   :bind ("C-x 4 t" . #'rotate-windows))
+;;; project
+(use-package disproject
+  :bind ( :map ctl-x-map
+          ;; Replace `project-prefix-map'
+          ;; ("p" . disproject-dispatch)
+          ("P" . disproject-dispatch)))
 
 
 ;;; ui
