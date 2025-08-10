@@ -1718,9 +1718,13 @@ makes it easier to edit it."
 
 ;;; ui
 (use-package tab-line
+  :ensure nil
   :hook
   (emacs-startup . global-tab-line-mode)
+  ;; (emacs-startup . global-window-tool-bar-mode)
   :config
+  ;; (add-to-list 'tab-line-format '(:eval (tab-line-format)))
+  ;; (add-to-list 'tab-line-format '(:eval (window-tool-bar-string)))
   (defun xy/tab-line-close-tab (buffer)
     "Close the tab associated with BUFFER, and `delete-window' if only one tab"
     (cond
@@ -1749,6 +1753,12 @@ makes it easier to edit it."
   :hook
   (inferior-python-mode) ; `run-python'
   (completion-list-mode))
+
+(use-package breadcrumb
+  :defer 1
+  :config
+  (breadcrumb-mode +1)
+  (setq breadcrumb-imenu-crumb-separator " "))
 
 
 ;;; util
@@ -2012,7 +2022,6 @@ makes it easier to edit it."
 
 
 ;;; theme
-;; Switch themes depending on the time of the day
 (use-package solar
   :ensure nil
   :defer 1
@@ -2020,12 +2029,13 @@ makes it easier to edit it."
   (setq calendar-latitude 40)
   (setq calendar-longitude 116))
 
-(use-package circadian
-  :after solar :demand t
-  :config
-  (setq circadian-themes '((:sunrise . modus-operandi)
-                           (:sunset  . modus-vivendi)))
-  (circadian-setup))
+;; Switch themes depending on the time of the day
+;; (use-package circadian
+;;   :after solar :demand t
+;;   :config
+;;   (setq circadian-themes '((:sunrise . modus-operandi)
+;;                            (:sunset  . modus-vivendi)))
+;;   (circadian-setup))
 
 (use-package solarized-theme
   :bind ("C-c y s" . solarized-toggle-theme))
