@@ -420,7 +420,7 @@
 
   ;; wrap
   ;; (global-visual-line-mode +1)
-  ;; (setq-default word-wrap t)
+  (setq-default word-wrap t)
   (setq word-wrap-by-category t)
 
   ;; truncate
@@ -1361,6 +1361,7 @@ makes it easier to edit it."
   :after embark :demand t
   :vc ( :url "https://github.com/kn66/embark-sidebar.el"
         :rev :newest)
+  :bind ("C-x d e" . embark-sidebar-toggle)
   :config
   (embark-sidebar-mode +1))
 
@@ -1708,7 +1709,13 @@ makes it easier to edit it."
         :rev :newest)
   :bind ("C-x d p" . projtree-mode))
 
-;;; project
+
+;;; transient
+(use-package transient-showcase
+  :vc ( :url "https://github.com/positron-solutions/transient-showcase"
+        :rev :newest)
+  :bind ("C-c t s" . tsc-showcase))
+
 (use-package disproject
   :bind ( :map ctl-x-map
           ;; Replace `project-prefix-map'
@@ -1721,10 +1728,8 @@ makes it easier to edit it."
   :ensure nil
   :hook
   (emacs-startup . global-tab-line-mode)
-  ;; (emacs-startup . global-window-tool-bar-mode)
   :config
   ;; (add-to-list 'tab-line-format '(:eval (tab-line-format)))
-  ;; (add-to-list 'tab-line-format '(:eval (window-tool-bar-string)))
   (defun xy/tab-line-close-tab (buffer)
     "Close the tab associated with BUFFER, and `delete-window' if only one tab"
     (cond
@@ -1738,6 +1743,12 @@ makes it easier to edit it."
       (set-window-next-buffers nil
                                (delq buffer (window-next-buffers))))))
   (setq tab-line-close-tab-function #'xy/tab-line-close-tab))
+
+(use-package window-tool-bar
+  :ensure nil
+  :hook
+  ;; (emacs-startup . global-window-tool-bar-mode)
+  (special-mode . window-tool-bar-mode))
 
 (use-package hl-line
   :ensure nil
