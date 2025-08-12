@@ -581,8 +581,6 @@
   ("C-x K" . #'bury-buffer)
   ("C-x O" . #'switch-to-minibuffer)
   ;; ("C-x l" . #'count-words)
-  ("C-x x v" . #'view-buffer)
-  ("C-x x V" . #'view-buffer-other-window)
   ("C-x x f" . #'follow-mode)
   ;;
   ("C-x D" . #'diff-buffer-with-file)
@@ -1805,6 +1803,19 @@ makes it easier to edit it."
 
 
 ;;; tool
+(use-package view
+  :ensure nil
+  :bind
+  (("C-x x v" . #'view-buffer)
+   ("C-x 4 v" . #'view-buffer-other-window)
+   ("C-x 5 v" . #'view-buffer-other-frame)
+   ("C-x x V" . #'view-file)
+   :map view-mode-map
+   ("q" . #'switch-to-prev-buffer))
+  :config
+  (keymap-set ctl-x-4-map "V" #'view-file-other-window)
+  (keymap-set ctl-x-5-map "V" #'view-file-other-frame))
+
 (use-package outline
   :ensure nil
   ;; :hook
@@ -1909,6 +1920,45 @@ makes it easier to edit it."
   (setq ediff-window-setup-function #'ediff-setup-windows-plain
         ediff-split-window-function #'split-window-horizontally
         ediff-merge-split-window-function #'split-window-horizontally))
+
+;; Highlight uncommitted changes using VC
+(use-package diff-hl
+  :defer 0.5
+  :hook (dired-mode . diff-hl-dired-mode)
+  :bind ( :map diff-hl-command-map
+          ("-" . diff-hl-amend-mode)
+          ("_" . diff-hl-set-reference-rev)
+          ("RET" . diff-hl-show-hunk)
+          ("SPC" . diff-hl-mark-hunk)
+          ("n" . diff-hl-next-hunk)
+          ("p" . diff-hl-previous-hunk))
+  :custom-face
+  ;; (diff-hl-change ((t (:inherit custom-changed :foreground unspecified :background unspecified))))
+  ;; (diff-hl-insert ((t (:inherit diff-added :background unspecified))))
+  ;; (diff-hl-delete ((t (:inherit diff-removed :background unspecified))))
+  :config
+  (global-diff-hl-mode +1)
+  ;; Makes fringe and margin react to mouse clicks
+  ;; (global-diff-hl-show-hunk-mouse-mode +1)
+  ;; Diffing on-the-fly (i.e. without saving the buffer first)
+  (diff-hl-flydiff-mode +1)
+
+  (unless (display-graphic-p)
+    ;; Fall back to the display margin since the fringe is unavailable in tty
+    (diff-hl-margin-mode +1)
+    ;; Avoid restoring `diff-hl-margin-mode'
+    (with-eval-after-load 'desktop
+      (add-to-list 'desktop-minor-mode-table '(diff-hl-margin-mode nil))))
+
+  (defun xy/diff-hl-fringe-bmp-function (_type _pos)
+    (define-fringe-bitmap 'my-diff-hl-bmp
+      (vector (if xy/linux-p #b11111100 #b11100000)) 1 8 '(center t)))
+  ;; (setq diff-hl-fringe-bmp-function #'xy/diff-hl-fringe-bmp-function)
+
+  ;; Integration with magit
+  (with-eval-after-load 'magit
+    (add-hook 'magit-pre-refresh-hook #'diff-hl-magit-pre-refresh)
+    (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
 
 ;;; git
