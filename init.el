@@ -1910,10 +1910,55 @@ makes it easier to edit it."
         ediff-split-window-function #'split-window-horizontally
         ediff-merge-split-window-function #'split-window-horizontally))
 
+
+;;; git
+(use-package magit
+  :bind (;; ("C-x g"   . magit-status)
+         ;; ("C-x C-g" . magit-dispatch)
+         ;; ("C-x M-g" . magit-file-dispatch)
+         ("C-x g g" . magit-status)
+         ("C-x g a" . magit-log-all)
+         ("C-x g b" . magit-branch-checkout)
+         ("C-x g c" . magit-log-current)
+         ("C-x g C" . magit-log-buffer-file)
+         ("C-x g '" . magit-blame-addition)
+         ("C-x g d" . magit-diff-dwim)
+         ("C-x g D" . magit-diff-buffer-file)
+         ;;
+         ("C-x m" . nil)
+         ("C-x m m" . magit-dispatch)
+         ("C-x m f" . magit-file-dispatch)
+         ("C-x p m" . magit-project-status)
+         ("C-x m l" . magit-log)
+         ("C-x m b" . magit-branch)
+         ("C-x m '" . magit-blame)
+         ("C-x m d" . magit-diff)
+         ("C-x m e" . magit-ediff-dwim)
+         ("C-x m E" . magit-ediff)
+         ("C-x m z" . magit-stash)
+         ("C-x m p" . magit-pull)
+         ("C-x m P" . magit-push)
+         ("C-x m r" . magit-rebase)
+         ("C-x m M" . magit-merge)
+         :map magit-section-mode-map
+         ("]" . magit-section-forward-sibling)
+         ("[" . magit-section-backward-sibling))
+  :config
+  (setq magit-diff-refine-hunk t)
+  ;; Order for branch checkout: objectsize, authordate, committerdate, creatordate, taggerdate
+  (setq magit-list-refs-sortby "-creatordate")
+  (add-to-list 'savehist-additional-variables 'magit-revision-history))
+
+;; Adapted from Tassilo Horn's blog post:
+;; https://www.tsdh.org/posts/2022-07-20-using-eldoc-with-magit-async.html
 (use-package eldoc-diffstat
   :defer 1
   :config
-  (global-eldoc-diffstat-mode))
+  (global-eldoc-diffstat-mode +1)
+  (eldoc-add-command
+   'magit-next-line 'magit-previous-line
+   'magit-section-forward 'magit-section-backward
+   'magit-section-forward-sibling 'magit-section-backward-sibling))
 
 
 ;;; org
