@@ -424,13 +424,14 @@
   (setq word-wrap-by-category t)
 
   ;; truncate
+  ;; Auto truncate lines
+  (setq truncate-partial-width-windows 80)
   ;; @tip use "C-x x t" (`toggle-truncate-lines')
   ;; (setq-default truncate-lines t)
-  ;; (add-hook 'prog-mode-hook
-  ;;           (defun xy/truncate-lines ()
-  ;;             (setq-local truncate-lines t)))
-  ;; auto truncate lines
-  (setq truncate-partial-width-windows 80)
+  (defun xy/truncate-lines ()
+    (setq-local truncate-lines t))
+  (add-hook 'prog-mode-hook #'xy/truncate-lines)
+  (add-hook 'log-view-mode-hook #'xy/truncate-lines)
 
   ;; buffer
   (setq uniquify-buffer-name-style 'forward)
@@ -1021,6 +1022,7 @@ makes it easier to edit it."
                      isearch-string
                    (regexp-quote isearch-string))))
       (project-find-regexp query)))
+  (keymap-global-set "M-s p" #'xy/isearch-project)
   (keymap-set isearch-mode-map "M-s p" #'xy/isearch-project))
 
 ;; (use-package smartscan
@@ -1905,6 +1907,13 @@ makes it easier to edit it."
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
 
+;;; vc
+(use-package vc
+  :ensure nil
+  :config
+  (setq vc-git-diff-switches '("--histogram")))
+
+
 ;;; diff
 (use-package diff
   :ensure nil
@@ -1926,12 +1935,14 @@ makes it easier to edit it."
   :defer 0.5
   :hook (dired-mode . diff-hl-dired-mode)
   :bind ( :map diff-hl-command-map
-          ("-" . diff-hl-amend-mode)
-          ("_" . diff-hl-set-reference-rev)
+          ("." . diff-hl-amend-mode)
+          ("-" . diff-hl-set-reference-rev)
+          ("_" . diff-hl-reset-reference-rev)
           ("RET" . diff-hl-show-hunk)
           ("SPC" . diff-hl-mark-hunk)
           ("n" . diff-hl-next-hunk)
-          ("p" . diff-hl-previous-hunk))
+          ("p" . diff-hl-previous-hunk)
+          ("M-s" . #'xy/toggle-diff-hl-staged))
   :custom-face
   ;; (diff-hl-change ((t (:inherit custom-changed :foreground unspecified :background unspecified))))
   ;; (diff-hl-insert ((t (:inherit diff-added :background unspecified))))
@@ -1942,6 +1953,14 @@ makes it easier to edit it."
   ;; (global-diff-hl-show-hunk-mouse-mode +1)
   ;; Diffing on-the-fly (i.e. without saving the buffer first)
   (diff-hl-flydiff-mode +1)
+
+  (setq diff-hl-show-staged-changes nil)
+  (defun xy/toggle-diff-hl-staged ()
+    (interactive)
+      (if diff-hl-show-staged-changes
+          (setq diff-hl-show-staged-changes nil)
+        (setq diff-hl-show-staged-changes t))
+      (diff-hl-magit-post-refresh))
 
   (unless (display-graphic-p)
     ;; Fall back to the display margin since the fringe is unavailable in tty
@@ -1957,7 +1976,6 @@ makes it easier to edit it."
 
   ;; Integration with magit
   (with-eval-after-load 'magit
-    (add-hook 'magit-pre-refresh-hook #'diff-hl-magit-pre-refresh)
     (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
 
@@ -2009,6 +2027,18 @@ makes it easier to edit it."
    'magit-next-line 'magit-previous-line
    'magit-section-forward 'magit-section-backward
    'magit-section-forward-sibling 'magit-section-backward-sibling))
+
+;; Make magit's diff have syntax highlight, like `vc-diff'
+(use-package magit-delta
+  ;; :if (executable-find "delta")
+  :hook (magit-mode . magit-delta-mode)
+  :config
+  ;; @see https://github.com/dandavison/magit-delta/issues/13#issuecomment-690534938
+  ;; --line-numbers/--side-by-side cannot be used with magit-delta since it creates invalid patches
+  ;; (setq magit-delta-delta-args '("--max-line-distance" "0.6" "--true-color" "always" "--color-only"))
+  ;; (add-to-list 'magit-delta-delta-args "--diff-highlight")
+  ;; (add-to-list 'magit-delta-delta-args "--diff-so-fancy")
+  (add-to-list 'magit-delta-delta-args "--no-gitconfig"))
 
 
 ;;; org
