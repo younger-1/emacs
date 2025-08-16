@@ -113,13 +113,13 @@
                       :slant  'normal
                       :weight 'normal
                       :width  'normal
-                      :height 0.9)
+                      :height 1.0)
   ;; Set the fonts for the inactive mode line
   (set-face-attribute 'mode-line-inactive nil
                       :slant  'normal
                       :weight 'normal
                       :width  'normal
-                      :height 0.8))
+                      :height 1.0))
 
 (add-hook 'xy/after-enable-theme-hook #'xy/set-default-face-advanced)
 
@@ -1744,11 +1744,11 @@ makes it easier to edit it."
                                (delq buffer (window-next-buffers))))))
   (setq tab-line-close-tab-function #'xy/tab-line-close-tab))
 
-(use-package window-tool-bar
-  :ensure nil
-  :hook
-  ;; (emacs-startup . global-window-tool-bar-mode)
-  (special-mode . window-tool-bar-mode))
+;; (use-package window-tool-bar
+;;   :ensure nil
+;;   :hook
+;;   ;; (emacs-startup . global-window-tool-bar-mode)
+;;   (special-mode . window-tool-bar-mode))
 
 (use-package hl-line
   :ensure nil
@@ -1770,6 +1770,11 @@ makes it easier to edit it."
   :config
   (breadcrumb-mode +1)
   (setq breadcrumb-imenu-crumb-separator " "))
+
+(use-package vundo
+  :bind (("C-x u" . vundo))
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols))
 
 
 ;;; util
