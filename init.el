@@ -198,9 +198,10 @@
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
-;; disable `mouse-wheel-text-scale' by `mouse-wheel-mode' when use `pixel-scroll-precision-mode'
-(keymap-global-unset "C-<wheel-down>")
-(keymap-global-unset "C-<wheel-up>")
+;; @see `mouse-wheel-scroll-amount'
+;; Disable `mouse-wheel-text-scale' by `mouse-wheel-mode' when use `pixel-scroll-precision-mode'
+;; (keymap-global-unset "C-<wheel-down>")
+;; (keymap-global-unset "C-<wheel-up>")
 
 ;; @tip from `term/ns-win'
 ;; s-w -> `delete-frame'
@@ -353,6 +354,7 @@
   ;; kill
   (setq kill-do-not-save-duplicates t)
   (setq save-interprogram-paste-before-kill t)
+  ;; To prevent kill and yank commands from accessing the clipboard
   ;; (setq select-enable-clipboard nil)
 
   ;; register
@@ -375,8 +377,11 @@
   ;; (setq jit-lock-defer-time 0.05)
 
   ;; mouse
+  ;; (setq mouse-autoselect-window t)
+  ;; Only temporarily active regions set the primary selection
+  (setq select-active-regions 'only)
+  ;; (setq mouse-drag-copy-region t)
   (setq mouse-yank-at-point t)
-  (setq mouse-autoselect-window t)
 
   ;; limit
   (setq large-file-warning-threshold (* 64 1024 1024)) ; 10m -> 64m
@@ -964,6 +969,7 @@ makes it easier to edit it."
                                         register-alist ; keyboard macro
                                         mark-ring global-mark-ring ; mark
                                         search-ring regexp-search-ring ; search
+                                        ;; log-edit-comment-ring ; vc
                                         comint-input-ring))
   (setq history-length (* 100 2)
         history-delete-duplicates t)
@@ -1257,7 +1263,10 @@ makes it easier to edit it."
   (consult-info-define 'all "widget" "ediff" "eglot" "flymake" "eshell" "tramp" "org" "gnus" "calc" "eww")
   ;; "magit" "dash"
   (consult-info-define 'completion
-                       "vertico" "consult" "marginalia" "orderless" "embark" "corfu" "cape"))
+                       "vertico" "consult" "marginalia" "orderless" "embark" "corfu" "cape")
+
+  (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring))
+  (add-to-list 'consult-mode-histories '(text-mode . log-edit-comment-ring)))
 
 ;; Emacs completion style that matches multiple regexps in any order
 ;; -- `orderless-matching-styles'
@@ -2037,7 +2046,8 @@ makes it easier to edit it."
   (add-to-list 'savehist-additional-variables 'magit-revision-history)
   (setq magit-repository-directories '(("~/notes" . 0)
                                        ("~/dotter" . 0)
-                                       ("~/work" . 1))))
+                                       ("~/work" . 1)))
+  (setq git-commit-use-local-message-ring t))
 
 ;; Adapted from Tassilo Horn's blog post:
 ;; https://www.tsdh.org/posts/2022-07-20-using-eldoc-with-magit-async.html
