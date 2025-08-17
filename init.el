@@ -1792,7 +1792,18 @@ makes it easier to edit it."
   :init
   (setq keycast-mode-line-remove-tail-elements nil)
   :config
-  (keycast-mode-line-mode +1))
+  (keycast-mode-line-mode +1)
+  (setq keycast-mode-line-window-predicate #'mode-line-window-selected-p))
+
+;; Replace list of minor modes displayed in the mode line
+(use-package minions
+  :defer 1
+  :bind ([S-down-mouse-3] . minions-minor-modes-menu)
+  :config
+  (minions-mode +1)
+  ;; (setq minions-mode-line-delimiters nil)
+  ;; (setq minions-prominent-modes '(emms))
+  )
 
 (use-package breadcrumb
   :defer 1
