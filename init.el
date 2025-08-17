@@ -548,8 +548,6 @@
   (emacs-startup . window-divider-mode)
   (emacs-startup . undelete-frame-mode)
   ;; (emacs-startup . context-menu-mode)
-  (emacs-startup . tab-bar-mode)
-  (emacs-startup . tab-bar-history-mode)
   (emacs-startup . global-display-fill-column-indicator-mode)
   (before-save . delete-trailing-whitespace)
   ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
@@ -1744,6 +1742,20 @@ makes it easier to edit it."
                                (delq buffer (window-next-buffers))))))
   (setq tab-line-close-tab-function #'xy/tab-line-close-tab))
 
+(use-package tab-bar
+  :ensure nil
+  :hook
+  (emacs-startup . tab-bar-mode)
+  (emacs-startup . tab-bar-history-mode)
+  ;; :bind ( :map tab-bar-mode-map
+  ;;         ("C-<tab>" . nil)
+  ;;         ([(control shift tab)] . nil))
+  :config
+  (setopt tab-bar-show 1)
+  (setopt tab-bar-tab-hints t)
+  (setopt tab-bar-select-tab-modifiers '(super))
+  (setopt tab-bar-tab-name-function #'tab-bar-tab-name-current-with-count))
+
 ;; (use-package window-tool-bar
 ;;   :ensure nil
 ;;   :hook
@@ -1772,8 +1784,10 @@ makes it easier to edit it."
   (setq breadcrumb-imenu-crumb-separator " "))
 
 (use-package vundo
-  :bind (("C-x u" . vundo))
+  :defer 0.8
+  :bind (("C-x C-u" . vundo))
   :config
+  (vundo-popup-mode +1)
   (setq vundo-glyph-alist vundo-unicode-symbols))
 
 
@@ -1804,7 +1818,7 @@ makes it easier to edit it."
   (setq auto-mark-command-classifiers
         (list (lambda (command)
                 (if (and (eq command 'self-insert-command)
-                         (eq last-command-char ? ))
+                         (eq last-command-event ? ))
                     'ignore))))
   (global-auto-mark-mode +1))
 
@@ -2020,7 +2034,10 @@ makes it easier to edit it."
   (setq magit-diff-refine-hunk t)
   ;; Order for branch checkout: objectsize, authordate, committerdate, creatordate, taggerdate
   (setq magit-list-refs-sortby "-creatordate")
-  (add-to-list 'savehist-additional-variables 'magit-revision-history))
+  (add-to-list 'savehist-additional-variables 'magit-revision-history)
+  (setq magit-repository-directories '(("~/notes" . 0)
+                                       ("~/dotter" . 0)
+                                       ("~/work" . 1))))
 
 ;; Adapted from Tassilo Horn's blog post:
 ;; https://www.tsdh.org/posts/2022-07-20-using-eldoc-with-magit-async.html
