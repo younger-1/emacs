@@ -1953,10 +1953,10 @@ makes it easier to edit it."
 (use-package ediff
   :ensure nil
   :config
-  ;; use a single frame and split windows horizontally
-  (setq ediff-window-setup-function #'ediff-setup-windows-plain
-        ediff-split-window-function #'split-window-horizontally
-        ediff-merge-split-window-function #'split-window-horizontally))
+  ;; Use a single frame
+  ;; (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+  ;; Split windows horizontally
+  (setq ediff-split-window-function #'split-window-horizontally))
 
 ;; Highlight uncommitted changes using VC
 (use-package diff-hl
@@ -1970,7 +1970,7 @@ makes it easier to edit it."
           ("SPC" . diff-hl-mark-hunk)
           ("n" . diff-hl-next-hunk)
           ("p" . diff-hl-previous-hunk)
-          ("M-s" . #'xy/toggle-diff-hl-staged))
+          ("M-s" . #'xy/toggle-diff-hl-show-staged-changes))
   :custom-face
   ;; (diff-hl-change ((t (:inherit custom-changed :foreground unspecified :background unspecified))))
   ;; (diff-hl-insert ((t (:inherit diff-added :background unspecified))))
@@ -1983,7 +1983,7 @@ makes it easier to edit it."
   (diff-hl-flydiff-mode +1)
 
   (setq diff-hl-show-staged-changes nil)
-  (defun xy/toggle-diff-hl-staged ()
+  (defun xy/toggle-diff-hl-show-staged-changes ()
     (interactive)
       (if diff-hl-show-staged-changes
           (setq diff-hl-show-staged-changes nil)
@@ -2012,6 +2012,7 @@ makes it easier to edit it."
   :bind (;; ("C-x g"   . magit-status)
          ;; ("C-x C-g" . magit-dispatch)
          ;; ("C-x M-g" . magit-file-dispatch)
+         ;; ("C-x 5 g" . xy/magit-status-other-frame)
          ("C-x g g" . magit-status)
          ("C-x g a" . magit-log-all)
          ("C-x g b" . magit-branch-checkout)
@@ -2040,6 +2041,10 @@ makes it easier to edit it."
          ("]" . magit-section-forward-sibling)
          ("[" . magit-section-backward-sibling))
   :config
+  (setq magit-status-goto-file-position t)
+  ;; (setq magit-status-margin '(t age magit-log-margin-width t 18))
+
+  ;; (setq magit-log-auto-more t)
   (setq magit-diff-refine-hunk t)
   ;; Order for branch checkout: objectsize, authordate, committerdate, creatordate, taggerdate
   (setq magit-list-refs-sortby "-creatordate")
