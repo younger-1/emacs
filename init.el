@@ -1786,6 +1786,14 @@ makes it easier to edit it."
   (inferior-python-mode) ; `run-python'
   (completion-list-mode))
 
+;; Show current command and its key in the mode line
+(use-package keycast
+  :defer 1
+  :init
+  (setq keycast-mode-line-remove-tail-elements nil)
+  :config
+  (keycast-mode-line-mode +1))
+
 (use-package breadcrumb
   :defer 1
   :config
