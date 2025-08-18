@@ -969,7 +969,7 @@ makes it easier to edit it."
                                         register-alist ; keyboard macro
                                         mark-ring global-mark-ring ; mark
                                         search-ring regexp-search-ring ; search
-                                        ;; log-edit-comment-ring ; vc
+                                        log-edit-comment-ring ; vc commit msg
                                         comint-input-ring))
   (setq history-length (* 100 2)
         history-delete-duplicates t)
@@ -1636,6 +1636,22 @@ makes it easier to edit it."
 ;; -- https://news.ycombinator.com/item?id=43619437
 ;; (use-package window-x
 ;;   :bind ("C-x 4 t" . #'rotate-windows))
+
+;; Manage window configurations
+(use-package eyebrowse
+  :defer 1
+  :config
+  (eyebrowse-mode +1)
+  (setq eyebrowse-switch-back-and-forth))
+
+;; Persistent (saving and restoring) window configurations with several frames.
+;; `desktop' is reliable only for single-frame use. When using multiple Emacs frames, it depends in what order the frames are closed, and only the last one is remembered.
+(use-package eyebrowse-restore
+  :after eyebrowse :demand t
+  :config
+  (eyebrowse-restore-mode +1)
+  ;; For a better experience, I recommend naming your Emacs frames:
+  (set-frame-parameter nil 'name "Main"))
 
 
 ;;; dired
