@@ -440,6 +440,7 @@
 
   ;; buffer
   (setq uniquify-buffer-name-style 'forward)
+  (setq switch-to-buffer-obey-display-actions t)
   ;; Keep the compilation buffer in the background, except when there's an error
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window)))
@@ -1603,7 +1604,7 @@ makes it easier to edit it."
   ;; @tip shift and ctrl-shift is used by Org-Mode
   (windmove-default-keybindings 'ctrl)
   (windmove-swap-states-default-keybindings '(ctrl shift))
-  (windmove-display-default-keybindings '(ctrl meta))
+  ;; (windmove-display-default-keybindings '(ctrl meta))
   (windmove-delete-default-keybindings))
 
 (use-package ace-window
@@ -1638,11 +1639,11 @@ makes it easier to edit it."
 ;;   :bind ("C-x 4 t" . #'rotate-windows))
 
 ;; Manage window configurations
+;; @note `eyebrowse-keymap-prefix' is C-c C-w
 (use-package eyebrowse
   :defer 1
   :config
-  (eyebrowse-mode +1)
-  (setq eyebrowse-switch-back-and-forth))
+  (eyebrowse-mode +1))
 
 ;; Persistent (saving and restoring) window configurations with several frames.
 ;; `desktop' is reliable only for single-frame use. When using multiple Emacs frames, it depends in what order the frames are closed, and only the last one is remembered.
@@ -1652,6 +1653,22 @@ makes it easier to edit it."
   (eyebrowse-restore-mode +1)
   ;; For a better experience, I recommend naming your Emacs frames:
   (set-frame-parameter nil 'name "Main"))
+
+;; Designate any buffer to “popup” status to disimss/summon/cycle them.
+;; e.g. toggling display of help buffers, REPLs, grep and occur buffers, shell and compilation output, log buffers etc
+(use-package popper
+  :bind (("C-`"   . popper-toggle)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type)) ; Turn any buffer into a popup (or vice-versa)
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compilation-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))
 
 
 ;;; dired
@@ -2078,6 +2095,12 @@ makes it easier to edit it."
   :config
   (setq magit-status-goto-file-position t)
   ;; (setq magit-status-margin '(t age magit-log-margin-width t 18))
+  ;; (add-to-list 'magit-blame-styles
+  ;;              '(margin
+  ;;                (margin-format    . (" %s%f" " %C %a" " %H"))
+  ;;                (margin-width     . 42)
+  ;;                (margin-face      . magit-blame-margin)
+  ;;                (margin-body-face . (magit-blame-dimmed))))
 
   ;; (setq magit-log-auto-more t)
   (setq magit-diff-refine-hunk t)
