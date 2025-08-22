@@ -123,6 +123,7 @@ repos, videos, articles, books of learning/showing emacs.
 
 - [ ] https://www.masteringemacs.org/article/introduction-magit-emacs-mode-git
 
+- [ ] https://www.masteringemacs.org/article/seamlessly-merge-multiple-documentation-sources-eldoc
 
 ** Why I Prefer Emacs Over VSCode and vim
 - https://www.youtube.com/watch?v=cxoE2FhOIgI

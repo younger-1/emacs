@@ -210,8 +210,8 @@
 (keymap-global-set "M-s-," #'customize-group)
 (keymap-global-set "s-x" #'execute-extended-command)
 (keymap-global-set "s-X" #'execute-extended-command-for-buffer)
-(keymap-global-set "s-<return>" #'toggle-frame-fullscreen) ; <f11>
-(keymap-global-set "S-s-<return>" #'toggle-frame-maximized) ; M-<f10>
+(keymap-global-set "s-<return>" #'toggle-frame-maximized) ; M-<f10>
+(keymap-global-set "S-s-<return>" #'toggle-frame-fullscreen) ; <f11>
 ;; s-z -> undo
 (keymap-global-set "s-Z" #'undo-redo)
 
@@ -1951,9 +1951,24 @@ makes it easier to edit it."
   ;; (prog-mode . eldoc-mode)
   :bind ("C-h ." . #'eldoc-doc-buffer)
   :config
-  ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+  (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   ;; (setq eldoc-echo-area-display-truncation-message nil)
   (setq eldoc-minor-mode-string nil))
+
+(use-package eldoc-box
+  :after eldoc
+  :defer 0.5
+  :bind (("C-h /" . eldoc-box-help-at-point)
+         ("C-h ]" . eldoc-box-hover-mode)
+         ("C-h [" . eldoc-box-hover-at-point-mode))
+  :config
+  ;; (add-hook 'eldoc-mode-hook #'eldoc-box-hover-mode t)
+  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+  ;;
+  (add-hook 'eldoc-mode-hook #'eldoc-box-hover-at-point-mode t)
+  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode t)
+  ;;
+  (setq eldoc-box-clear-with-C-g t))
 
 ;; @tip
 ;; M-. / M-, -> `xref-find-definitions' / `xref-go-back'
@@ -2115,6 +2130,7 @@ makes it easier to edit it."
 ;; Adapted from Tassilo Horn's blog post:
 ;; https://www.tsdh.org/posts/2022-07-20-using-eldoc-with-magit-async.html
 (use-package eldoc-diffstat
+  :after eldoc
   :defer 1
   :config
   (global-eldoc-diffstat-mode +1)
@@ -2134,6 +2150,9 @@ makes it easier to edit it."
   ;; (add-to-list 'magit-delta-delta-args "--diff-highlight")
   ;; (add-to-list 'magit-delta-delta-args "--diff-so-fancy")
   (add-to-list 'magit-delta-delta-args "--no-gitconfig"))
+
+(use-package git-timemachine
+  :bind ("C-x g h" . git-timemachine))
 
 
 ;;; org
