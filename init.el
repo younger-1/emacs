@@ -1053,8 +1053,6 @@ makes it easier to edit it."
   (setq completion-ignore-case t
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t)
-  ;; M-x only show commands which are applicable to major mode and active minor modes
-  (setq read-extended-command-predicate #'command-completion-default-include-p)
   ;; (setq completion-cycle-threshold nil)
 
   ;; completion buffer
@@ -1078,6 +1076,8 @@ makes it easier to edit it."
         completions-max-height 20)
 
   ;; minibuffer
+  ;; M-x only show commands which are applicable to major mode and active minor modes
+  (setq read-extended-command-predicate #'command-completion-default-include-p)
   ;; Allow nested minibuffers.
   (setq enable-recursive-minibuffers t)
   (add-hook 'emacs-startup-hook #'minibuffer-depth-indicate-mode)
@@ -1085,6 +1085,16 @@ makes it easier to edit it."
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
   ;; minibuffer UX
   (setq use-short-answers t)
@@ -1120,6 +1130,7 @@ makes it easier to edit it."
   (setq vertico-cycle t)
   (vertico-mode +1)
   (vertico-mouse-mode +1)
+  ;; Select the candidate number with M-<number>
   (vertico-indexed-mode +1)
   (keymap-set vertico-map "M-q" #'vertico-quick-insert)
   (keymap-set vertico-map "C-q" #'vertico-quick-exit)
@@ -1150,11 +1161,14 @@ makes it easier to edit it."
   ;;   M-V -> `vertico-multiform-vertical'
   (setq vertico-multiform-commands
         '((imenu buffer (vertico-buffer-display-action . (display-buffer-same-window)))
+          (consult-line buffer)
+          (consult-imenu reverse buffer)
           (execute-extended-command-for-buffer (:not indexed mouse))))
   (setq vertico-multiform-categories ; categories at `marginalia-annotator-registry'
         '((file buffer)
           (project-file buffer)
           (buffer buffer)
+          (symbol (vertico-sort-function . vertico-sort-alpha))
           (command (:not indexed))))
   (vertico-multiform-mode +1))
 
@@ -1164,8 +1178,8 @@ makes it easier to edit it."
          ("C-c s f" . consult-fd)
          ("C-c s d" . consult-find)
          ("C-c s c" . consult-locate)
-         ("C-c s g" . consult-ripgrep)
-         ;; ("C-c s g" . consult-grep)
+         ("C-c s r" . consult-ripgrep)
+         ("C-c s g" . consult-grep)
          ("C-c s G" . consult-git-grep)
          ;;
          ("C-c s h" . consult-history)
@@ -1239,10 +1253,7 @@ makes it easier to edit it."
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
 
-  ;; Configure other variables and modes in the :config section,
-  ;; after lazily loading the package.
   :config
-
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
@@ -1260,6 +1271,8 @@ makes it easier to edit it."
    :preview-key '(:debounce 0.4 any))
 
   (setq consult-narrow-key "<")
+  ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
+  ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'embark-prefix-help-command)
 
   (consult-info-define "emacs" "efaq" "elisp" "eintr" "cl")
   (consult-info-define 'all "widget" "ediff" "eglot" "flymake" "eshell" "tramp" "org" "gnus" "calc" "eww")
@@ -1367,7 +1380,7 @@ makes it easier to edit it."
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package embark-sidebar
-  :after embark :demand t
+  :after embark
   :vc ( :url "https://github.com/kn66/embark-sidebar.el"
         :rev :newest)
   :bind ("C-x d e" . embark-sidebar-toggle)
@@ -1394,6 +1407,7 @@ makes it easier to edit it."
           ;; ("RET" . nil) ; Free RET for newline etc.
           ;; ("TAB" . corfu-next) ; Use TAB for cycling
           ;; ("S-TAB" . corfu-previous)
+          ("-" . corfu-insert-separator)
           ("M-q" . corfu-quick-complete))
   :config
   ;; (setq corfu-preview-current nil)
@@ -1513,9 +1527,21 @@ makes it easier to edit it."
 (use-package which-key
   :ensure nil
   :defer 0.3
+  :bind (("C-h w d" . which-key-dump-bindings)
+         ("C-h w w" . which-key-show-full-keymap)
+         ("C-h w W" . which-key-show-keymap)
+         ("C-h w m" . which-key-show-full-major-mode)
+         ("C-h w M" . which-key-show-major-mode)
+         ("C-h w n" . which-key-show-full-minor-mode-keymap)
+         ("C-h w N" . which-key-show-minor-mode-keymap))
   :config
   (which-key-mode +1)
-  (setq which-key-lighter nil)
+  ;;
+  (setq which-key-compute-remaps t)
+  (setq which-key-lighter nil
+        which-key-separator " → "
+        which-key-add-column-padding 1
+        which-key-min-display-lines 6)
   (setq which-key-idle-delay .5
         which-key-idle-secondary-delay .0)
   ;; @tip Press h/C-h after which-key's paging will run `which-key-show-standard-help', which run `describe-prefix-bindings'
@@ -1796,6 +1822,11 @@ makes it easier to edit it."
   :bind ( :map global-map
           ("C-x d m" . treemacs)))
 
+(use-package treemacs-nerd-icons
+  :after treemacs :demand t
+  :config
+  (treemacs-load-theme "nerd-icons"))
+
 (use-package projtree
   :vc ( :url "https://github.com/petergardfjall/emacs-projtree"
         :rev :newest)
@@ -1975,12 +2006,12 @@ makes it easier to edit it."
 
 ;;; motion
 (use-package avy
-  :bind (("M-s ;" . avy-resume)
-         ("M-s j" . avy-goto-char)
-         ("M-s M-j" . avy-goto-word-1)
-         ("M-s n" . avy-goto-char-2)
-         ("M-s M-n" . avy-goto-line)
-         ("M-s /" . avy-goto-char-timer)
+  :bind (("M-g ;" . avy-resume)
+         ("M-g j" . avy-goto-char)
+         ("M-g M-j" . avy-goto-word-1)
+         ("M-g l" . avy-goto-char-2)
+         ("M-g M-l" . avy-goto-line)
+         ("M-g /" . avy-goto-char-timer)
          :map isearch-mode-map
          ("M-s j" . avy-isearch)))
 
@@ -1988,7 +2019,7 @@ makes it easier to edit it."
 ;;; prog
 (use-package imenu-list
   :bind
-  ("C-c l" . imenu-list-smart-toggle)
+  ("C-x d i" . imenu-list-smart-toggle)
   :config
   ;; (setq imenu-list-position 'left)
   (setq imenu-list-focus-after-activation t)
@@ -2604,7 +2635,7 @@ makes it easier to edit it."
 ;;               :override #'eglot-signature-eldoc-talkative))
 
 (use-package eglot-inactive-regions
-  :after eglot
+  :after eglot :demand t
   :hook (c-mode cpp-mode))
 
 ;; speedier performance and less I/O blocking
