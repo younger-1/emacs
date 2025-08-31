@@ -1407,7 +1407,7 @@ makes it easier to edit it."
           ;; ("RET" . nil) ; Free RET for newline etc.
           ;; ("TAB" . corfu-next) ; Use TAB for cycling
           ;; ("S-TAB" . corfu-previous)
-          ("-" . corfu-insert-separator)
+          ("S-SPC" . corfu-insert-separator)
           ("M-q" . corfu-quick-complete))
   :config
   ;; (setq corfu-preview-current nil)
@@ -1921,6 +1921,11 @@ makes it easier to edit it."
   ;; (setq minions-prominent-modes '(emms))
   )
 
+;; (use-package mini-echo
+;;   :defer 1
+;;   :config
+;;   (mini-echo-mode +1))
+
 (use-package breadcrumb
   :defer 1
   :config
@@ -2202,6 +2207,8 @@ makes it easier to edit it."
 
   ;; (setq magit-log-auto-more t)
   (setq magit-diff-refine-hunk t)
+  ;; Enable gravatars when viewing commits. The service used by default is [Libgravatar](https://www.libravatar.org/).
+  (setq magit-revision-show-gravatars t)
   ;; Order for branch checkout: objectsize, authordate, committerdate, creatordate, taggerdate
   (setq magit-list-refs-sortby "-creatordate")
   (add-to-list 'savehist-additional-variables 'magit-revision-history)
@@ -2236,6 +2243,36 @@ makes it easier to edit it."
 
 (use-package git-timemachine
   :bind ("C-x g h" . git-timemachine))
+
+(use-package git-link
+  :bind (("C-c g l l" . git-link) ; double prefix to reverse `git-link-use-commit'
+         ("C-c g l h" . git-link-homepage) ; double prefix to enable `git-link-open-in-browser'
+         ("C-c g l c" . git-link-commit)
+         ;; Transient menu
+         ("C-x g l" . git-link-dispatch))
+  :config
+  (setq git-link-use-commit t)
+  ;; (setq git-link-open-in-browser t)
+
+  (defun xy/git-link-byted (hostname dirname filename branch commit start end)
+    (format "%s/%s/blob/%s/%s"
+	    hostname
+	    dirname
+	    (or branch commit)
+            (concat filename
+                    (when start
+                      (concat "#"
+                              (if end
+                                  (format "L%s-%s" start end)
+                                (format "L%s" start)))))))
+  ;; (add-to-list 'git-link-web-host-alist
+  ;;              '("byted" . "bits.bytedance.net/code"))
+  (add-to-list 'git-link-remote-alist
+               '("byted" xy/git-link-byted))
+  (add-to-list 'git-link-commit-remote-alist
+               '("byted" git-link-commit-github))
+  (add-to-list 'git-link-homepage-remote-alist
+               '("byted" git-link-homepage-github)))
 
 
 ;;; org
