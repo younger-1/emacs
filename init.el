@@ -2242,14 +2242,14 @@ makes it easier to edit it."
   (add-to-list 'magit-delta-delta-args "--no-gitconfig"))
 
 (use-package git-timemachine
-  :bind ("C-x g h" . git-timemachine))
+  :bind ("C-c g h" . git-timemachine))
 
 (use-package git-link
   :bind (("C-c g l l" . git-link) ; double prefix to reverse `git-link-use-commit'
          ("C-c g l h" . git-link-homepage) ; double prefix to enable `git-link-open-in-browser'
          ("C-c g l c" . git-link-commit)
          ;; Transient menu
-         ("C-x g l" . git-link-dispatch))
+         ("C-c g L" . git-link-dispatch))
   :config
   (setq git-link-use-commit t)
   ;; (setq git-link-open-in-browser t)
@@ -2273,6 +2273,13 @@ makes it easier to edit it."
                '("byted" git-link-commit-github))
   (add-to-list 'git-link-homepage-remote-alist
                '("byted" git-link-homepage-github)))
+
+(use-package git-messenger
+  :bind ("C-c g m" . git-messenger:popup-message)
+  :config
+  ;; Enable `magit-show-commit' instead of `pop-to-buffer'
+  (setq git-messenger:use-magit-popup t)
+  (setq git-messenger:show-detail t))
 
 
 ;;; org
