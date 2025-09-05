@@ -1832,6 +1832,24 @@ makes it easier to edit it."
         :rev :newest)
   :bind ("C-x d p" . projtree-mode))
 
+;; https://docs.projectile.mx/projectile/index.html
+(use-package projectile
+  :defer 0.5
+  :bind (:map projectile-mode-map
+              ;; ("C-c p" . projectile-command-map)
+              ("s-p" . projectile-command-map))
+  :config
+  ;; Also enable integration with project.el
+  (projectile-mode +1)
+  ;; (setq projectile-switch-project-action #'projectile-dired)
+  ;; To persist between Emacs sessions, set to 'persistent
+  ;; (setq projectile-enable-caching t)
+  ;; (setq projectile-cache-file (expand-file-name "projectile-cache.eld" user-emacs-directory))
+  (setq projectile-auto-discover t)
+  (setq projectile-auto-cleanup-known-projects t)
+  (setq projectile-project-search-path
+        '("~/dotter/" "~/notes/" "~/project/" "~/work/" ("~/src/" . 2))))
+
 
 ;;; transient
 (use-package transient-showcase
