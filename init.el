@@ -2038,6 +2038,33 @@ makes it easier to edit it."
          :map isearch-mode-map
          ("M-s j" . avy-isearch)))
 
+;;; edit
+;; (use-package expand-region
+;;   :bind ("C-=" . er/expand-region))
+
+(use-package expreg
+  :bind (("C-=" . expreg-expand)
+         ("C-M-SPC" . prot/expreg-expand-dwim))
+  :config
+  (setq expreg-restore-point-on-quit t)
+  (defun prot/expreg-expand (n)
+    "Expand to N syntactic units, defaulting to 1 if none is provided interactively."
+    (interactive "p")
+    (dotimes (_ n)
+      (expreg-expand)))
+
+  (defun prot/expreg-expand-dwim ()
+    "Do-What-I-Mean `expreg-expand' to start with symbol or word.
+If over a real symbol, mark that directly, else start with a
+word.  Fall back to regular `expreg-expand'."
+    (interactive)
+    (let ((symbol (bounds-of-thing-at-point 'symbol)))
+      (cond
+       ((equal (bounds-of-thing-at-point 'word) symbol)
+        (prot/expreg-expand 1))
+       (symbol (prot/expreg-expand 2))
+       (t (expreg-expand))))))
+
 
 ;;; prog
 (use-package imenu-list
@@ -2133,8 +2160,11 @@ makes it easier to edit it."
 
 ;; Highlight uncommitted changes using VC
 (use-package diff-hl
-  :defer 0.5
-  :hook (dired-mode . diff-hl-dired-mode)
+  ;; :defer 0.5
+  :hook
+  (find-file . diff-hl-mode)
+  (dired-mode . diff-hl-dired-mode)
+  (vc-dir-mode . diff-hl-dir-mode)
   :bind ( :map diff-hl-command-map
           ("." . diff-hl-amend-mode)
           ("-" . diff-hl-set-reference-rev)
@@ -2149,7 +2179,7 @@ makes it easier to edit it."
   ;; (diff-hl-insert ((t (:inherit diff-added :background unspecified))))
   ;; (diff-hl-delete ((t (:inherit diff-removed :background unspecified))))
   :config
-  (global-diff-hl-mode +1)
+  ;; (global-diff-hl-mode +1)
   ;; Makes fringe and margin react to mouse clicks
   ;; (global-diff-hl-show-hunk-mouse-mode +1)
   ;; Diffing on-the-fly (i.e. without saving the buffer first)
