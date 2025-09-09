@@ -45,4 +45,10 @@
   (setq native-comp-async-report-warnings-errors (or init-file-debug 'silent))
   (setq native-comp-jit-compilation t))
 
+;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/
+(defconst xy/init-dir user-emacs-directory)
+(setq user-emacs-directory (concat user-emacs-directory "var/"))
+
 (setq package-enable-at-startup nil)
+(setq package-quickstart-file (concat user-emacs-directory "package-quickstart.el"))
+(setq package-user-dir (concat user-emacs-directory "elpa"))

@@ -3,14 +3,14 @@
 ;;; preface
 (message "** [xy] boot init.el")
 
-(eval-and-compile
-  (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
-  (add-to-list 'load-path (expand-file-name "site-lisp" user-emacs-directory)))
-
 ;; (set-default-coding-systems 'utf-8)
 (prefer-coding-system 'utf-8)
 
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(eval-and-compile
+  (add-to-list 'load-path (expand-file-name "lisp" xy/init-dir))
+  (add-to-list 'load-path (expand-file-name "site-lisp" xy/init-dir)))
+
+(setq custom-file (expand-file-name "custom.el" xy/init-dir))
 (when (file-exists-p custom-file)
   (load-file custom-file))
 
@@ -152,7 +152,7 @@
                            (find-file user-init-file)))
 (keymap-global-set "C-<" (defun xy/open-init-dir ()
                            (interactive)
-                           (dired user-emacs-directory)))
+                           (dired xy/init-dir)))
 ;; (keymap-global-set "C-S-v" #'scroll-other-window)
 ;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-v is not M-V
 
@@ -617,15 +617,15 @@
   (put 'dired-find-alternate-file 'disabled nil)
   (put 'list-timers 'disabled nil)
 
-  (defconst xy/elpa-lisp-d (expand-file-name package-user-dir))
-  (defconst xy/emacs-lisp-d (file-name-directory (directory-file-name doc-directory)))
+  (defconst xy/elpa-lisp-dir (expand-file-name package-user-dir))
+  (defconst xy/emacs-lisp-dir (file-name-directory (directory-file-name doc-directory)))
 
   (dir-locals-set-class-variables
    :read-only
    '((nil . (;; (eval . (view-mode-enter nil #'kill-buffer))
              (buffer-read-only . t)
              (tab-width . 8)))))
-  (dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
+  (dolist (dir (list xy/elpa-lisp-dir xy/emacs-lisp-dir))
     (dir-locals-set-directory-class (file-truename dir) :read-only)))
 
 ;; Ensure adding the following compile-angel code at the very beginning of init file, before all other packages.
@@ -946,9 +946,9 @@ makes it easier to edit it."
   (recentf-mode +1)
   ;; @todo https://vincent.demeester.fr/articles/emacs_keep_it_clean.html
   ;; (setq recentf-auto-cleanup 360)
-  (add-to-list 'recentf-exclude xy/elpa-lisp-d)
-  (add-to-list 'recentf-exclude xy/emacs-lisp-d)
   (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
+  (add-to-list 'recentf-exclude (regexp-quote (abbreviate-file-name xy/emacs-lisp-dir)))
+  ;; (add-to-list 'recentf-exclude (regexp-quote (abbreviate-file-name xy/elpa-lisp-dir)))
   (setq recentf-max-saved-items 500
         recentf-max-menu-items 25))
 
@@ -1585,10 +1585,9 @@ makes it easier to edit it."
   :init
   (setq god-mode-enable-function-key-translation nil)
   :config
-  (god-mode)
+  (god-mode +1)
   ;; Visual indicators for God mode
-  (custom-set-faces
-   '(god-mode-lighter ((t (:inherit error)))))
+  (set-face-attribute 'god-mode-lighter nil :inherit error)
   ;;
   (defun xy/god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
