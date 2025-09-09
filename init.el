@@ -944,6 +944,8 @@ makes it easier to edit it."
   ("C-x f R" . recentf-open-files)
   :config
   (recentf-mode +1)
+  ;; @todo https://vincent.demeester.fr/articles/emacs_keep_it_clean.html
+  ;; (setq recentf-auto-cleanup 360)
   (add-to-list 'recentf-exclude xy/elpa-lisp-d)
   (add-to-list 'recentf-exclude xy/emacs-lisp-d)
   (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
@@ -1732,6 +1734,32 @@ makes it easier to edit it."
   ;; For a better experience, I recommend naming your Emacs frames:
   (set-frame-parameter nil 'name "Main"))
 
+(use-package perspective
+  :defer 1
+  :bind
+  (("C-c M-b" . persp-switch-to-buffer*)
+   ("C-c M-k" . persp-kill-buffer*)
+   ("C-c M-b" . persp-ibuffer)
+   :map persp-mode-map
+   ("C-c M-p" . perspective-map))
+  :config
+  (setq persp-suppress-no-prefix-key-warning t)
+  (persp-mode +1)
+  ;; Let `previous-buffer' skip buffers not in current perspective
+  (setq switch-to-prev-buffer-skip
+      (lambda (_win buff _bury-or-kill)
+        (not (persp-is-current-buffer buff))))
+  ;; Group buffers by persp-name in ibuffer
+  (add-hook 'ibuffer-hook #'persp-ibuffer-set-filter-groups)
+  ;; Use narrow key `s' to list buffers in current perspective
+  (with-eval-after-load 'consult
+    ;; Use narrow key `b' to list all buffers in all perspectives
+    (consult-customize consult--source-buffer :hidden t :default nil)
+    (add-to-list 'consult-buffer-sources persp-consult-source))
+  ;; Save sessions to disk
+  (setq persp-state-default-file (expand-file-name ".perspective-state" user-emacs-directory))
+  (add-hook 'kill-emacs-hook #'persp-state-save))
+
 ;; Designate any buffer to “popup” status to disimss/summon/cycle them.
 ;; e.g. toggling display of help buffers, REPLs, grep and occur buffers, shell and compilation output, log buffers etc
 (use-package popper
@@ -2188,10 +2216,10 @@ word.  Fall back to regular `expreg-expand'."
   (setq diff-hl-show-staged-changes nil)
   (defun xy/toggle-diff-hl-show-staged-changes ()
     (interactive)
-      (if diff-hl-show-staged-changes
-          (setq diff-hl-show-staged-changes nil)
-        (setq diff-hl-show-staged-changes t))
-      (diff-hl-magit-post-refresh))
+    (if diff-hl-show-staged-changes
+        (setq diff-hl-show-staged-changes nil)
+      (setq diff-hl-show-staged-changes t))
+    (diff-hl-magit-post-refresh))
 
   (unless (display-graphic-p)
     ;; Fall back to the display margin since the fringe is unavailable in tty
@@ -2355,6 +2383,10 @@ word.  Fall back to regular `expreg-expand'."
   (setq org-hide-leading-stars t)
   (setq org-special-ctrl-a/e t
         org-special-ctrl-k t)
+  ;; Let `org-goto' use completion
+  (setq org-goto-interface 'outline-path-completion)
+  ;; Flatten subheadings in `org-goto' completion
+  (setq org-outline-path-complete-in-steps nil)
 
   ;; Alignment of tags at the end of headlines
   (setq org-auto-align-tags t
@@ -2496,15 +2528,15 @@ word.  Fall back to regular `expreg-expand'."
   (setq ef-themes-mixed-fonts t
         ef-themes-variable-pitch-ui t)
   (setq ef-themes-headings
-      '((0 variable-pitch light 1.9)
-        (1 variable-pitch light 1.8)
-        (2 variable-pitch regular 1.7)
-        (3 variable-pitch regular 1.6)
-        (4 variable-pitch regular 1.5)
-        (5 variable-pitch 1.4) ; absence of weight means `bold'
-        (6 variable-pitch 1.3)
-        (7 variable-pitch 1.2)
-        (t variable-pitch 1.1)))
+        '((0 variable-pitch light 1.9)
+          (1 variable-pitch light 1.8)
+          (2 variable-pitch regular 1.7)
+          (3 variable-pitch regular 1.6)
+          (4 variable-pitch regular 1.5)
+          (5 variable-pitch 1.4)        ; absence of weight means `bold'
+          (6 variable-pitch 1.3)
+          (7 variable-pitch 1.2)
+          (t variable-pitch 1.1)))
   ;; (load-theme 'ef-summer :no-confirm)
   )
 
@@ -2564,6 +2596,12 @@ word.  Fall back to regular `expreg-expand'."
     (add-hook 'before-save-hook #'check-parens 0 :local))
   (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
   (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
+  (defun xy/indent-buffer ()
+    "Indent the entire buffer without affecting point or mark."
+    (interactive)
+    (save-excursion
+      (save-restriction
+        (indent-region (point-min) (point-max)))))
   :bind (("C-c e e" . #'pp-eval-last-sexp)
          ("C-c e p" . #'pp-eval-expression)
          ("C-c e j" . #'eval-print-last-sexp)
@@ -2572,11 +2610,12 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c e r" . #'eval-region)
          ("C-c e d" . #'edebug-defun)
          ;; :map lisp-mode-shared-map
-         ("C-c e c" . #'check-parens)))
+         ("C-c e c" . #'check-parens)
+         ("C-c e i" . #'xy/indent-buffer)))
 
 (use-package macrostep
   :bind (;; :map lisp-mode-shared-map
-          ("C-c e m" . macrostep-expand)))
+         ("C-c e m" . macrostep-expand)))
 
 ;; (use-package paredit
 ;;   ;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
@@ -2689,16 +2728,16 @@ word.  Fall back to regular `expreg-expand'."
   (dolist (mode xy/lsp-want-modes)
     (add-hook (intern (format "%s-hook" mode)) #'eglot-ensure))
   :bind (("C-c c e" . #'eglot)
-          :map eglot-mode-map
-          ("C-c c r" . #'eglot-rename)
-          ("C-c c a" . #'eglot-code-actions)
-          ("C-c c ?" . #'eglot-show-workspace-configuration)
-          ("C-c c !" . #'eglot-signal-didChangeConfiguration)
-          ;; ("M-." . #'xref-find-definitions)
-          ;; ("C-h ." . #'eldoc-doc-buffer)
-          ("C-c c t" . #'eglot-show-type-hierarchy)
-          ("C-c c h" . #'eglot-show-call-hierarchy)
-          :map eglot-diagnostics-map)
+         :map eglot-mode-map
+         ("C-c c r" . #'eglot-rename)
+         ("C-c c a" . #'eglot-code-actions)
+         ("C-c c ?" . #'eglot-show-workspace-configuration)
+         ("C-c c !" . #'eglot-signal-didChangeConfiguration)
+         ;; ("M-." . #'xref-find-definitions)
+         ;; ("C-h ." . #'eldoc-doc-buffer)
+         ("C-c c t" . #'eglot-show-type-hierarchy)
+         ("C-c c h" . #'eglot-show-call-hierarchy)
+         :map eglot-diagnostics-map)
   :config
   (add-to-list 'eglot-server-programs
                '(conf-toml-mode . ("taplo" "lsp" "stdio")))
