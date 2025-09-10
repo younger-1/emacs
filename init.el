@@ -1891,6 +1891,35 @@ makes it easier to edit it."
           ("P" . disproject-dispatch)))
 
 
+;;; appearance
+(use-package hl-line
+  :ensure nil
+  :hook
+  (prog-mode . hl-line-mode)
+  (text-mode . hl-line-mode)
+  (help-mode . hl-line-mode)
+  (Info-mode . hl-line-mode)
+  (dired-mode . hl-line-mode)
+  (package-menu-mode . hl-line-mode))
+
+;; Show pretty symbols
+(use-package prog-mode
+  :ensure nil
+  :config
+  ;; Show markup at point
+  (setq prettify-symbols-unprettify-at-point t)
+  (global-prettify-symbols-mode +1))
+
+;; Highlight delimiters such as parentheses, brackets or braces according to their depth
+(use-package rainbow-delimiters
+  :init
+  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+
+;; Highlight identifiers based on hash of names
+(use-package rainbow-identifiers
+  :commands rainbow-identifiers-mode)
+
+
 ;;; ui
 (use-package tab-line
   :ensure nil
@@ -1932,16 +1961,6 @@ makes it easier to edit it."
 ;;   ;; (emacs-startup . global-window-tool-bar-mode)
 ;;   (special-mode . window-tool-bar-mode))
 
-(use-package hl-line
-  :ensure nil
-  :hook
-  (prog-mode . hl-line-mode)
-  (text-mode . hl-line-mode)
-  (help-mode . hl-line-mode)
-  (Info-mode . hl-line-mode)
-  (dired-mode . hl-line-mode)
-  (package-menu-mode . hl-line-mode))
-
 (use-package hide-mode-line
   :hook
   (inferior-python-mode) ; `run-python'
@@ -1976,13 +1995,6 @@ makes it easier to edit it."
   :config
   (breadcrumb-mode +1)
   (setq breadcrumb-imenu-crumb-separator " "))
-
-(use-package vundo
-  :defer 0.8
-  :bind (("C-x C-u" . vundo))
-  :config
-  (vundo-popup-mode +1)
-  (setq vundo-glyph-alist vundo-unicode-symbols))
 
 
 ;;; util
@@ -2066,6 +2078,13 @@ makes it easier to edit it."
          ("M-s j" . avy-isearch)))
 
 ;;; edit
+(use-package vundo
+  :defer 0.8
+  :bind (("C-x C-u" . vundo))
+  :config
+  (vundo-popup-mode +1)
+  (setq vundo-glyph-alist vundo-unicode-symbols))
+
 ;; (use-package expand-region
 ;;   :bind ("C-=" . er/expand-region))
 
