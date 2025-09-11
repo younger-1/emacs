@@ -2111,6 +2111,20 @@ word.  Fall back to regular `expreg-expand'."
        (symbol (prot/expreg-expand 2))
        (t (expreg-expand))))))
 
+;; Edit regions in separate buffers, like `org-edit-special'
+(use-package edit-indirect
+  :bind ("C-x n e" . edit-indirect-region))
+
+(use-package persistent-scratch
+  :bind (:map persistent-scratch-mode-map
+         ([remap kill-buffer] . (lambda (&rest _)
+                                  (interactive)
+                                  (user-error "[xy] scratch buffer cannot be killed")))
+         ([remap revert-buffer] . persistent-scratch-restore)
+         ([remap revert-this-buffer] . persistent-scratch-restore))
+  :hook ((after-init . persistent-scratch-autosave-mode)
+         (lisp-interaction-mode . persistent-scratch-mode)))
+
 
 ;;; prog
 (use-package imenu-list
