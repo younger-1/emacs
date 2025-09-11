@@ -1585,9 +1585,9 @@ makes it easier to edit it."
   :init
   (setq god-mode-enable-function-key-translation nil)
   :config
-  (god-mode +1)
+  (god-mode)
   ;; Visual indicators for God mode
-  (set-face-attribute 'god-mode-lighter nil :inherit error)
+  ;; (set-face-attribute 'god-mode-lighter nil :inherit 'match)
   ;;
   (defun xy/god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
@@ -1907,7 +1907,7 @@ makes it easier to edit it."
   :ensure nil
   :config
   ;; Show markup at point
-  (setq prettify-symbols-unprettify-at-point t)
+  (setq prettify-symbols-unprettify-at-point 'right-edge)
   (global-prettify-symbols-mode +1))
 
 ;; Highlight delimiters such as parentheses, brackets or braces according to their depth
@@ -2643,7 +2643,14 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c e d" . #'edebug-defun)
          ;; :map lisp-mode-shared-map
          ("C-c e c" . #'check-parens)
-         ("C-c e i" . #'xy/indent-buffer)))
+         ("C-c e i" . #'xy/indent-buffer))
+  :config
+  (add-to-list 'lisp-prettify-symbols-alist '("defun" . ?󰡱))
+  (add-to-list 'lisp-prettify-symbols-alist '("defvar" . ?󰓏))
+  (add-to-list 'lisp-prettify-symbols-alist '("defconst" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("defcustom" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("setq" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("use-package" . ?)))
 
 (use-package macrostep
   :bind (;; :map lisp-mode-shared-map
