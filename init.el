@@ -299,10 +299,15 @@
 ;; (setq use-package-minimum-reported-time (if init-file-debug 0 0.1))
 ;; (setq use-package-verbose init-file-debug)
 
+(defmacro use-core (name &rest args)
+  (declare (indent 1))
+  `(use-package ,name
+     :ensure nil
+     ,@args))
+
 
 ;;; startup frame and screen
-(use-package emacs
-  :ensure nil
+(use-core emacs
   :custom
   (inhibit-startup-echo-area-message user-login-name)
   :init
@@ -338,8 +343,7 @@
 
 
 ;;; basic
-(use-package emacs
-  :ensure nil
+(use-core emacs
   :config
   ;; tab
   (setq-default indent-tabs-mode nil)
@@ -534,8 +538,7 @@
 
 
 ;;; hooks and keymaps
-(use-package emacs
-  :ensure nil
+(use-core emacs
   :init
   ;; (show-paren-mode +1) ;; default
   ;; (electric-indent-mode +1) ;; default
@@ -601,8 +604,7 @@
 
 
 ;;; misc
-(use-package emacs
-  :ensure nil
+(use-core emacs
   :config
   (setq user-full-name    "Xavier Young"
         user-mail-address "younger321@foxmail.com")
@@ -644,8 +646,7 @@
 ;;   ;; A global mode that compiles .el files before they are loaded.
 ;;   (compile-angel-on-load-mode))
 
-(use-package server
-  :ensure nil
+(use-core server
   ;; :if (dispay-graphic-p)
   ;; :after-call doom-first-input-hook doom-first-file-hook focus-out-hook
   :defer 1
@@ -658,8 +659,7 @@
 
 
 ;;; help
-(use-package help
-  :ensure nil
+(use-core help
   :init
   ;; (setq help-window-select t)
   ;; (setq help-window-keep-selected t)
@@ -854,8 +854,7 @@ makes it easier to edit it."
          ("b" . #'beginning-of-buffer)
          ("e" . #'end-of-buffer)))
 
-(use-package info
-  :ensure nil
+(use-core info
   :init
   (defun xy/info-elisp () (interactive) (info "elisp"))
   (defun xy/info-eintr () (interactive) (info "eintr"))
@@ -869,8 +868,7 @@ makes it easier to edit it."
          ("." . #'Info-search-next)
          ("a" . #'info-apropos)))
 
-(use-package package
-  :ensure nil
+(use-core package
   :init
   (defun xy/open-package-quickstart ()
     (interactive)
@@ -905,8 +903,7 @@ makes it easier to edit it."
          ("C-h p j" . #'use-package-jump-to-package-form)
          ("C-h p k" . #'use-package-report)))
 
-(use-package cus-edit
-  :ensure nil
+(use-core cus-edit
   :bind
   ("C-h , ," . #'customize)
   ("C-h , ." . #'customize-group)
@@ -926,8 +923,7 @@ makes it easier to edit it."
   ("C-h , u" . #'customize-unsaved)
   ("C-h , r" . #'customize-rogue))
 
-(use-package tooltip
-  :ensure nil
+(use-core tooltip
   :config
   (tooltip-mode -1)
   (setq tooltip-resize-echo-area t))
@@ -1164,7 +1160,7 @@ makes it easier to edit it."
   (setq vertico-multiform-commands
         '((imenu buffer (vertico-buffer-display-action . (display-buffer-same-window)))
           (consult-line buffer)
-          (consult-imenu reverse buffer)
+          ;; (consult-imenu reverse buffer)
           (execute-extended-command-for-buffer (:not indexed mouse))))
   (setq vertico-multiform-categories ; categories at `marginalia-annotator-registry'
         '((file buffer)
@@ -1275,6 +1271,16 @@ makes it easier to edit it."
   (setq consult-narrow-key "<")
   ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
   ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'embark-prefix-help-command)
+
+  (with-eval-after-load 'consult-imenu
+    (add-to-list 'consult-imenu-config
+                 '(emacs-lisp-mode :toplevel "Functions"
+                                   :types ((?b "Builtin Packages")
+                                           (?f "Functions" font-lock-function-name-face)
+                                           (?m "Macros"    font-lock-function-name-face)
+                                           (?p "Packages"  font-lock-constant-face)
+                                           (?t "Types"     font-lock-type-face)
+                                           (?v "Variables" font-lock-variable-name-face)))))
 
   (consult-info-define "emacs" "efaq" "elisp" "eintr" "cl")
   (consult-info-define 'all "widget" "ediff" "eglot" "flymake" "eshell" "tramp" "org" "gnus" "calc" "eww")
@@ -2663,11 +2669,28 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c e c" . #'check-parens)
          ("C-c e i" . #'xy/indent-buffer))
   :config
+  ;; imenu support for `use-core'
+  (add-to-list 'lisp-imenu-generic-expression
+               (list "Builtin Packages"
+                     (concat "^\\s-*(use-core" "\\s-+" "\\(" lisp-mode-symbol-regexp "\\)" ) 1))
+
+;; 󰊾 󰕅 󰈍  󰉡 󰝖 󱡠 󰷐      󰓷    󰀘  󰗁 󱗛  󰈸    󰍐 󰟙 󰍒  󰙑 󰘨 󰌕 󱍵 󰫍 󰕳    󰌱 󱇚 󰜅     
   (add-to-list 'lisp-prettify-symbols-alist '("defun" . ?󰡱))
+  (add-to-list 'lisp-prettify-symbols-alist '("defmacro" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("defvar" . ?󰓏))
-  (add-to-list 'lisp-prettify-symbols-alist '("defconst" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("defconst" . ?󰀚))
   (add-to-list 'lisp-prettify-symbols-alist '("defcustom" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("defface" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("setq" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("add-hook" . ?󰛢))
+  (add-to-list 'lisp-prettify-symbols-alist '("if" . ?󰞀))
+  (add-to-list 'lisp-prettify-symbols-alist '("when" . ? ))
+  (add-to-list 'lisp-prettify-symbols-alist '("unless" . ? ))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("add-to-list" . ?󰾹))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("push" . ?󰕕))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("load" . ?))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("require" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("use-core" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("use-package" . ?)))
 
 (use-package macrostep
