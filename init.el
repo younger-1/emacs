@@ -1919,6 +1919,10 @@ makes it easier to edit it."
 (use-package rainbow-identifiers
   :commands rainbow-identifiers-mode)
 
+;; Highlight defined Emacs Lisp symbols
+(use-package highlight-defined
+  :commands highlight-defined-mode)
+
 
 ;;; ui
 (use-package tab-line
@@ -2063,7 +2067,7 @@ makes it easier to edit it."
 (use-package wakatime-mode
   :defer 1
   :config
-  (global-wakatime-mode))
+  (global-wakatime-mode +1))
 
 
 ;;; motion
@@ -2111,17 +2115,31 @@ word.  Fall back to regular `expreg-expand'."
        (symbol (prot/expreg-expand 2))
        (t (expreg-expand))))))
 
+;; Add/Change/Delete pairs based on `expand-region', similar to vim-surround
+(use-package embrace
+  :bind ("C-c z" . embrace-commander)
+  :config
+  (add-hook 'org-mode-hook #'embrace-org-mode-hook)
+  (add-hook 'emacs-lisp-mode-hook #'embrace-emacs-lisp-mode-hook)
+  (defun embrace-markdown-mode-hook ()
+    (dolist (lst '((?* "*" . "*")
+                   (?\ "\\" . "\\")
+                   (?$ "$" . "$")
+                   (?/ "/" . "/")))
+      (embrace-add-pair (car lst) (cadr lst) (cddr lst))))
+  (add-hook 'markdown-mode-hook #'embrace-markdown-mode-hook))
+
 ;; Edit regions in separate buffers, like `org-edit-special'
 (use-package edit-indirect
   :bind ("C-x n e" . edit-indirect-region))
 
 (use-package persistent-scratch
-  :bind (:map persistent-scratch-mode-map
-         ([remap kill-buffer] . (lambda (&rest _)
-                                  (interactive)
-                                  (user-error "[xy] scratch buffer cannot be killed")))
-         ([remap revert-buffer] . persistent-scratch-restore)
-         ([remap revert-this-buffer] . persistent-scratch-restore))
+  :bind ( :map persistent-scratch-mode-map
+          ([remap kill-buffer] . (lambda (&rest _)
+                                   (interactive)
+                                   (user-error "[xy] scratch buffer cannot be killed")))
+          ([remap revert-buffer] . persistent-scratch-restore)
+          ([remap revert-this-buffer] . persistent-scratch-restore))
   :hook ((after-init . persistent-scratch-autosave-mode)
          (lisp-interaction-mode . persistent-scratch-mode)))
 
