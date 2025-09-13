@@ -305,6 +305,12 @@
      :ensure nil
      ,@args))
 
+(defmacro use-feature (name &rest args)
+  (declare (indent 1))
+  `(use-package ,name
+     :ensure nil
+     ,@args))
+
 
 ;;; startup frame and screen
 (use-core emacs
@@ -1276,6 +1282,8 @@ makes it easier to edit it."
     (add-to-list 'consult-imenu-config
                  '(emacs-lisp-mode :toplevel "Functions"
                                    :types ((?b "Builtin Packages")
+                                           (?l "Features")
+                                           (?s "Sections")
                                            (?f "Functions" font-lock-function-name-face)
                                            (?m "Macros"    font-lock-function-name-face)
                                            (?p "Packages"  font-lock-constant-face)
@@ -2151,6 +2159,15 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; prog
+(use-core imenu
+  :init
+  ;; imenu support for `use-core', `use-feature', `with-eval-after-load'
+  (with-eval-after-load 'lisp-mode
+    (dolist (pattern '(("Builtin Packages" "^(use-core \\(.+\\)$" 1)
+                       ("Features" "^\\s-*(\\(?:use-feature\\|with-eval-after-load\\)\\s-+\\(.+\\)" 1)
+                       ("Sections" "^;;; \\(.+\\)$" 1)))
+      (add-to-list 'lisp-imenu-generic-expression pattern))))
+
 (use-package imenu-list
   :bind
   ("C-x d i" . imenu-list-smart-toggle)
@@ -2669,14 +2686,9 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c e c" . #'check-parens)
          ("C-c e i" . #'xy/indent-buffer))
   :config
-  ;; imenu support for `use-core'
-  (add-to-list 'lisp-imenu-generic-expression
-               (list "Builtin Packages"
-                     (concat "^\\s-*(use-core" "\\s-+" "\\(" lisp-mode-symbol-regexp "\\)" ) 1))
-
-;; 󰊾 󰕅 󰈍  󰉡 󰝖 󱡠 󰷐      󰓷    󰀘  󰗁 󱗛  󰈸    󰍐 󰟙 󰍒  󰙑 󰘨 󰌕 󱍵 󰫍 󰕳    󰌱 󱇚 󰜅     
+  ;; 󰊾 󰕅 󰈍  󰉡 󰝖 󱡠 󰷐      󰓷     󰗁 󱗛  󰈸    󰍐 󰟙 󰍒  󰙑 󰘨 󰌕 󱍵 󰫍 󰕳    󰌱 󱇚 󰜅     
   (add-to-list 'lisp-prettify-symbols-alist '("defun" . ?󰡱))
-  (add-to-list 'lisp-prettify-symbols-alist '("defmacro" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("defmacro" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("defvar" . ?󰓏))
   (add-to-list 'lisp-prettify-symbols-alist '("defconst" . ?󰀚))
   (add-to-list 'lisp-prettify-symbols-alist '("defcustom" . ?))
@@ -2690,7 +2702,8 @@ word.  Fall back to regular `expreg-expand'."
   ;; (add-to-list 'lisp-prettify-symbols-alist '("push" . ?󰕕))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("load" . ?))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("require" . ?))
-  (add-to-list 'lisp-prettify-symbols-alist '("use-core" . ?))
+  (add-to-list 'lisp-prettify-symbols-alist '("use-core" . ?󰀘))
+  (add-to-list 'lisp-prettify-symbols-alist '("use-feature" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("use-package" . ?)))
 
 (use-package macrostep
