@@ -949,7 +949,7 @@ makes it easier to edit it."
   ;; @todo https://vincent.demeester.fr/articles/emacs_keep_it_clean.html
   ;; (setq recentf-auto-cleanup 360)
   (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
-  (add-to-list 'recentf-exclude (regexp-quote (abbreviate-file-name xy/emacs-lisp-dir)))
+  ;; (add-to-list 'recentf-exclude (regexp-quote (abbreviate-file-name xy/emacs-lisp-dir)))
   ;; (add-to-list 'recentf-exclude (regexp-quote (abbreviate-file-name xy/elpa-lisp-dir)))
   (setq recentf-max-saved-items 500
         recentf-max-menu-items 25))
@@ -1423,6 +1423,7 @@ makes it easier to edit it."
           ;; ("RET" . nil) ; Free RET for newline etc.
           ;; ("TAB" . corfu-next) ; Use TAB for cycling
           ;; ("S-TAB" . corfu-previous)
+          ("RET" . corfu-send)
           ("S-SPC" . corfu-insert-separator)
           ("M-q" . corfu-quick-complete))
   :config
@@ -1430,6 +1431,7 @@ makes it easier to edit it."
   (setq corfu-auto t)
   (setq corfu-auto-prefix 2)
   (setq corfu-cycle t)
+  (setq corfu-scroll-margin (/ corfu-count 2))
   ;; Recommended enable globally since many modes provide Capfs and Dabbrev can be used globally (M-/).
   (global-corfu-mode +1)
 
@@ -1979,6 +1981,15 @@ makes it easier to edit it."
 ;;   ;; (emacs-startup . global-window-tool-bar-mode)
 ;;   (special-mode . window-tool-bar-mode))
 
+;; Tabs and ribbons for the mode line
+(use-package moody
+  :defer 1
+  :config
+  (moody-replace-mode-line-front-space)
+  (moody-replace-mode-line-buffer-identification)
+  (moody-replace-eldoc-minibuffer-message-function)
+  (moody-replace-vc-mode))
+
 (use-package hide-mode-line
   :hook
   (inferior-python-mode) ; `run-python'
@@ -2051,7 +2062,8 @@ makes it easier to edit it."
 (use-package view
   :ensure nil
   :bind
-  (("C-x x v" . #'view-buffer)
+  (("C-x C-q" . #'view-mode)
+   ("C-x x v" . #'view-buffer)
    ("C-x 4 v" . #'view-buffer-other-window)
    ("C-x 5 v" . #'view-buffer-other-frame)
    ("C-x x V" . #'view-file)
@@ -2094,6 +2106,11 @@ makes it easier to edit it."
          ("M-g /" . avy-goto-char-timer)
          :map isearch-mode-map
          ("M-s j" . avy-isearch)))
+
+(use-package ace-pinyin
+  :after avy :demand t
+  :config
+  (ace-pinyin-global-mode +1))
 
 ;;; edit
 (use-package vundo
@@ -2862,11 +2879,23 @@ word.  Fall back to regular `expreg-expand'."
   :after eglot :demand t
   :hook (c-mode cpp-mode))
 
-;; speedier performance and less I/O blocking
+;; Speedier performance and less I/O blocking
 (use-package eglot-booster
   :vc ( :url "https://github.com/jdtsmith/eglot-booster"
         :rev :newest)
   :after eglot :demand t
   :config
-  (eglot-booster-mode)
+  ;; Or: cargo install emacs-lsp-booster
+  (let ((emacs-lsp-booster-path (concat user-emacs-directory "emacs-lsp-booster")))
+    (unless (file-exists-p emacs-lsp-booster-path)
+      (make-directory emacs-lsp-booster-path))
+    (push emacs-lsp-booster-path exec-path)
+    (unless (executable-find "emacs-lsp-booster")
+      (let ((temporary-zip-file (concat temporary-file-directory "emacs-lsp-booster.zip")))
+        (shell-command (format "curl https://github.com/blahgeek/emacs-lsp-booster/releases/download/v0.2.1/emacs-lsp-booster_v0.2.1_x86_64-apple-darwin.zip -L -o %s" temporary-zip-file))
+        (shell-command (format "unzip %s -d %s" temporary-zip-file emacs-lsp-booster-path))
+        (shell-command (format "xattr -r -d com.apple.quarantine %s" (concat emacs-lsp-booster-path "/" "emacs-lsp-booster")))
+        (delete-file temporary-zip-file))))
+
+  (eglot-booster-mode +1)
   (setq eglot-booster-io-only t))
