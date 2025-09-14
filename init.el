@@ -452,6 +452,8 @@
   (setq uniquify-buffer-name-style 'forward)
   (setq switch-to-buffer-obey-display-actions t)
   (setq switch-to-buffer-in-dedicated-window 'pop)
+  ;; (setq display-buffer-base-action '((display-buffer-reuse-window display-buffer-same-window)
+  ;;                                    (reusable-frames . t)))
   ;; Keep the compilation buffer in the background, except when there's an error
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window)))
@@ -459,6 +461,8 @@
   ;; window
   ;; (setq split-height-threshold nil
   ;;       split-width-threshold 0)
+  ;; Avoid resizing
+  ;; (setq even-window-sizes nil)
 
   ;; cursor
   (setq-default cursor-type 'box)
@@ -2057,6 +2061,14 @@ makes it easier to edit it."
                     'ignore))))
   (global-auto-mark-mode +1))
 
+;; Make hypertext with active links in any buffer
+(use-package linkd
+  :vc ( :url "https://github.com/emacsorphanage/linkd"
+        :rev :newest)
+  :bind ("C-z l" . linkd-mode)
+  :config
+  (setq linkd-use-icons t))
+
 
 ;;; tool
 (use-package view
@@ -2251,6 +2263,52 @@ word.  Fall back to regular `expreg-expand'."
   ;; @see `dumb-jump-find-rules'
   (setq dumb-jump-prefer-searcher 'rg)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+
+;;; highlight
+(use-package highlight-symbol
+  ;; :hook (prog-mode . highlight-symbol-mode)
+  :bind
+  ;; move within defun
+  ("M-p" . highlight-symbol-prev-in-defun)
+  ("M-n" . highlight-symbol-next-in-defun)
+  ;; move within buffer
+  ("C-c h m" . highlight-symbol-nav-mode)
+  ;;
+  ("C-c h s" . highlight-symbol) ; manual symbol highlighting
+  ("C-c h S" . highlight-symbol-mode) ; automatic symbol highlighting
+  ("C-c h r" . highlight-symbol-query-replace)
+  ("C-c h o" . highlight-symbol-occur)
+  ("C-c h c" . highlight-symbol-count)
+  :config
+  (setq highlight-symbol-highlight-single-occurrence nil)
+  (setq highlight-symbol-idle-delay 0.5)
+  (setq highlight-symbol-ignore-list '("^end$" "^def$" "^class$" "^module$")))
+
+;; (use-package auto-highlight-symbol
+;;   :bind ( :map auto-highlight-symbol-mode-map
+;;           ("M-n" . ahs-forward)
+;;           ("M-p" . ahs-backward)
+;;           ("M-N" . ahs-forward-definition)
+;;           ("M-P" . ahs-backward-definition)
+;;           ("C-c h s" . ahs-highlight-now)
+;;           ("C-c h S" . auto-highlight-symbol-mode)
+;;           ("C-c h b" . ahs-back-to-start)
+;;           ("C-c h n" . ahs-change-range)
+;;           ("C-c h d" . ahs-display-stat)
+;;           ("C-c h e" . ahs-edit-mode))
+;;   :config
+;;   (global-auto-highlight-symbol-mode +1))
+
+;; Uses built-in `thingatpt' and `hi-lock' functionality to identify the thing under point and highlight it.
+(use-package highlight-thing
+  :defer 0.8
+  ;; :hook prog-mode
+  :bind ("C-c h t" . highlight-thing-mode)
+  :config
+  (global-highlight-thing-mode +1)
+  (setq highlight-thing-prefer-active-region t)
+  ;; (setq highlight-thing-limit-to-defun t)
+  (setq highlight-thing-all-visible-buffers-p t))
 
 
 ;;; vc
