@@ -2248,11 +2248,12 @@ word.  Fall back to regular `expreg-expand'."
 (use-package flymake
   :ensure nil
   ;; :hook (emacs-lisp-mode)
-  :bind ( :map flymake-mode-map
-          ("M-g n" . flymake-goto-next-error)
-          ("M-g p" . flymake-goto-prev-error)
-          ("M-g e" . flymake-show-buffer-diagnostics)
-          ("M-g E" . flymake-show-project-diagnostics))
+  :bind (("C-z f f" . flymake-mode)
+         :map flymake-mode-map
+         ("C-z f n" . flymake-goto-next-error)
+         ("C-z f p" . flymake-goto-prev-error)
+         ("C-z f e" . flymake-show-buffer-diagnostics)
+         ("C-z f E" . flymake-show-project-diagnostics))
   :config
   ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
@@ -2301,14 +2302,45 @@ word.  Fall back to regular `expreg-expand'."
 
 ;; Uses built-in `thingatpt' and `hi-lock' functionality to identify the thing under point and highlight it.
 (use-package highlight-thing
-  :defer 0.8
+  :defer 0.6
   ;; :hook prog-mode
-  :bind ("C-c h t" . highlight-thing-mode)
+  :bind ("C-c h h" . highlight-thing-mode)
   :config
   (global-highlight-thing-mode +1)
   (setq highlight-thing-prefer-active-region t)
   ;; (setq highlight-thing-limit-to-defun t)
   (setq highlight-thing-all-visible-buffers-p t))
+
+;;; todo
+(use-package hl-todo
+  :defer 0.6
+  :bind ( :map hl-todo-mode-map
+          ("C-c h t p" . hl-todo-previous)
+          ("C-c h t n" . hl-todo-next)
+          ("C-c h t o" . hl-todo-occur)
+          ("C-c h t i" . hl-todo-insert))
+  :custom-face
+  (hl-todo ((t (:inherit default :height 0.9 :width condensed :weight bold :underline nil :inverse-video t))))
+  :config
+  (global-hl-todo-mode +1)
+  ;; To highlight TODO keywords in Magit
+  (with-eval-after-load 'magit
+    (add-hook 'magit-log-wash-summary-hook #'hl-todo-search-and-highlight t)
+    (add-hook 'magit-revision-wash-message-hook #'hl-todo-search-and-highlight t))
+  (with-eval-after-load 'flymake
+    (add-hook 'flymake-diagnostic-functions #'hl-todo-flymake)))
+
+(use-package magit-todos
+  :after magit :demand t
+  :bind ("C-c g t" . magit-todos-list)
+  :config (magit-todos-mode +1))
+
+(use-package consult-todo
+  :bind
+  ("C-c s t" . consult-todo)
+  ("C-c s T" . consult-todo-all)
+  ("C-x p t" . consult-todo-project)
+  ("C-x p T" . consult-todo-dir))
 
 
 ;;; vc
