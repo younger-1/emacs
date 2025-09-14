@@ -2258,6 +2258,11 @@ word.  Fall back to regular `expreg-expand'."
   ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 
+(use-package flycheck
+  :defer 1
+  :config
+  (global-flycheck-mode +1))
+
 (use-package dumb-jump
   :defer 1
   :config
@@ -2265,6 +2270,7 @@ word.  Fall back to regular `expreg-expand'."
   (setq dumb-jump-prefer-searcher 'rg)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
+
 ;;; highlight
 (use-package highlight-symbol
   ;; :hook (prog-mode . highlight-symbol-mode)
@@ -2311,14 +2317,16 @@ word.  Fall back to regular `expreg-expand'."
   ;; (setq highlight-thing-limit-to-defun t)
   (setq highlight-thing-all-visible-buffers-p t))
 
+
 ;;; todo
 (use-package hl-todo
   :defer 0.6
-  :bind ( :map hl-todo-mode-map
-          ("C-c h t p" . hl-todo-previous)
-          ("C-c h t n" . hl-todo-next)
-          ("C-c h t o" . hl-todo-occur)
-          ("C-c h t i" . hl-todo-insert))
+  :bind (("C-c h t t" . hl-todo-mode)
+         :map hl-todo-mode-map
+         ("C-c h t p" . hl-todo-previous)
+         ("C-c h t n" . hl-todo-next)
+         ("C-c h t o" . hl-todo-occur)
+         ("C-c h t i" . hl-todo-insert))
   :custom-face
   (hl-todo ((t (:inherit default :height 0.9 :width condensed :weight bold :underline nil :inverse-video t))))
   :config
@@ -2341,6 +2349,16 @@ word.  Fall back to regular `expreg-expand'."
   ("C-c s T" . consult-todo-all)
   ("C-x p t" . consult-todo-project)
   ("C-x p T" . consult-todo-dir))
+
+(use-package flycheck-hl-todo
+  :defer 1
+  :config
+  (flycheck-hl-todo-setup)
+  ;; Only enabled when hl-todo-mode is enabled
+  (defun flycheck-hl-todo-follow-mode ()
+    (setq flycheck-hl-todo-enabled hl-todo-mode)
+    (flycheck-buffer))
+  (add-hook 'hl-todo-mode-hook #'flycheck-hl-todo-follow-mode))
 
 
 ;;; vc
