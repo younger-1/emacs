@@ -640,22 +640,8 @@
   (dolist (dir (list xy/elpa-lisp-dir xy/emacs-lisp-dir))
     (dir-locals-set-directory-class (file-truename dir) :read-only)))
 
-;; Ensure adding the following compile-angel code at the very beginning of init file, before all other packages.
-;; (use-package compile-angel
-;;   :demand t
-;;   :config
-;;   ;; When set to nil, compile-angel won't show which file is being compiled.
-;;   (setq compile-angel-verbose t)
-;;
-;;   (push "/early-init.el" compile-angel-excluded-files)
-;;   (push "/init.el" compile-angel-excluded-files)
-;;
-;;   ;; A local mode that compiles .el files whenever the user saves them.
-;;   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
-;;
-;;   ;; A global mode that compiles .el files before they are loaded.
-;;   (compile-angel-on-load-mode))
-
+
+;;; perf
 (use-core server
   ;; :if (dispay-graphic-p)
   ;; :after-call doom-first-input-hook doom-first-file-hook focus-out-hook
@@ -666,6 +652,49 @@
   (setq server-use-tcp t)
   (unless (or (server-running-p) (daemonp))
     (server-start)))
+
+;; Automatically byte-compiles and native-compiles Emacs Lisp libraries
+;; Ensure adding the following compile-angel code at the very beginning of init file, before all other packages.
+;; (use-package compile-angel
+;;   :demand t
+;;   :config
+;;   ;; Show which file is being compiled.
+;;   (setq compile-angel-verbose t)
+;;   (push "/early-init.el" compile-angel-excluded-files)
+;;   (push "/init.el" compile-angel-excluded-files)
+;;
+;;   ;; A local mode that compiles .el files whenever the user saves them.
+;;   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
+;;   ;; A global mode that compiles .el files before they are loaded.
+;;   (compile-angel-on-load-mode))
+
+(use-package gcmh
+  :hook (after-init)
+  :config
+  (setq gcmh-high-cons-threshold (* 128 1024 1024)))
+
+;; Profiling the startup time of Emacs
+(use-package esup
+  :bind ("C-c x p" . esup)
+  :config
+  ;; https://github.com/jschaf/esup/issues/85
+  ;; This is a work around of a bug where esup tries to step into the byte-compiled version of `cl-lib’, and fails horribly:
+  (setq esup-depth 0))
+
+(use-package benchmark-init
+  :demand t
+  :bind
+  ("C-c x m" . benchmark-init/show-durations-tree)
+  ("C-c x M" . benchmark-init/show-durations-tabulated)
+  :config
+  ;; To disable collection of benchmark data after init is done.
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
+
+(use-package bug-hunter
+  :bind ("C-c x b" . bug-hunter-init-file))
+
+(use-package restart-emacs
+  :bind ("C-c x r" . restart-emacs))
 
 
 ;;; help
@@ -2032,11 +2061,6 @@ makes it easier to edit it."
 
 
 ;;; util
-(use-package gcmh
-  :hook (after-init)
-  :config
-  (setq gcmh-high-cons-threshold (* 128 1024 1024)))
-
 ;; https://www.emacswiki.org/emacs/VisibleMark
 (use-package visible-mark
   :defer 0.5
