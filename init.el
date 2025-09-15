@@ -1777,6 +1777,7 @@ makes it easier to edit it."
     (add-to-list 'consult-buffer-sources persp-consult-source))
   ;; Save sessions to disk
   (setq persp-state-default-file (expand-file-name ".perspective-state" user-emacs-directory))
+  ;; (persp-state-load persp-state-default-file)
   (add-hook 'kill-emacs-hook #'persp-state-save))
 
 ;; Designate any buffer to “popup” status to disimss/summon/cycle them.
@@ -2124,6 +2125,22 @@ makes it easier to edit it."
   :config
   (ace-pinyin-global-mode +1))
 
+(use-package binky
+  :bind
+  ("M-g '" . binky-binky)
+  ("M-g ." . binky-next-in-buffer)
+  ("M-g ," . binky-previous-in-buffer)
+  :config
+  (binky-mode +1)
+  (binky-margin-mode +1)
+  (setq  binky-preview-delay 0.2)
+  ;; (setq binky-indicator-side 'right)
+  ;; Use mark itself as indicator
+  (setq binky-margin-string nil)
+  ;; Save and restore
+  (binky-restore)
+  (add-hook 'kill-emacs-hook #'binky-save))
+
 ;;; edit
 (use-package vundo
   :defer 0.8
@@ -2258,10 +2275,10 @@ word.  Fall back to regular `expreg-expand'."
   ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 
-(use-package flycheck
-  :defer 1
-  :config
-  (global-flycheck-mode +1))
+;; (use-package flycheck
+;;   :defer 1
+;;   :config
+;;   (global-flycheck-mode +1))
 
 (use-package dumb-jump
   :defer 1
@@ -2350,15 +2367,15 @@ word.  Fall back to regular `expreg-expand'."
   ("C-x p t" . consult-todo-project)
   ("C-x p T" . consult-todo-dir))
 
-(use-package flycheck-hl-todo
-  :defer 1
-  :config
-  (flycheck-hl-todo-setup)
-  ;; Only enabled when hl-todo-mode is enabled
-  (defun flycheck-hl-todo-follow-mode ()
-    (setq flycheck-hl-todo-enabled hl-todo-mode)
-    (flycheck-buffer))
-  (add-hook 'hl-todo-mode-hook #'flycheck-hl-todo-follow-mode))
+;; (use-package flycheck-hl-todo
+;;   :after flycheck :demand t
+;;   :config
+;;   (flycheck-hl-todo-setup)
+;;   ;; Only enabled when hl-todo-mode is enabled
+;;   (defun flycheck-hl-todo-follow-mode ()
+;;     (setq flycheck-hl-todo-enabled hl-todo-mode)
+;;     (flycheck-buffer))
+;;   (add-hook 'hl-todo-mode-hook #'flycheck-hl-todo-follow-mode))
 
 
 ;;; vc
