@@ -1548,7 +1548,7 @@ makes it easier to edit it."
   (defvar-keymap xy/page-navigation-repeat-map
     :keymap page-navigation-repeat-map
     :repeat t
-    "{" #'backward-paragrafph
+    "{" #'backward-paragraph
     "}" #'forward-paragraph)
 
   (defvar-keymap xy/navi-repeat-map
@@ -1962,36 +1962,19 @@ makes it easier to edit it."
 
 
 ;;; appearance
-(use-package hl-line
-  :ensure nil
-  :hook
-  (prog-mode . hl-line-mode)
-  (text-mode . hl-line-mode)
-  (help-mode . hl-line-mode)
-  (Info-mode . hl-line-mode)
-  (dired-mode . hl-line-mode)
-  (package-menu-mode . hl-line-mode))
-
 ;; Show pretty symbols
-(use-package prog-mode
-  :ensure nil
+(use-core prog-mode
   :config
   ;; Show markup at point
   (setq prettify-symbols-unprettify-at-point 'right-edge)
   (global-prettify-symbols-mode +1))
 
-;; Highlight delimiters such as parentheses, brackets or braces according to their depth
-(use-package rainbow-delimiters
-  :init
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
-
-;; Highlight identifiers based on hash of names
-(use-package rainbow-identifiers
-  :commands rainbow-identifiers-mode)
-
-;; Highlight defined Emacs Lisp symbols
-(use-package highlight-defined
-  :commands highlight-defined-mode)
+(use-package page-break-lines
+  :defer 1
+  :bind ("C-c t p" . page-break-lines-mode)
+  :config
+  (global-page-break-lines-mode +1)
+  (setq page-break-lines-max-width 80))
 
 
 ;;; ui
@@ -2202,6 +2185,7 @@ makes it easier to edit it."
   (binky-restore)
   (add-hook 'kill-emacs-hook #'binky-save))
 
+
 ;;; edit
 (use-package vundo
   :defer 0.8
@@ -2352,6 +2336,28 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; highlight
+(use-core hl-line
+  :hook
+  (prog-mode . hl-line-mode)
+  (text-mode . hl-line-mode)
+  (help-mode . hl-line-mode)
+  (Info-mode . hl-line-mode)
+  (dired-mode . hl-line-mode)
+  (package-menu-mode . hl-line-mode))
+
+;; Highlight delimiters such as parentheses, brackets or braces according to their depth
+(use-package rainbow-delimiters
+  :init
+  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+
+;; Highlight identifiers based on hash of names
+(use-package rainbow-identifiers
+  :commands rainbow-identifiers-mode)
+
+;; Highlight defined Emacs Lisp symbols
+(use-package highlight-defined
+  :commands highlight-defined-mode)
+
 (use-package highlight-symbol
   ;; :hook (prog-mode . highlight-symbol-mode)
   :bind
