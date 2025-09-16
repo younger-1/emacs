@@ -311,6 +311,10 @@
      :ensure nil
      ,@args))
 
+;; Support :chords keyword for `key-chord-mode'
+(use-package use-package-chords
+  :demand t)
+
 
 ;;; startup frame and screen
 (use-core emacs
@@ -1600,6 +1604,21 @@ makes it easier to edit it."
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-sort-uppercase-first nil))
 
+;; @note Key chord mode uses `input-method-function'. And so do internationalisation packages (mule, quail, etc). Do not expect them to work well together.
+(use-package key-chord
+  :defer 0.3
+  :chords
+  (",." . "<>\C-b")
+  (",," . indent-for-comment)
+  :bind
+  ("C-h w c" . key-chord-describe)
+  :config
+  ;; When detect typing, disable chord detection to help prevent accidental chord triggering
+  (setq key-chord-typing-detection t)
+  (setq key-chord-typing-speed-threshold 0.1) ; Adjust how fast keystrokes need to be to be considered "typing"
+  (setq key-chord-typing-reset-delay 0.5) ; How long to wait after typing stops before re-enabling chord detection
+  (key-chord-mode +1))
+
 ;; (use-package ffap
 ;;   :ensure nil
 ;;   :defer 1
@@ -2135,6 +2154,10 @@ makes it easier to edit it."
 
 ;;; motion
 (use-package avy
+  :chords
+  ("jj" . avy-goto-char-timer)
+  ("jk" . avy-goto-word-1)
+  ("jl" . avy-goto-line)
   :bind (("M-g ;" . avy-resume)
          ("M-g j" . avy-goto-char)
          ("M-g M-j" . avy-goto-word-1)
