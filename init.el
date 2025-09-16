@@ -1700,7 +1700,7 @@ makes it easier to edit it."
 ;; Kill old buffers at midnight
 (use-package midnight
   :ensure nil
-  :defer 2
+  :defer 5
   :config
   (midnight-mode +1))
 
@@ -1736,8 +1736,7 @@ makes it easier to edit it."
 
 
 ;;; window
-(use-package winner
-  :ensure nil
+(use-core winner
   :defer 0.5
   :bind
   ("C-x 4 u" . #'winner-undo)
@@ -1745,8 +1744,7 @@ makes it easier to edit it."
   :config
   (winner-mode +1))
 
-(use-package windmove
-  :ensure nil
+(use-core windmove
   :defer 0.5
   :config
   ;; @tip shift and ctrl-shift is used by Org-Mode
@@ -1785,6 +1783,22 @@ makes it easier to edit it."
 ;; -- https://news.ycombinator.com/item?id=43619437
 ;; (use-package window-x
 ;;   :bind ("C-x 4 t" . #'rotate-windows))
+
+(use-package zoom
+  :defer 0.5
+  :bind
+  ("C-c t z" . zoom-mode)
+  ("C-c t Z" . #'xy/toggle-zoom-size)
+  :config
+  (zoom-mode +1)
+  (defun xy/toggle-zoom-size ()
+    (interactive)
+    (if (equal zoom-size zoom-size-default)
+        (setq zoom-size xy/zoom-size)
+      (setq zoom-size zoom-size-default)))
+  (setq zoom-size-default zoom-size)
+  (defvar xy/zoom-size '(0.618 . 0.618))
+  (xy/toggle-zoom-size))
 
 ;; Manage window configurations
 ;; @note `eyebrowse-keymap-prefix' is C-c C-w
@@ -2191,7 +2205,7 @@ makes it easier to edit it."
   :defer 0.8
   :bind (("C-x C-u" . vundo))
   :config
-  (vundo-popup-mode +1)
+  ;; (vundo-popup-mode +1)
   (setq vundo-glyph-alist vundo-unicode-symbols))
 
 ;; (use-package expand-region
