@@ -1697,6 +1697,7 @@ makes it easier to edit it."
 
 
 ;;; buffer
+;; Kill old buffers at midnight
 (use-package midnight
   :ensure nil
   :defer 2
@@ -2153,6 +2154,14 @@ makes it easier to edit it."
 
 
 ;;; motion
+;; Move point through `buffer-undo-list' positions.
+(use-package goto-last-change
+  :bind ("M-g SPC" . goto-last-change)
+  :config
+  (defvar-keymap xy/goto-last-change-repeat-map
+    :repeat t
+    "SPC" #'goto-last-change))
+
 (use-package avy
   :chords
   ("jj" . avy-goto-char-timer)
@@ -2173,6 +2182,11 @@ makes it easier to edit it."
   (ace-pinyin-global-mode +1))
 
 (use-package binky
+  :init
+  (defvar-keymap xy/binky-repeat-map
+    :repeat t
+    "." #'binky-next-in-buffer
+    "," #'binky-previous-in-buffer)
   :bind
   ("M-g '" . binky-binky)
   ("M-g ." . binky-next-in-buffer)
@@ -2224,17 +2238,19 @@ word.  Fall back to regular `expreg-expand'."
 
 ;; Add/Change/Delete pairs based on `expand-region', similar to vim-surround
 (use-package embrace
+  :defer 0.8
   :bind ("C-c z" . embrace-commander)
-  :config
-  (add-hook 'org-mode-hook #'embrace-org-mode-hook)
-  (add-hook 'emacs-lisp-mode-hook #'embrace-emacs-lisp-mode-hook)
+  :init
   (defun embrace-markdown-mode-hook ()
     (dolist (lst '((?* "*" . "*")
                    (?\ "\\" . "\\")
                    (?$ "$" . "$")
                    (?/ "/" . "/")))
       (embrace-add-pair (car lst) (cadr lst) (cddr lst))))
-  (add-hook 'markdown-mode-hook #'embrace-markdown-mode-hook))
+  :hook
+  (org-mode . embrace-org-mode-hook)
+  (emacs-lisp-mode . embrace-emacs-lisp-mode-hook)
+  (markdown-mode . embrace-markdown-mode-hook))
 
 ;; Edit regions in separate buffers, like `org-edit-special'
 (use-package edit-indirect
@@ -2385,6 +2401,11 @@ word.  Fall back to regular `expreg-expand'."
 ;;; todo
 (use-package hl-todo
   :defer 0.6
+  :init
+  (defvar-keymap xy/hl-todo-repeat-map
+    :repeat t
+    "p" #'hl-todo-previous
+    "n" #'hl-todo-next)
   :bind (("C-c h t t" . hl-todo-mode)
          :map hl-todo-mode-map
          ("C-c h t p" . hl-todo-previous)
