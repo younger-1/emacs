@@ -655,7 +655,17 @@
   ;; File with `server-name' under `server-auth-dir'
   (setq server-use-tcp t)
   (unless (or (server-running-p) (daemonp))
-    (server-start)))
+    (server-start))
+  ;; (add-hook 'server-switch-hook
+  ;;    (lambda ()
+  ;;      (let ((server-buf (current-buffer)))
+  ;;        (bury-buffer)
+  ;;        (switch-to-buffer-other-frame server-buf))))
+  ;; (add-hook 'server-done-hook
+  ;;    (lambda ()
+  ;;      (kill-buffer nil)
+  ;;      (delete-frame)))
+  )
 
 ;; Automatically byte-compiles and native-compiles Emacs Lisp libraries
 ;; Ensure adding the following compile-angel code at the very beginning of init file, before all other packages.
@@ -1532,16 +1542,16 @@ makes it easier to edit it."
 
 
 ;;; keymap
-(use-package repeat
-  :ensure nil
+(use-core repeat
   :defer 0.3
   :config
   (repeat-mode +1)
   ;; (setq repeat-exit-key "RET")
   (setq repeat-exit-key "q")
-
+  :init
   (defvar-keymap xy/undo-repeat-map
     :keymap undo-repeat-map
+    :repeat t
     "U" #'undo-only
     "r" #'undo-redo) ; useful to shorten "undo records" by balancing out previous `undo'
 
@@ -2207,6 +2217,17 @@ makes it easier to edit it."
   :config
   ;; (vundo-popup-mode +1)
   (setq vundo-glyph-alist vundo-unicode-symbols))
+
+(use-package undo-fu
+  :init
+  (defvar-keymap xy/undo-fu-repeat-map
+    :keymap undo-repeat-map
+    :repeat t
+    "b" #'undo-fu-only-undo
+    "f" #'undo-fu-only-redo)
+  :bind
+  ("s-z" . undo-fu-only-undo)
+  ("s-Z" . undo-fu-only-redo))
 
 ;; (use-package expand-region
 ;;   :bind ("C-=" . er/expand-region))
