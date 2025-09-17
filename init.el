@@ -2162,12 +2162,22 @@ makes it easier to edit it."
 
 ;;; motion
 ;; Move point through `buffer-undo-list' positions.
-(use-package goto-last-change
-  :bind ("M-g SPC" . goto-last-change)
+;; (use-package goto-last-change
+;;   :bind ("M-g SPC" . goto-last-change)
+;;   :config
+;;   (defvar-keymap xy/goto-last-change-repeat-map
+;;     :repeat t
+;;     "SPC" #'goto-last-change))
+
+(use-package goto-chg
+  :bind
+  ("M-g ." . goto-last-change)
+  ("M-g ," . goto-last-change-reverse)
   :config
-  (defvar-keymap xy/goto-last-change-repeat-map
+  (defvar-keymap xy/goto-chg-repeat-map
     :repeat t
-    "SPC" #'goto-last-change))
+    "." #'goto-last-change
+    "," #'goto-last-change-reverse))
 
 (use-package avy
   :chords
@@ -2192,12 +2202,12 @@ makes it easier to edit it."
   :init
   (defvar-keymap xy/binky-repeat-map
     :repeat t
-    "." #'binky-next-in-buffer
-    "," #'binky-previous-in-buffer)
+    "]" #'binky-next-in-buffer
+    "[" #'binky-previous-in-buffer)
   :bind
   ("M-g '" . binky-binky)
-  ("M-g ." . binky-next-in-buffer)
-  ("M-g ," . binky-previous-in-buffer)
+  ("M-g ]" . binky-next-in-buffer)
+  ("M-g [" . binky-previous-in-buffer)
   :config
   (binky-mode +1)
   (binky-margin-mode +1)
