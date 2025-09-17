@@ -2218,6 +2218,7 @@ makes it easier to edit it."
   ;; (vundo-popup-mode +1)
   (setq vundo-glyph-alist vundo-unicode-symbols))
 
+;; Linear undo with redo
 (use-package undo-fu
   :init
   (defvar-keymap xy/undo-fu-repeat-map
@@ -2228,6 +2229,13 @@ makes it easier to edit it."
   :bind
   ("s-z" . undo-fu-only-undo)
   ("s-Z" . undo-fu-only-redo))
+
+;; Save & recover undo steps between Emacs sessions
+(use-package undo-fu-session
+  :defer 0.8
+  :config
+  (undo-fu-session-global-mode +1)
+  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
 ;; (use-package expand-region
 ;;   :bind ("C-=" . er/expand-region))
