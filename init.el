@@ -137,7 +137,7 @@
 
 
 ;;; keymap
-;; free keys: C-x c/g/j/z
+;; free keys: C-x c/g/j/y
 ;; [C-x e] `kmacro-end-and-call-macro'
 ;; [C-x f] `set-fill-column'
 ;; [C-x i] `insert-file'
@@ -595,26 +595,28 @@
             (default-directory "/mnt/c/"))
         (insert
          (substring (shell-command-to-string "powershell.exe -NoLogo -NoProfile -command 'Get-Clipboard'") 0  -1))))
-    (keymap-global-set "C-z C-w" #'xy/wsl-kill)
-    (keymap-global-set "C-z C-y" #'xy/wsl-yank))
+    (keymap-global-set "C-x y k" #'xy/wsl-kill)
+    (keymap-global-set "C-x y y" #'xy/wsl-yank))
 
   :bind
+  ("C-z" . nil) ; `suspend-frame', use C-x C-z
+  ;;
   ;; @tip s-k is `kill-current-buffer'
   ;; ("C-x k" . #'kill-current-buffer)
   ("C-x K" . #'bury-buffer)
   ("C-x O" . #'switch-to-minibuffer)
   ;; ("C-x l" . #'count-words)
+  ;;
   ("C-x x f" . #'follow-mode)
+  ("C-x x G" . #'redraw-display)
   ;;
-  ("C-x D" . #'diff-buffer-with-file)
-  ;; ("C-x D" . #'diff-buffers)
+  ("C-x f" . nil)
+  ("C-x f d" . #'diff-buffer-with-file)
+  ("C-x f D" . #'diff-buffers)
+  ("C-x f s" . #'xy/scratch)
   ;;
-  ("C-z" . nil) ; `suspend-frame'
-  ("C-z C-r" . #'redraw-display)
-  ("C-z s s" . #'xy/scratch)
-  ;;
-  ("C-z w w" . #'browse-url)
-  ("C-z w W" . #'browse-web))
+  ("C-x j u" . #'browse-url)
+  ("C-x j U" . #'browse-web))
 
 
 ;;; misc
@@ -988,7 +990,6 @@ makes it easier to edit it."
   :ensure nil
   :defer 0.1
   :bind
-  ("C-x f" . nil)
   ("C-x f r" . recentf-open)
   ("C-x f R" . recentf-open-files)
   :config
@@ -1732,7 +1733,7 @@ makes it easier to edit it."
                               "\\`\\*tramp"
                               "\\`\\*EGLOT"
                               ;; And some hidden buffers can be visited by ...
-                              ;; "\\`\\*scratch"        ; "C-z s s"
+                              ;; "\\`\\*scratch"        ; "C-x f s"
                               ;; "\\`\\*Messages"       ; "C-h e"
                               "\\`\\*Bookmark List"  ; "C-x r l"
                               )
@@ -2117,7 +2118,7 @@ makes it easier to edit it."
 (use-package linkd
   :vc ( :url "https://github.com/emacsorphanage/linkd"
         :rev :newest)
-  :bind ("C-z l" . linkd-mode)
+  :commands linkd-mode
   :config
   (setq linkd-use-icons t))
 
@@ -2365,12 +2366,12 @@ word.  Fall back to regular `expreg-expand'."
 (use-package flymake
   :ensure nil
   ;; :hook (emacs-lisp-mode)
-  :bind (("C-z f f" . flymake-mode)
+  :bind (("C-x j m" . flymake-mode)
          :map flymake-mode-map
-         ("C-z f n" . flymake-goto-next-error)
-         ("C-z f p" . flymake-goto-prev-error)
-         ("C-z f e" . flymake-show-buffer-diagnostics)
-         ("C-z f E" . flymake-show-project-diagnostics))
+         ("C-x j n" . flymake-goto-next-error)
+         ("C-x j p" . flymake-goto-prev-error)
+         ("C-x j e" . flymake-show-buffer-diagnostics)
+         ("C-x j E" . flymake-show-project-diagnostics))
   :config
   ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
@@ -2775,8 +2776,8 @@ word.  Fall back to regular `expreg-expand'."
 ;; @see https://www.masteringemacs.org/article/running-shells-in-emacs-overview
 (use-package comint
   :ensure nil
-  :bind (("C-z e s" . shell)
-         ("C-z e t" . ansi-term)
+  :bind (("C-x c s" . shell)
+         ("C-x c t" . ansi-term)
          :map comint-mode-map
          ;; @tip
          ;; "C-c C-p/C-n/C-a": Jump to the prev/next/last prompt
@@ -2799,7 +2800,7 @@ word.  Fall back to regular `expreg-expand'."
 (use-package eshell
   :ensure nil
   :bind
-  ("C-z e e" . eshell)
+  ("C-x c e" . eshell)
   :config
   (with-eval-after-load 'em-term
     (add-to-list 'eshell-visual-subcommands '("git" "log" "diff" "show" "ls"))
