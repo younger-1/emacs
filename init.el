@@ -2136,7 +2136,7 @@ makes it easier to edit it."
   (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
   ;; For TAB/S-TAB
   ;; (setq outline-minor-mode-cycle t)
-  ;; C-q `outline-hide-sublevels': Obly top n (default 1, can prefix) headers visible
+  ;; C-q `outline-hide-sublevels': @prefix Only top n (default 1) headers visible
   ;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
   (setopt outline-minor-mode-prefix (kbd "C-c v")) ; v for view
   ;;; UI
@@ -2652,8 +2652,8 @@ word.  Fall back to regular `expreg-expand'."
   :bind ("C-c g h" . git-timemachine))
 
 (use-package git-link
-  :bind (("C-c g l l" . git-link) ; double prefix to reverse `git-link-use-commit'
-         ("C-c g l h" . git-link-homepage) ; double prefix to enable `git-link-open-in-browser'
+  :bind (("C-c g l l" . git-link) ; double @prefix to reverse `git-link-use-commit'
+         ("C-c g l h" . git-link-homepage) ; double @prefix to enable `git-link-open-in-browser'
          ("C-c g l c" . git-link-commit)
          ;; Transient menu
          ("C-c g L" . git-link-dispatch))
@@ -2967,6 +2967,21 @@ word.  Fall back to regular `expreg-expand'."
 (use-package macrostep
   :bind (;; :map lisp-mode-shared-map
          ("C-c e m" . macrostep-expand)))
+
+;; Better `xref-find-definitions', understands local bindings and parameters.
+(use-package elisp-def
+  :hook (emacs-lisp-mode ielm-mode))
+
+;; Better `xref-find-references' (which based on a text search), understands comments and strings, and can distinguish between functions and variables.
+;; @prefix Limit search results to specific directories
+(use-package elisp-refs
+  ;; :hook (emacs-lisp-mode ielm-mode)
+  :bind
+  ("C-h z f" . #'elisp-refs-function)
+  ("C-h z m" . #'elisp-refs-macro)
+  ("C-h z v" . #'elisp-refs-variable)
+  ("C-h z o" . #'elisp-refs-symbol)
+  ("C-h z s" . #'elisp-refs-special))
 
 ;; (use-package paredit
 ;;   ;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
