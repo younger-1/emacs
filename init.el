@@ -1658,10 +1658,9 @@ makes it easier to edit it."
 
 (use-package evil
   :defer 0.5
-  :config
-  (evil-mode +1)
   :init
   ;; `evil-toggle-key' is "C-z"
+  ;; Use "\" to execute next command in Emacs state
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
 
@@ -1681,7 +1680,7 @@ makes it easier to edit it."
 
   ;; Enable text object match, e.g. kbd::gn
   (setq evil-search-module 'evil-search)
-  ;; @note: An underscore _ is a word character in Vim, but not in emacs
+  ;; @tip: An underscore _ is a word character in Vim, but not in emacs
   ;; so Evil use kbd::o as symbol object, making kbd::cio a good alternative to Vim’s kbd::ciw
   (setq evil-symbol-word-search t)
 
@@ -1692,7 +1691,42 @@ makes it easier to edit it."
 
   (setq evil-mode-line-format '(before . mode-line-frame-identification))
   :config
-  (setq display-line-numbers-type 'visual))
+  (evil-mode +1)
+
+  (evil-set-initial-state 'special-mode 'emacs)
+  ;; @see `evil-vars'
+  (setq evil-motion-state-modes nil)
+  (setq evil-insert-state-modes nil)
+
+  (setq display-line-numbers-type 'visual)
+
+  ;; Rebind `universal-argument', since 'C-u' now scrolls the buffer
+  (global-set-key (kbd "M-u") 'universal-argument)
+  (define-key universal-argument-map (kbd "M-u") 'universal-argument-more)
+
+  ;; @tip: motion state bindings are visible in normal and visual state, and normal state bindings are also visible in visual state.
+  (evil-set-leader 'motion (kbd "SPC"))
+  (evil-set-leader 'motion (kbd "C-c SPC") t)
+
+  (evil-define-operator evil-comment (beg end)
+    "Toggle comment from BEG to END."
+    (interactive "<r>")
+    (comment-or-uncomment-region beg end))
+
+  (evil-define-key 'normal 'global
+    "gc" #'evil-comment
+    ;; Use visual line motions even outside of visual-line-mode buffers
+    "j" #'evil-next-visual-line "k" #'evil-previous-visual-line
+    (kbd "DEL") #'evil-switch-to-windows-last-buffer
+    (kbd "<tab>") #'evil-jump-item)
+  )
+
+;; (use-package evil-collection
+;;   :after evil :demand t
+;;   :init
+;;   ;; (setq evil-collection-setup-minibuffer t)
+;;   :config
+;;   (evil-collection-init))
 
 
 ;;; buffer
@@ -2170,8 +2204,7 @@ makes it easier to edit it."
 
 (use-package avy
   :chords
-  ("jj" . avy-goto-char-timer)
-  ("jk" . avy-goto-word-1)
+  ("jk" . avy-goto-char-timer)
   ("jl" . avy-goto-line)
   :bind (("M-g ;" . avy-resume)
          ("M-g j" . avy-goto-char)
@@ -2299,7 +2332,7 @@ word.  Fall back to regular `expreg-expand'."
   ;; imenu support for `use-core', `use-feature', `with-eval-after-load'
   (with-eval-after-load 'lisp-mode
     (dolist (pattern '(("Builtin Packages" "^(use-core \\(.+\\)$" 1)
-                       ("Features" "^\\s-*(\\(?:use-feature\\|with-eval-after-load\\)\\s-+\\(.+\\)" 1)
+                       ("Features" "^\\s-*(\\(?:use-feature\\|eval-after-load\\|with-eval-after-load\\)\\s-+\\(.+\\)" 1)
                        ("Sections" "^;;; \\(.+\\)$" 1)))
       (add-to-list 'lisp-imenu-generic-expression pattern))))
 
