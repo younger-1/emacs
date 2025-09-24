@@ -1693,11 +1693,14 @@ makes it easier to edit it."
   :config
   (evil-mode +1)
 
-  (evil-set-initial-state 'special-mode 'emacs)
+  ;; (setq evil-default-state 'emacs)
+  ;; (evil-set-initial-state 'special-mode 'emacs)
   ;; @see `evil-vars'
+  (setq evil-emacs-state-modes (append evil-emacs-state-modes evil-motion-state-modes))
   (setq evil-motion-state-modes nil)
   (setq evil-insert-state-modes nil)
 
+  ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
   (setq display-line-numbers-type 'visual)
 
   ;; Rebind `universal-argument', since 'C-u' now scrolls the buffer
@@ -1719,6 +1722,15 @@ makes it easier to edit it."
     "j" #'evil-next-visual-line "k" #'evil-previous-visual-line
     (kbd "DEL") #'evil-switch-to-windows-last-buffer
     (kbd "<tab>") #'evil-jump-item)
+
+  (setq select-enable-clipboard nil)
+  (add-hook 'evil-emacs-state-entry-hook (lambda () (setq-local select-enable-clipboard t)))
+  (add-hook 'evil-emacs-state-exit-hook (lambda () (setq-local select-enable-clipboard nil)))
+
+  (evil-define-key 'visual 'global
+    "X" #'clipboard-kill-region
+    "Y" #'clipboard-kill-ring-save
+    "d" #'delete-region)
   )
 
 ;; (use-package evil-collection
