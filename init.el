@@ -305,6 +305,7 @@
      :ensure nil
      ,@args))
 
+;; Use this instead of (use-package <feature> :ensure <package>)
 (defmacro use-feature (name &rest args)
   (declare (indent 1))
   `(use-package ,name
@@ -1731,6 +1732,19 @@ makes it easier to edit it."
     "X" #'clipboard-kill-region
     "Y" #'clipboard-kill-ring-save
     "d" #'delete-region)
+
+  (evil-define-key 'insert 'global
+    (kbd "s-v") #'clipboard-yank)
+
+  (with-eval-after-load 'elisp-def
+    (evil-set-command-property 'elisp-def :jump t))
+
+  (with-eval-after-load 'diff-hl
+    (evil-define-key 'normal 'global
+      "]c" #'diff-hl-next-hunk
+      "[c" #'diff-hl-previous-hunk
+      "]d" #'diff-hl-show-hunk-next
+      "[d" #'diff-hl-show-hunk-previous))
   )
 
 ;; (use-package evil-collection
@@ -2155,6 +2169,12 @@ makes it easier to edit it."
   :commands linkd-mode
   :config
   (setq linkd-use-icons t))
+
+;; (use-package indent-hints
+;;   :ensure nil ; site-lisp
+;;   :hook prog-mode
+;;   :config
+;;   (setq indent-hints-profile-switching-enabled t))
 
 
 ;;; tool
