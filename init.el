@@ -2501,8 +2501,9 @@ word.  Fall back to regular `expreg-expand'."
 
 (use-core hi-lock
   :config
+  (setq xy/hi-lock-disable-message-modes '(Info-mode))
   (defun xy/disable-message (old-fn &rest args)
-    (let ((inhibit-message t))
+    (let ((inhibit-message (derived-mode-p xy/hi-lock-disable-message-modes)))
       (apply old-fn args)))
   (advice-add 'hi-lock-set-pattern :around #'xy/disable-message))
 
@@ -2544,9 +2545,17 @@ word.  Fall back to regular `expreg-expand'."
     (add-hook 'flymake-diagnostic-functions #'hl-todo-flymake)))
 
 (use-package magit-todos
-  :after magit :demand t
+  :after magit-status :demand t
   :bind ("C-c g t" . magit-todos-list)
-  :config (magit-todos-mode +1))
+  :config
+  ;; (magit-todos-mode +1)
+  ;;
+  (defun xy/toggle-magit-todos ()
+    (interactive)
+    (magit-todos-mode 'toggle)
+    (magit-refresh))
+  (transient-append-suffix 'magit-status-jump '(-1 -1 -1)
+    '("/" "Toggle magit-todos" xy/toggle-magit-todos)))
 
 (use-package consult-todo
   :bind
@@ -2676,7 +2685,7 @@ word.  Fall back to regular `expreg-expand'."
 ;; https://tsdh.org/posts/2022-08-01-difftastic-diffing-with-magit.html
 ;; https://shivjm.blog/better-magit-diffs/
 (use-package difftastic
-  :after magit :demand t
+  :after magit-status :demand t
   :config
   ;; @see `difftastic-bindings-alist'
   (difftastic-bindings-mode +1)
@@ -2921,7 +2930,9 @@ word.  Fall back to regular `expreg-expand'."
 ;; (use-package circadian
 ;;   :after solar :demand t
 ;;   :config
-;;   (setq circadian-themes '((:sunrise . modus-operandi)
+;;   (setq circadian-themes '(("8:00" . modus-operandi)
+;;                            ("19:30" . modus-vivendi)
+;;                            (:sunrise . modus-operandi)
 ;;                            (:sunset  . modus-vivendi)))
 ;;   (circadian-setup))
 
@@ -3051,7 +3062,7 @@ word.  Fall back to regular `expreg-expand'."
   (add-to-list 'lisp-prettify-symbols-alist '("defconst" . ?󰀚))
   (add-to-list 'lisp-prettify-symbols-alist '("defcustom" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("defface" . ?))
-  (add-to-list 'lisp-prettify-symbols-alist '("setq" . ?))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("setq" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("add-hook" . ?󰛢))
   (add-to-list 'lisp-prettify-symbols-alist '("if" . ?󰞀))
   (add-to-list 'lisp-prettify-symbols-alist '("when" . ? ))
