@@ -2499,6 +2499,13 @@ word.  Fall back to regular `expreg-expand'."
 ;;   :config
 ;;   (global-auto-highlight-symbol-mode +1))
 
+(use-core hi-lock
+  :config
+  (defun xy/disable-message (old-fn &rest args)
+    (let ((inhibit-message t))
+      (apply old-fn args)))
+  (advice-add 'hi-lock-set-pattern :around #'xy/disable-message))
+
 ;; Uses built-in `thingatpt' and `hi-lock' functionality to identify the thing under point and highlight it.
 (use-package highlight-thing
   :defer 0.6
@@ -2633,6 +2640,58 @@ word.  Fall back to regular `expreg-expand'."
   (with-eval-after-load 'magit
     (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
+;; Adapted from Tassilo Horn's blog post:
+;; https://www.tsdh.org/posts/2022-07-20-using-eldoc-with-magit-async.html
+(use-package eldoc-diffstat
+  :after (eldoc magit) :demand t
+  :config
+  (global-eldoc-diffstat-mode +1)
+  (eldoc-add-command
+   'magit-next-line 'magit-previous-line
+   'magit-section-forward 'magit-section-backward
+   'magit-section-forward-sibling 'magit-section-backward-sibling))
+
+;; Enhanced diff of all Magit buffers
+;; Make magit's diff have syntax highlight, like `vc-diff'
+;; TODO: https://github.com/dandavison/magit-delta/issues/9
+(use-package magit-delta
+  ;; :if (executable-find "delta")
+  :hook (magit-mode . magit-delta-mode)
+  :config
+  ;; @see https://github.com/dandavison/magit-delta/issues/13#issuecomment-690534938
+  ;; --line-numbers/--side-by-side cannot be used with magit-delta since it creates invalid patches
+  ;; (setq magit-delta-delta-args '("--max-line-distance" "0.6" "--true-color" "always" "--color-only"))
+  ;; (add-to-list 'magit-delta-delta-args "--diff-highlight")
+  ;; (add-to-list 'magit-delta-delta-args "--diff-so-fancy")
+  (add-to-list 'magit-delta-delta-args "--no-gitconfig")
+  ;;
+  (defun xy/toggle-magit-delta ()
+    (interactive)
+    (magit-delta-mode 'toggle)
+    (magit-refresh))
+  (transient-append-suffix 'magit-diff '(-1 -1 -1)
+    '("l" "Toggle magit-delta" xy/toggle-magit-delta)))
+
+;; Adapted from Tassilo Horn's blog post:
+;; https://tsdh.org/posts/2022-08-01-difftastic-diffing-with-magit.html
+;; https://shivjm.blog/better-magit-diffs/
+(use-package difftastic
+  :after magit :demand t
+  :config
+  ;; @see `difftastic-bindings-alist'
+  (difftastic-bindings-mode +1)
+  (with-eval-after-load 'evil
+    (add-to-list 'evil-emacs-state-modes 'difftastic-mode)))
+
+;; Enhanced diff of Magit's revision buffers
+;; Enable side-by-side diff display
+;; (use-package diff-ansi
+;;   ;; :if (executable-find "delta")
+;;   :hook (magit-mode . diff-ansi-mode)
+;;   :commands diff-ansi-buffer)
+
+;; (use-package diffview
+;;   :commands (diffview-current diffview-region))
 
 ;;; git
 (use-package magit
@@ -2688,30 +2747,6 @@ word.  Fall back to regular `expreg-expand'."
                                        ("~/dotter" . 0)
                                        ("~/work" . 1)))
   (setq git-commit-use-local-message-ring t))
-
-;; Adapted from Tassilo Horn's blog post:
-;; https://www.tsdh.org/posts/2022-07-20-using-eldoc-with-magit-async.html
-(use-package eldoc-diffstat
-  :after eldoc
-  :defer 1
-  :config
-  (global-eldoc-diffstat-mode +1)
-  (eldoc-add-command
-   'magit-next-line 'magit-previous-line
-   'magit-section-forward 'magit-section-backward
-   'magit-section-forward-sibling 'magit-section-backward-sibling))
-
-;; Make magit's diff have syntax highlight, like `vc-diff'
-(use-package magit-delta
-  ;; :if (executable-find "delta")
-  :hook (magit-mode . magit-delta-mode)
-  :config
-  ;; @see https://github.com/dandavison/magit-delta/issues/13#issuecomment-690534938
-  ;; --line-numbers/--side-by-side cannot be used with magit-delta since it creates invalid patches
-  ;; (setq magit-delta-delta-args '("--max-line-distance" "0.6" "--true-color" "always" "--color-only"))
-  ;; (add-to-list 'magit-delta-delta-args "--diff-highlight")
-  ;; (add-to-list 'magit-delta-delta-args "--diff-so-fancy")
-  (add-to-list 'magit-delta-delta-args "--no-gitconfig"))
 
 (use-package git-timemachine
   :bind ("C-c g h" . git-timemachine))
