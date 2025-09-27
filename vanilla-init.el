@@ -1,8 +1,16 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
 
+;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/
+(defconst xy/init-dir user-emacs-directory)
+(setq user-emacs-directory (concat user-emacs-directory "var/"))
+
 (eval-and-compile
-  (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
-  (add-to-list 'load-path (expand-file-name "site-lisp" user-emacs-directory)))
+  (add-to-list 'load-path (expand-file-name "lisp" xy/init-dir))
+  (add-to-list 'load-path (expand-file-name "site-lisp" xy/init-dir)))
+
+(setq custom-file (expand-file-name "custom.el" xy/init-dir))
+(when (file-exists-p custom-file)
+  (load-file custom-file))
 
 (add-hook 'emacs-startup-hook
           (defun xy/-print-init-time ()
@@ -22,7 +30,7 @@
 
 (keymap-global-set "C-," (defun xy/open-init-dir ()
                            (interactive)
-                           (dired user-emacs-directory)))
+                           (dired xy/init-dir)))
 (keymap-global-set "C-c y f" (defun xy/select-font ()
                                (interactive)
                                (set-face-attribute 'default nil
@@ -45,9 +53,13 @@
 (keymap-global-set "M-s-," #'customize-group)
 (keymap-global-set "s-x" #'execute-extended-command)
 (keymap-global-set "s-X" #'execute-extended-command-for-buffer)
-(keymap-global-set "s-<return>" #'toggle-frame-fullscreen)  ; <f11>
-(keymap-global-set "S-s-<return>" #'toggle-frame-maximized) ; M-<f10>
+(keymap-global-set "s-<return>" #'toggle-frame-maximized) ; M-<f10>
+(keymap-global-set "S-s-<return>" #'toggle-frame-fullscreen) ; <f11>
 
+(startup-redirect-eln-cache (expand-file-name "eln-cache" user-emacs-directory))
+
+(setq package-quickstart-file (concat user-emacs-directory "package-quickstart.el"))
+(setq package-user-dir (concat user-emacs-directory "elpa"))
 (package-activate-all)
 
 (setq use-package-always-ensure nil)
@@ -172,10 +184,6 @@
   (setq-default indicate-buffer-boundaries 'left)
 
   ;; others
-  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-  (when (file-exists-p custom-file)
-    (load-file custom-file))
-
   (setq user-full-name    "Xavier Young"
         user-mail-address "younger321@foxmail.com")
 
