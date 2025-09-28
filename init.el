@@ -1048,7 +1048,7 @@ makes it easier to edit it."
   (setq auto-revert-remote-files t))
 
 
-;;; isearch
+;;; search
 (use-package isearch
   :ensure nil
   :config
@@ -1060,6 +1060,9 @@ makes it easier to edit it."
   ;; -- 3.[C-s RET] -> `isearch-exit' do nonincremental search
   (setq isearch-lazy-count t)
   (setq isearch-lazy-highlight 'all-windows)
+  (setq lazy-count-prefix-format nil)
+  (setq lazy-count-suffix-format " [%s/%s]")
+  ;;
   (setq isearch-allow-scroll 'unlimited ; allow action of C-v/M-v/C-l
         isearch-allow-motion t ; change action of C-v/M-v/M-</M->
         isearch-motion-changes-direction t)
@@ -1090,6 +1093,41 @@ makes it easier to edit it."
 ;;           ("M-p" . smartscan-symbol-go-backward))
 ;;   :config
 ;;   (global-smartscan-mode +1))
+
+
+;;; grep
+(use-core grep
+  :bind ( :map grep-mode-map
+          ("H" . xy/toggle-grep-headings))
+  :config
+  (setq grep-use-headings t)
+  (defun xy/toggle-grep-headings ()
+    (interactive)
+    (if grep-use-headings
+        (setq grep-use-headings nil)
+      (setq grep-use-headings t))
+    (recompile))
+
+  (when (executable-find "rg")
+    ;; Populate defaults before change it
+    (grep-compute-defaults)
+    ;; 1. Use rg only in localhost, so modify `grep-host-defaults-alist' directly
+    ;; (setcdr (assq 'localhost grep-host-defaults-alist)
+    ;;         '((grep-command "rg --no-heading -Hn0 ")
+    ;;           (grep-highlight-matches t)))
+    ;; 2. Use rg in all host
+    (setopt grep-command "rg -nS --no-heading ")))
+
+;; Writable grep buffer and apply the changes to files
+(use-package wgrep
+  :config
+  (setq wgrep-enable-key "e")
+  ;; To save buffer automatically when `wgrep-finish-edit'.
+  (setq wgrep-auto-save-buffer t))
+
+;; @see `ripgrep--base-arguments'
+(use-package ripgrep
+  :commands ripgrep-regexp)
 
 
 ;;; minibuffer
@@ -2411,6 +2449,8 @@ word.  Fall back to regular `expreg-expand'."
 (use-package xref
   :ensure nil
   :config
+  (when (executable-find "rg")
+        (setq xref-search-program 'ripgrep))
   ;; Use completion system instead of popup window.
   (setq xref-show-definitions-function 'xref-show-definitions-completing-read
         xref-show-xrefs-function 'xref-show-definitions-completing-read)
