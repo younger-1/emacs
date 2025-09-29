@@ -1047,6 +1047,12 @@ makes it easier to edit it."
   ;; Set to nil if too slow
   (setq auto-revert-remote-files t))
 
+(use-package savefold
+  :defer 0.5
+  :config
+  (setq savefold-backends '(outline org origami hideshow))
+  (savefold-mode +1))
+
 
 ;;; search
 (use-package isearch
@@ -1128,6 +1134,14 @@ makes it easier to edit it."
 ;; @see `ripgrep--base-arguments'
 (use-package ripgrep
   :commands ripgrep-regexp)
+
+(use-package rg
+  :bind (("M-s M-s" . rg-menu)
+         ("M-s s" . rg-isearch-menu)
+         :map isearch-mode-map
+         ("M-s s" . rg-isearch-menu))
+  :bind-keymap
+  ("M-s r" . rg-global-map))
 
 
 ;;; minibuffer
