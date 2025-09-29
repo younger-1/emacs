@@ -1050,7 +1050,7 @@ makes it easier to edit it."
 (use-package savefold
   :defer 0.5
   :config
-  (setq savefold-backends '(outline org origami hideshow))
+  (setq savefold-backends '(outline org hideshow markdown))
   (savefold-mode +1))
 
 
@@ -1133,7 +1133,9 @@ makes it easier to edit it."
 
 ;; @see `ripgrep--base-arguments'
 (use-package ripgrep
-  :commands ripgrep-regexp)
+  :bind (("M-s S" . ripgrep-regexp)
+         :map ripgrep-search-mode-map
+         ("e" . wgrep-change-to-wgrep-mode)))
 
 (use-package rg
   :bind (("M-s M-s" . rg-menu)
@@ -1142,6 +1144,18 @@ makes it easier to edit it."
          ("M-s s" . rg-isearch-menu))
   :bind-keymap
   ("M-s r" . rg-global-map))
+
+(use-package deadgrep
+  :init
+  (defun xy/deadgrep-isearch ()
+    (interactive)
+    (deadgrep isearch-string))
+  :bind (("M-s M-d" . deadgrep)
+         ("M-s d" . #'xy/deadgrep-isearch)
+         :map isearch-mode-map
+         ("M-s d" . #'xy/deadgrep-isearch)
+         :map deadgrep-mode-map
+         ("e" . deadgrep-edit-mode)))
 
 
 ;;; minibuffer
@@ -1743,15 +1757,18 @@ makes it easier to edit it."
     (setopt evil-undo-system 'undo-fu))
 
   (setq evil-mode-line-format '(before . mode-line-frame-identification))
+
   :config
   (evil-mode +1)
 
   ;; (setq evil-default-state 'emacs)
   ;; (evil-set-initial-state 'special-mode 'emacs)
+  ;; (evil-set-initial-state 'fundamental-mode 'emacs)
   ;; @see `evil-vars'
   (setq evil-emacs-state-modes (append evil-emacs-state-modes evil-motion-state-modes))
   (setq evil-motion-state-modes nil)
   (setq evil-insert-state-modes nil)
+  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(difftastic-mode deadgrep-mode deadgrep-edit-mode)))
 
   ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
   (setq display-line-numbers-type 'visual)
@@ -2742,9 +2759,7 @@ word.  Fall back to regular `expreg-expand'."
   :after magit-status :demand t
   :config
   ;; @see `difftastic-bindings-alist'
-  (difftastic-bindings-mode +1)
-  (with-eval-after-load 'evil
-    (add-to-list 'evil-emacs-state-modes 'difftastic-mode)))
+  (difftastic-bindings-mode +1))
 
 ;; Enhanced diff of Magit's revision buffers
 ;; Enable side-by-side diff display
