@@ -1137,6 +1137,7 @@ makes it easier to edit it."
          :map ripgrep-search-mode-map
          ("e" . wgrep-change-to-wgrep-mode)))
 
+;; `rg': @prefix Show the full command line that will invoke the ripgrep binary
 (use-package rg
   :bind (("M-s M-s" . rg-menu)
          ("M-s s" . rg-isearch-menu)
@@ -1768,7 +1769,7 @@ makes it easier to edit it."
   (setq evil-emacs-state-modes (append evil-emacs-state-modes evil-motion-state-modes))
   (setq evil-motion-state-modes nil)
   (setq evil-insert-state-modes nil)
-  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(difftastic-mode deadgrep-mode deadgrep-edit-mode)))
+  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(diff-mode difftastic-mode deadgrep-mode deadgrep-edit-mode)))
 
   ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
   (setq display-line-numbers-type 'visual)
@@ -1947,18 +1948,19 @@ makes it easier to edit it."
 (use-package perspective
   :defer 1
   :bind
-  (("C-c M-b" . persp-switch-to-buffer*)
-   ("C-c M-k" . persp-kill-buffer*)
-   ("C-c M-b" . persp-ibuffer)
-   :map persp-mode-map
-   ("C-c M-p" . perspective-map))
+  ( :map persp-mode-map
+    ("C-c M-p" . perspective-map)
+    :map perspective-map ; prefix command
+    ("M-b" . persp-switch-to-buffer*)
+    ("M-k" . persp-kill-buffer*)
+    ("M-i" . persp-ibuffer))
   :config
   (setq persp-suppress-no-prefix-key-warning t)
   (persp-mode +1)
   ;; Let `previous-buffer' skip buffers not in current perspective
   (setq switch-to-prev-buffer-skip
-      (lambda (_win buff _bury-or-kill)
-        (not (persp-is-current-buffer buff))))
+        (lambda (_win buff _bury-or-kill)
+          (not (persp-is-current-buffer buff))))
   ;; Group buffers by persp-name in ibuffer
   (add-hook 'ibuffer-hook #'persp-ibuffer-set-filter-groups)
   ;; Use narrow key `s' to list buffers in current perspective
@@ -2070,6 +2072,26 @@ makes it easier to edit it."
   :vc ( :url "https://github.com/petergardfjall/emacs-projtree"
         :rev :newest)
   :bind ("C-x d p" . projtree-mode))
+
+
+;;; project
+;; Find file/directory and review Diff/Patch/Commit under any VSC
+(use-package find-file-in-project
+  :init
+  (define-prefix-command 'xy/ffip-map)
+  :bind
+  (("C-x M-p" . xy/ffip-map)
+   :map xy/ffip-map
+   ;; ("f" . find-file-in-project)
+   ("f" . find-file-in-project-by-selected)
+   ("." . find-file-in-project-at-point)
+   ("d" . find-directory-in-project-by-selected)
+   ("a" . find-file-with-similar-name)
+   ("A" . ffip-fix-file-path-at-point)
+   ("i" . ffip-insert-file)
+   ("r" . ffip-find-files-resume)
+   ("," . ffip-find-relative-path)
+   ("d" . ffip-show-diff)))
 
 ;; https://docs.projectile.mx/projectile/index.html
 (use-package projectile
@@ -3235,8 +3257,8 @@ word.  Fall back to regular `expreg-expand'."
   (setq gofmt-command "goimports")
 
   (add-hook 'go-mode-hook (lambda ()
-                            (setq-local tab-width 4)
-                            (add-hook 'before-save-hook #'gofmt-before-save nil t))))
+                     (setq-local tab-width 4)
+                     (add-hook 'before-save-hook #'gofmt-before-save nil t))))
 
 ;; Edit struct field tag
 (use-package go-tag
