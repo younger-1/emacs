@@ -1748,6 +1748,7 @@ makes it easier to edit it."
 
   ;; Enable text object match, e.g. kbd::gn
   (setq evil-search-module 'evil-search)
+
   ;; @tip: An underscore _ is a word character in Vim, but not in emacs
   ;; so Evil use kbd::o as symbol object, making kbd::cio a good alternative to Vim’s kbd::ciw
   (setq evil-symbol-word-search t)
@@ -1773,6 +1774,17 @@ makes it easier to edit it."
 
   ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
   (setq display-line-numbers-type 'visual)
+
+  ;; Show search match count in echo area. Replace package evil-anzu
+  (defun xy/evil-ex-match-counter (&rest _)
+    (let ((message-log-max nil)
+          (search-upper-case (null (evil-ex-pattern-ignore-case evil-ex-search-pattern))))
+      (when-let* ((regexp (evil-ex-pattern-regex evil-ex-search-pattern))
+                  (total (how-many regexp (point-min) (point-max)))
+                  (current (how-many regexp (point-min) (point))))
+        (message (format "[%d/%d]: %s" (1+ current) total (car evil-ex-search-pattern))))))
+  (advice-add 'evil-ex-start-search :after-until 'xy/evil-ex-match-counter)
+  (advice-add 'evil-ex-search :after-while 'xy/evil-ex-match-counter)
 
   ;; Rebind `universal-argument', since 'C-u' now scrolls the buffer
   (global-set-key (kbd "M-u") 'universal-argument)
@@ -1823,6 +1835,24 @@ makes it easier to edit it."
 ;;   ;; (setq evil-collection-setup-minibuffer t)
 ;;   :config
 ;;   (evil-collection-init))
+
+(use-package evil-visualstar
+  :after evil :demand t
+  :config
+  (global-evil-visualstar-mode +1))
+
+;; Show search match count in mode line
+;; (use-package evil-anzu
+;;   :after evil :demand t
+;;   :config (global-anzu-mode +1))
+
+;; Enhanced % to match delimiters, % as text-object to manipulate
+;; (use-package evil-matchit
+;;   :after evil :demand t
+;;   :init
+;;   (setq evilmi-shortcut (kbd "<tab>"))
+;;   :config
+;;   (global-evil-matchit-mode +1))
 
 
 ;;; buffer
