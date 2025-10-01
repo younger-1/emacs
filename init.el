@@ -1823,10 +1823,10 @@ makes it easier to edit it."
 
   (with-eval-after-load 'diff-hl
     (evil-define-key 'normal 'global
-      "]c" #'diff-hl-next-hunk
-      "[c" #'diff-hl-previous-hunk
-      "]d" #'diff-hl-show-hunk-next
-      "[d" #'diff-hl-show-hunk-previous))
+      (kbd "<leader>gc]") #'diff-hl-next-hunk
+      (kbd "<leader>gc[") #'diff-hl-previous-hunk
+      (kbd "<leader>gd]") #'diff-hl-show-hunk-next
+      (kbd "<leader>gd]") #'diff-hl-show-hunk-previous))
   )
 
 ;; (use-package evil-collection
@@ -1853,6 +1853,17 @@ makes it easier to edit it."
 ;;   (setq evilmi-shortcut (kbd "<tab>"))
 ;;   :config
 ;;   (global-evil-matchit-mode +1))
+
+;; Use c/d/y s {motion}{delimiter} to change/delete/add delimiter around motion
+;; 1. use S or gS in visual-state
+;; 2. use yss to wrap the entire line
+(use-package evil-surround
+  :after evil :demand t
+  :config
+  ;; @see `evil-surround-pairs-alist'
+  (global-evil-surround-mode +1)
+  (add-hook 'emacs-lisp-mode-hook (lambda () (push '(?` . ("`" . "'")) evil-surround-pairs-alist)))
+  (add-hook 'c++-mode-hook (lambda () (push '(?< . ("< " . " >")) evil-surround-pairs-alist))))
 
 
 ;;; buffer
