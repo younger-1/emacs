@@ -1855,7 +1855,7 @@ makes it easier to edit it."
 ;;   (global-evil-matchit-mode +1))
 
 ;; Use c/d/y s {motion}{delimiter} to change/delete/add delimiter around motion
-;; 1. use S or gS in visual-state
+;; 1. use S/gS in visual-state
 ;; 2. use yss to wrap the entire line
 (use-package evil-surround
   :after evil :demand t
@@ -1864,6 +1864,19 @@ makes it easier to edit it."
   (global-evil-surround-mode +1)
   (add-hook 'emacs-lisp-mode-hook (lambda () (push '(?` . ("`" . "'")) evil-surround-pairs-alist)))
   (add-hook 'c++-mode-hook (lambda () (push '(?< . ("< " . " >")) evil-surround-pairs-alist))))
+
+(use-package evil-snipe
+  :after evil :demand t
+  :config
+  ;; Use s/S for 2-char search
+  ;; Use z/Z in operator-state
+  (evil-snipe-mode +1)
+  ;; Use f/F/t/T for 1-char search
+  (evil-snipe-override-mode +1)
+  ;;
+  (setq evil-snipe-scope 'whole-visible)
+  ;; Enable multi-char search by pressing <tab>
+  (setq evil-snipe-tab-increment t))
 
 
 ;;; buffer
