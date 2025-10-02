@@ -1880,6 +1880,12 @@ makes it easier to edit it."
   (add-hook 'emacs-lisp-mode-hook (lambda () (push '(?` . ("`" . "'")) evil-surround-pairs-alist)))
   (add-hook 'c++-mode-hook (lambda () (push '(?< . ("< " . " >")) evil-surround-pairs-alist))))
 
+;; Make evil-surround better, enable custom surrouding pairs
+(use-package evil-embrace
+  :after evil :demand t
+  :config
+  (evil-embrace-enable-evil-surround-integration))
+
 (use-package evil-snipe
   :after evil :demand t
   :config
@@ -1893,6 +1899,11 @@ makes it easier to edit it."
   ;; Enable multi-char search by pressing <tab>
   (setq evil-snipe-tab-increment t))
 
+;; (use-package evil-easymotion
+;;   :after evil :demand t
+;;   :config
+;;   (evilem-default-keybindings "SPC j"))
+
 ;; Use gx{motion} to exchange
 (use-package evil-exchange
   :after evil :demand t
@@ -1903,6 +1914,19 @@ makes it easier to edit it."
   :after evil :demand t
   :config
   (evil-visual-mark-mode +1))
+
+;; Preview marks and registers before using them
+(use-package evil-owl
+  :after evil :demand t
+  :config
+  (setq evil-owl-display-method 'window
+        evil-owl-max-string-length 200)
+  (add-to-list 'display-buffer-alist
+               '("*evil-owl*"
+                 (display-buffer-in-side-window)
+                 (side . bottom)
+                 (window-height . 0.3)))
+  (evil-owl-mode +1))
 
 
 ;;; buffer
