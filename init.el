@@ -1140,6 +1140,8 @@ makes it easier to edit it."
     (setopt grep-command "rg -nS --no-heading ")))
 
 ;; Writable grep buffer and apply the changes to files
+;; C-c C-c -> commit changes
+;; C-c C-k -> drop changes
 (use-package wgrep
   :config
   (setq wgrep-enable-key "e")
@@ -1152,14 +1154,29 @@ makes it easier to edit it."
          :map ripgrep-search-mode-map
          ("e" . wgrep-change-to-wgrep-mode)))
 
-;; `rg': @prefix Show the full command line that will invoke the ripgrep binary
+;; 1. `rg-dwim':
+;; -- @prefix Use current dir instead of project root
+;; 2. `rg' or `rg-literal':
+;; -- @prefix Show the full command line that will invoke the ripgrep binary.
+;; -- This could e.g. search for multiple directories
+;; 3. @tip `rg-mode-map':
+;; r/t -> `rg-rerun-change-regexp' / `rg-rerun-change-literal'
+;; d/f -> `rg-rerun-change-dir' / `rg-rerun-change-files'
+;; c/i -> `rg-rerun-toggle-case' / `rg-rerun-toggle-ignore'
+;; m -> `rg-menu'
+;; [m b]/[m w] -> `rg-back-history' / `rg-forward-history'
 (use-package rg
   :bind (("M-s M-s" . rg-menu)
          ("M-s s" . rg-isearch-menu)
          :map isearch-mode-map
          ("M-s s" . rg-isearch-menu))
   :bind-keymap
-  ("M-s r" . rg-global-map))
+  ("M-s r" . rg-global-map)
+  :config
+  (setq rg-buffer-name
+        (defun xy/rg-buffer-name ()
+          (let ((p (project-current)))
+            (if p (format "rg %s" (abbreviate-file-name (cdr p))) "rg")))))
 
 (use-package deadgrep
   :init
@@ -2217,6 +2234,8 @@ makes it easier to edit it."
 
 
 ;;; transient
+;; https://magit.vc/manual/transient/
+
 (use-package transient-showcase
   :vc ( :url "https://github.com/positron-solutions/transient-showcase"
         :rev :newest)
