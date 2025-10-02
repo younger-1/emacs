@@ -1878,6 +1878,17 @@ makes it easier to edit it."
   ;; Enable multi-char search by pressing <tab>
   (setq evil-snipe-tab-increment t))
 
+;; Use gx{motion} to exchange
+(use-package evil-exchange
+  :after evil :demand t
+  :config
+  (evil-exchange-install))
+
+(use-package evil-visual-mark-mode
+  :after evil :demand t
+  :config
+  (evil-visual-mark-mode +1))
+
 
 ;;; buffer
 ;; Kill old buffers at midnight
