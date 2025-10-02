@@ -325,7 +325,17 @@
   (setq inhibit-default-init t)
   ;; (setq inhibit-startup-screen t)
   ;; (setq inhibit-x-resources t)
-  ;; (setq initial-major-mode #'org-mode)
+  (setq initial-major-mode #'fundamental-mode)
+
+  ;; Poor man's Initial Mode to startup faster with scratch buffer
+  (progn
+    (defvar-keymap xy/initial-mode-map
+      "C-c C-c" #'lisp-interaction-mode)
+    (define-derived-mode xy/initial-mode nil "Initial"
+      "Major mode for start up buffer.\\{xy/initial-mode-map}"
+      (setq-local text-mode-variant t)
+      (setq-local indent-line-function 'indent-relative))
+    (setq initial-major-mode 'xy/initial-mode))
 
   ;; Font compacting can be very resource-intensive, especially when rendering icon fonts on Windows. This will increase memory usage.
   (setq inhibit-compacting-font-caches t)
@@ -2332,6 +2342,17 @@ makes it easier to edit it."
 ;;   :config
 ;;   (setq indent-hints-profile-switching-enabled t))
 
+(use-package persistent-scratch
+  :defer 0.5
+  :bind ( :map persistent-scratch-mode-map
+          ([remap kill-buffer] . (lambda (&rest _)
+                                   (interactive)
+                                   (user-error "[xy] scratch buffer cannot be killed")))
+          ([remap revert-buffer] . persistent-scratch-restore)
+          ([remap revert-this-buffer] . persistent-scratch-restore))
+  :hook (lisp-interaction-mode)
+  :config (persistent-scratch-autosave-mode +1))
+
 
 ;;; tool
 (use-package view
@@ -2502,16 +2523,6 @@ word.  Fall back to regular `expreg-expand'."
 ;; Edit regions in separate buffers, like `org-edit-special'
 (use-package edit-indirect
   :bind ("C-x n e" . edit-indirect-region))
-
-(use-package persistent-scratch
-  :bind ( :map persistent-scratch-mode-map
-          ([remap kill-buffer] . (lambda (&rest _)
-                                   (interactive)
-                                   (user-error "[xy] scratch buffer cannot be killed")))
-          ([remap revert-buffer] . persistent-scratch-restore)
-          ([remap revert-this-buffer] . persistent-scratch-restore))
-  :hook ((after-init . persistent-scratch-autosave-mode)
-         (lisp-interaction-mode . persistent-scratch-mode)))
 
 
 ;;; prog
