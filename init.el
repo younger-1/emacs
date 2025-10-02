@@ -873,24 +873,29 @@ makes it easier to edit it."
          ("C-h h t" . #'view-emacs-todo)
          ("C-h h d" . #'view-emacs-debugging)
          ;;
-         ("C-h o" . nil) ; `describe-symbol'
-         ("C-h o s" . #'shortdoc)
-         ;;
-         ("C-h u f" . #'add-file-local-variable)
-         ("C-h u d" . #'add-dir-local-variable)
-         ("C-h u l" . #'xy/loaded-feature)
-         ("C-h u u" . #'unload-feature)
-         ("C-h u c" . #'xy/set-variable)
-         ("C-h u p" . #'xy/help-show-plist)
-         ;;
          ("C-h w" . nil) ; `where-is'
          ("C-h w c" . #'where-is)
          ("C-h w k" . #'describe-key-briefly)
          ;;
+         ("C-h o" . nil) ; `describe-symbol'
+         ("C-h o s" . #'shortdoc)
+         ("C-h o t" . #'help-with-tutorial)
+         ;;
+         ("C-h e" . nil) ; `view-echo-area-messages' or click echo area
+         ("C-h e e" . #'view-echo-area-messages)
+         ("C-h e l" . #'view-lossage)
+         ;;
+         ("C-h l" . nil) ; `view-lossage'
+         ("C-h l l" . #'xy/loaded-feature)
+         ("C-h l u" . #'unload-feature)
+         ;;
+         ("C-h u f" . #'add-file-local-variable)
+         ("C-h u d" . #'add-dir-local-variable)
+         ("C-h u c" . #'xy/set-variable)
+         ("C-h u p" . #'xy/help-show-plist)
+         ;;
          ;; j u y z
-         ("C-h e" . #'view-echo-area-messages) ; or click echo area
-         ("C-h l" . #'view-lossage)
-         ("C-h t" . #'help-with-tutorial)
+         ("C-h t" . nil) ; `help-with-tutorial'
          ("C-h g" . nil) ; `describe-gnu-project'
          ("C-h q" . nil) ; `help-quit'
          ("C-h C" . nil) ; `describe-input-method'
@@ -1927,7 +1932,7 @@ makes it easier to edit it."
                               "\\`\\*EGLOT"
                               ;; And some hidden buffers can be visited by ...
                               ;; "\\`\\*scratch"        ; "C-x f s"
-                              ;; "\\`\\*Messages"       ; "C-h e"
+                              ;; "\\`\\*Messages"       ; "C-h e e"
                               "\\`\\*Bookmark List"  ; "C-x r l"
                               )
     "List of buffer names of buffers to hide on several occasions.")
@@ -3218,7 +3223,7 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c e b" . #'eval-buffer)
          ("C-c e r" . #'eval-region)
          ("C-c e d" . #'edebug-defun)
-         ;; :map lisp-mode-shared-map
+         :map lisp-mode-shared-map
          ("C-c e c" . #'check-parens)
          ("C-c e i" . #'xy/indent-buffer))
   :config
@@ -3243,8 +3248,8 @@ word.  Fall back to regular `expreg-expand'."
   (add-to-list 'lisp-prettify-symbols-alist '("use-package" . ?)))
 
 (use-package macrostep
-  :bind (;; :map lisp-mode-shared-map
-         ("C-c e m" . macrostep-expand)))
+  :bind ( :map lisp-mode-shared-map
+          ("C-c e m" . macrostep-expand)))
 
 ;; Better `xref-find-definitions', understands local bindings and parameters.
 (use-package elisp-def
