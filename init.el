@@ -567,13 +567,14 @@
   :init
   ;; (show-paren-mode +1) ;; default
   ;; (electric-indent-mode +1) ;; default
-  ;; (electric-pair-mode +1)
-  ;; (global-subword-mode +1)
+  ;; Pair everywhere, include minibuffer
+  (electric-pair-mode +1)
+  (global-subword-mode +1)
   :hook
   ;; (prog-mode . show-paren-local-mode)
   ;; (prog-mode . electric-indent-local-mode)
-  (prog-mode . electric-pair-local-mode)
-  (prog-mode . subword-mode)
+  ;; (prog-mode . electric-pair-local-mode)
+  ;; (prog-mode . subword-mode)
   ;;
   (emacs-startup . global-display-line-numbers-mode)
   (emacs-startup . column-number-mode) ; modeline
@@ -1796,13 +1797,13 @@ makes it easier to edit it."
   (evil-mode +1)
 
   ;; (setq evil-default-state 'emacs)
-  ;; (evil-set-initial-state 'special-mode 'emacs)
+  (evil-set-initial-state 'special-mode 'emacs)
   ;; (evil-set-initial-state 'fundamental-mode 'emacs)
   ;; @see `evil-vars'
   (setq evil-emacs-state-modes (append evil-emacs-state-modes evil-motion-state-modes))
   (setq evil-motion-state-modes nil)
   (setq evil-insert-state-modes nil)
-  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(diff-mode difftastic-mode deadgrep-mode deadgrep-edit-mode)))
+  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(dired-mode diff-mode difftastic-mode deadgrep-mode deadgrep-edit-mode)))
 
   ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
   (setq display-line-numbers-type 'visual)
@@ -1925,6 +1926,8 @@ makes it easier to edit it."
 (use-package evil-exchange
   :after evil :demand t
   :config
+  (setq evil-exchange-key (kbd "gz"))
+  (setq evil-exchange-cancel-key (kbd "gZ"))
   (evil-exchange-install))
 
 (use-package evil-visual-mark-mode
@@ -3246,6 +3249,8 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; lisp
+;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
+;; `lisp-mode-shared-map' is the parent of `emacs-lisp-mode-map' and `lisp-mode-map'
 (use-package lisp-mode
   :ensure nil
   :init
@@ -3259,6 +3264,10 @@ word.  Fall back to regular `expreg-expand'."
     (save-excursion
       (save-restriction
         (indent-region (point-min) (point-max)))))
+  (defun xy/backward-symbol (arg)
+    (interactive "^p")
+    (when  (numberp arg)
+      (forward-symbol (- arg))))
   :bind (("C-c e e" . #'pp-eval-last-sexp)
          ("C-c e p" . #'pp-eval-expression)
          ("C-c e j" . #'eval-print-last-sexp)
@@ -3266,9 +3275,11 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c e b" . #'eval-buffer)
          ("C-c e r" . #'eval-region)
          ("C-c e d" . #'edebug-defun)
-         :map lisp-mode-shared-map
          ("C-c e c" . #'check-parens)
-         ("C-c e i" . #'xy/indent-buffer))
+         ("C-c e i" . #'xy/indent-buffer)
+         :map lisp-mode-shared-map
+         ("M-F" . #'forward-symbol)
+         ("M-B" . #'xy/backward-symbol))
   :config
   ;; 󰊾 󰕅 󰈍  󰉡 󰝖 󱡠 󰷐      󰓷     󰗁 󱗛  󰈸    󰍐 󰟙 󰍒  󰙑 󰘨 󰌕 󱍵 󰫍 󰕳    󰌱 󱇚 󰜅     
   (add-to-list 'lisp-prettify-symbols-alist '("defun" . ?󰡱))
@@ -3310,20 +3321,24 @@ word.  Fall back to regular `expreg-expand'."
   ("C-h z s" . #'elisp-refs-special))
 
 ;; (use-package paredit
-;;   ;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
-;;   :hook lisp-data-mode
-;;   :bind (:map paredit-mode-map
-;;               ;; ("M-s" . nil) ;; `paredit-splice-sexp'
-;;               ;; ("M-r" . nil) ;; `paredit-raise-sexp'
-;;               ;; ("M-;" . nil) ;; `paredit-comment-dwim'
-;;               ;; ("C-j" . nil) ;; `paredit-C-j'
-;;               ;; ("M-)" . paredit-splice-sexp)
-;;               ;; ("M-K" . paredit-raise-sexp)
-;;               ;; ("ESC M-;" . paredit-comment-dwim)
-;;               ("M-U" . paredit-backward-slurp-sexp)
-;;               ("M-D" . paredit-backward-barf-sexp)
-;;               ("M-N" . paredit-forward-slurp-sexp)
-;;               ("M-P" . paredit-forward-barf-sexp))
+;;   :hook (lisp-data-mode eval-expression-minibuffer-setup)
+;;   :bind ( :map paredit-mode-map
+;;           ("M-s" . nil) ;; `paredit-splice-sexp'
+;;           ("M-r" . nil) ;; `paredit-raise-sexp'
+;;           ("M-<up>" . nil) ;; `paredit-splice-sexp-killing-backward'
+;;           ("M-<down>" . nil) ;; `paredit-splice-sexp-killing-forward'
+;;           ("C-<right>" . nil) ;; `paredit-forward-slurp-sexp'
+;;           ("C-<left>" . nil) ;; `paredit-forward-barf-sexp'
+;;           ("C-M-<left>" . nil) ;; `paredit-backward-slurp-sexp'
+;;           ("C-M-<right>" . nil) ;; `paredit-backward-barf-sexp'
+;;           ;; ("M-;" . nil) ;; `paredit-comment-dwim'
+;;           ;; ("C-j" . nil) ;; `paredit-C-j'
+;;           ("M-L" . paredit-splice-sexp) ;; @prefix `paredit-splice-sexp-killing-backward', double @prefix `paredit-splice-sexp-killing-forward'
+;;           ("M-R" . paredit-raise-sexp)
+;;           ("M-N" . paredit-forward-slurp-sexp)
+;;           ("M-P" . paredit-forward-barf-sexp)
+;;           ("M-U" . paredit-backward-slurp-sexp)
+;;           ("M-D" . paredit-backward-barf-sexp))
 ;;   :config
 ;;   ;; (electric-indent-mode -1)
 ;;   ;; ElDoc can safely print docstring after these commands
@@ -3332,6 +3347,58 @@ word.  Fall back to regular `expreg-expand'."
 ;;    'paredit-close-round
 ;;    'paredit-close-square
 ;;    'paredit-close-curly))
+
+;; Automatic insertion, wrapping and paredit-like navigation with user defined pairs
+;; -- Handles anything that pairs, not only parentheses
+;; -- Combination of autopair, textmate, wrap-region, electric-pair-mode, paredit
+(use-package smartparens
+  :hook
+  (prog-mode . smartparens-strict-mode)
+  (markdown-mode . smartparens-strict-mode)
+  (eval-expression-minibuffer-setup . smartparens-strict-mode)
+  :bind (("C-h o S" . sp-cheat-sheet)
+         :map smartparens-mode-map
+         ;; NOTE: from `sp-paredit-bindings'
+         ("C-M-f" . sp-forward-sexp) ;; navigation
+         ("C-M-b" . sp-backward-sexp)
+         ("C-M-u" . sp-backward-up-sexp)
+         ("C-M-d" . sp-down-sexp)
+         ("C-M-p" . sp-backward-down-sexp)
+         ("C-M-n" . sp-up-sexp)
+         ("M-L" . sp-splice-sexp) ;; depth-changing commands
+         ("M-R" . sp-splice-sexp-killing-around)
+         ("M-(" . sp-wrap-round)
+         ("M-N" . sp-forward-slurp-sexp) ;; barf/slurp
+         ("M-P" . sp-forward-barf-sexp)
+         ("M-U" . sp-backward-slurp-sexp)
+         ("M-D" . sp-backward-barf-sexp)
+         ("M-S" . sp-split-sexp) ;; misc
+         ("M-J" . sp-join-sexp)
+         ("M-?" . sp-convolute-sexp)
+         ;; NOTE: from `sp-smartparens-bindings'
+         ("M-F" . sp-forward-symbol)
+         ("M-B" . sp-backward-symbol)
+         ("M-I" . sp-change-inner)
+         ("M-A" . sp-change-enclosing)
+         ;; ("C-M-a" . sp-backward-down-sexp)
+         ;; ("C-M-e" . sp-up-sexp)
+         ("C-S-a" . sp-beginning-of-sexp)
+         ("C-S-e" . sp-end-of-sexp)
+         ("C-S-n" . sp-next-sexp)
+         ("C-S-p" . sp-previous-sexp)
+         ("C-M-k" . sp-kill-sexp)
+         ("C-M-t" . sp-transpose-sexp)
+         ;; ("C-M-w" . sp-copy-sexp)
+         ;; ("M-<delete>" . sp-unwrap-sexp)
+         ;; ("M-<backspace>" . sp-backward-unwrap-sexp)
+         ;; ("C-M-SPC" . sp-mark-sexp)
+         ("C-]" . sp-select-next-thing-exchange)
+         ("C-M-]" . sp-select-next-thing))
+  :config
+  (electric-pair-mode -1)
+  (require 'smartparens-config)
+  ;; (show-smartparens-global-mode +1)
+  (smartparens-global-mode +1))
 
 
 ;;; lang
