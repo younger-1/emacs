@@ -2354,6 +2354,10 @@ makes it easier to edit it."
 
 
 ;;; util
+(use-core editorconfig
+  :defer 0.5
+  :config (editorconfig-mode +1))
+
 ;; https://www.emacswiki.org/emacs/VisibleMark
 (use-package visible-mark
   :defer 0.5
@@ -2603,8 +2607,7 @@ word.  Fall back to regular `expreg-expand'."
   ;; (prog-mode . eldoc-mode)
   :bind ("C-h ." . #'eldoc-doc-buffer)
   :config
-  (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-  ;; (setq eldoc-echo-area-display-truncation-message nil)
+  ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   (setq eldoc-minor-mode-string nil))
 
 (use-package eldoc-box
@@ -2613,13 +2616,13 @@ word.  Fall back to regular `expreg-expand'."
   :bind (("C-h /" . eldoc-box-help-at-point)
          ("C-h ]" . eldoc-box-hover-mode)
          ("C-h [" . eldoc-box-hover-at-point-mode))
+  :hook
+  (eldoc-mode . eldoc-box-hover-mode)
+  ;; (eglot-managed-mode . eldoc-box-hover-mode)
+  ;;
+  ;; (eldoc-mode . eldoc-box-hover-at-point-mode)
+  (eglot-managed-mode . eldoc-box-hover-at-point-mode)
   :config
-  ;; (add-hook 'eldoc-mode-hook #'eldoc-box-hover-mode t)
-  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
-  ;;
-  (add-hook 'eldoc-mode-hook #'eldoc-box-hover-at-point-mode t)
-  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode t)
-  ;;
   (setq eldoc-box-clear-with-C-g t))
 
 ;; @tip
@@ -3396,9 +3399,51 @@ word.  Fall back to regular `expreg-expand'."
          ("C-M-]" . sp-select-next-thing))
   :config
   (electric-pair-mode -1)
+  ;;
   (require 'smartparens-config)
   ;; (show-smartparens-global-mode +1)
   (smartparens-global-mode +1))
+
+(use-package awesome-pair
+  :vc ( :url "https://github.com/manateelazycat/awesome-pair"
+        :rev :newest)
+  :bind ( :map awesome-pair-mode-map
+          ("M-o" . awesome-pair-jump-out-pair-and-newline)))
+
+;; (use-package awesome-pair
+;;   :vc ( :url "https://github.com/manateelazycat/awesome-pair"
+;;         :rev :newest)
+;;   :hook (lisp-data-mode eval-expression-minibuffer-setup)
+;;   :bind ( :map awesome-pair-mode-map
+;;           ("(" . awesome-pair-open-round)
+;;           ("[" . awesome-pair-open-bracket)
+;;           ("{" . awesome-pair-open-curly)
+;;           (")" . awesome-pair-close-round)
+;;           ("]" . awesome-pair-close-bracket)
+;;           ("}" . awesome-pair-close-curly)
+;;           ("=" . awesome-pair-equal)
+;;           ;;
+;;           ("<tab>" . awesome-pair-match-paren)
+;;           ("\"" . awesome-pair-double-quote)
+;;           ;;
+;;           ("SPC" . awesome-pair-space)
+;;           ("RET" . awesome-pair-newline)
+;;           ;;
+;;           ("C-d" . awesome-pair-forward-delete)
+;;           ("C-k" . awesome-pair-kill)
+;;           ;;
+;;           ("M-\"" . awesome-pair-wrap-double-quote)
+;;           ("M-[" . awesome-pair-wrap-bracket)
+;;           ("M-{" . awesome-pair-wrap-curly)
+;;           ("M-(" . awesome-pair-wrap-round)
+;;           ("M-)" . awesome-pair-unwrap)
+;;           ;;
+;;           ("M-n" . awesome-pair-jump-right)
+;;           ("M-p" . awesome-pair-jump-left)
+;;           ("M-o" . awesome-pair-jump-out-pair-and-newline))
+;;   :config
+;;   (electric-indent-mode -1)
+;;   (electric-pair-mode -1))
 
 
 ;;; lang
