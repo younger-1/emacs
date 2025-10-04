@@ -1000,6 +1000,12 @@ makes it easier to edit it."
   (tooltip-mode -1)
   (setq tooltip-resize-echo-area t))
 
+;; Add button for *Help* buffer to remove Advice / Generic method.
+(use-package help-remove-button
+  :vc ( :url "https://github.com/twlz0ne/help-remove-button.el"
+        :rev :newest)
+  :after help :demand t)
+
 
 ;;; history
 ;; Pick recently visited files
@@ -2578,6 +2584,18 @@ word.  Fall back to regular `expreg-expand'."
 ;; Edit regions in separate buffers, like `org-edit-special'
 (use-package edit-indirect
   :bind ("C-x n e" . edit-indirect-region))
+
+;; Edit comment/string/docstring or code block inside them in separate buffers
+;; also work in minibuffer, help-mode
+(use-package separedit
+  :bind ("C-c '" . separedit) ; @prefix Select major mode
+  :config
+  (setq separedit-preserve-string-indentation t)
+  (setq separedit-continue-fill-column t)
+  (setq separedit-write-file-when-execute-save t)
+  (setq separedit-remove-trailing-spaces-in-comment t)
+  ;;
+  (setq separedit-default-mode 'markdown-mode))
 
 
 ;;; prog
