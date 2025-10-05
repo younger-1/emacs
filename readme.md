@@ -1,4 +1,4 @@
-> tip: No consider/ready/convenient to use emacs in terminal or ms-windows yet
+> NOTE: No consider/ready/convenient to use emacs in terminal or ms-windows yet
 
 # TODO
 

@@ -168,6 +168,10 @@
 ;; C-M-h / C-M-x -> `mark-defun' / `eval-defun'
 ;; C-M-k / C-M-<backspace> -> `kill-sexp' / `backward-kill-sexp'
 ;; C-M-t -> `transpose-sexps'
+;; NOTE:
+;; C-M-m is M-RET, not M-<return>
+;; C-M-i is M-TAB, not M-<tab>
+;;
 ;; C-o / C-M-o -> `open-line' / `split-line'
 ;; M-j / C-M-j -> `default-indent-new-line'
 ;; C-x ESC ESC -> `repeat-complex-command'
@@ -741,6 +745,8 @@
   ;; (setq apropos-sort-by-scores 'verbose)
   (setq describe-bindings-outline t)
   (setq describe-bindings-show-prefix-commands t)
+  ;; Let . as punctuation instead of word
+  (add-hook 'help-mode-hook (lambda () (modify-syntax-entry ?. ".")))
 
   (defun xy/loaded-feature ()
     "Find loaded features"
@@ -1017,7 +1023,7 @@ makes it easier to edit it."
   ("C-x f R" . recentf-open-files)
   :config
   (recentf-mode +1)
-  ;; @todo https://vincent.demeester.fr/articles/emacs_keep_it_clean.html
+  ;; TODO: https://vincent.demeester.fr/articles/emacs_keep_it_clean.html
   ;; (setq recentf-auto-cleanup 360)
   (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
   ;; (add-to-list 'recentf-exclude (regexp-quote (abbreviate-file-name xy/emacs-lisp-dir)))
@@ -1244,8 +1250,8 @@ makes it easier to edit it."
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-  ;; Add prompt indicator to `completing-read-multiple'.
-  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  ;; Add prompt indicator to `completing-read-multiple', e.g. `describe-face'.
+  ;; Display it as [CRM<separator>], e.g. [CRM,] if the separator is a comma.
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
                   (replace-regexp-in-string
@@ -1387,7 +1393,6 @@ makes it easier to edit it."
          ;; Isearch integration
          ("M-s e" . consult-isearch-history)
          :map isearch-mode-map
-         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
          ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
          ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
          ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
@@ -1512,7 +1517,7 @@ makes it easier to edit it."
    ;;
    ("S-SPC" . embark-select)
    ;;
-   ("M-RET" . embark-export) ; @see `embark-exporters-alist', falls back to the generic `embark-collect'
+   ("M-<return>" . embark-export) ; @see `embark-exporters-alist', falls back to the generic `embark-collect'
    ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf.
    ("C-M-<return>" . embark-live)
    ;;
@@ -1627,7 +1632,7 @@ makes it easier to edit it."
 
 
 ;;; abbrev
-;; @todo
+;; TODO:
 ;; https://www.emacswiki.org/emacs/AbbrevMode
 ;; https://www.emacswiki.org/emacs/HippieExpand
 ;; @see (info "(emacs) Dynamic Abbrevs")
@@ -1657,6 +1662,7 @@ makes it easier to edit it."
   ;; (setq repeat-exit-key "RET")
   (setq repeat-exit-key "q")
   :init
+  (keymap-global-set "C-x U" #'undo-only)
   (defvar-keymap xy/undo-repeat-map
     :keymap undo-repeat-map
     :repeat t
@@ -1671,7 +1677,7 @@ makes it easier to edit it."
 
   (defvar-keymap xy/navi-repeat-map
     :repeat ( :enter (forward-word backward-word) ;; forward-page backward-page
-              :exit (transpose-sexps kill-sexp backward-kill-sexp kill-backward-up-list raise-sexp mark-sexp)
+              :exit (transpose-sexps kill-sexp backward-kill-sexp kill-backward-up-list raise-sexp mark-sexp eval-defun)
               :hints
               ((kill-backward-up-list . "kill-backward-up-list")
                (up-list . "up-list")))
@@ -1774,8 +1780,6 @@ makes it easier to edit it."
   (setq evil-disable-insert-state-bindings t)
   (setq evil-want-minibuffer t)
 
-  (setq evil-want-C-u-delete t)
-  (setq evil-want-C-u-scroll t)
   (setq evil-want-Y-yank-to-eol t)
 
   (setq evil-shift-width 2)
@@ -1788,6 +1792,7 @@ makes it easier to edit it."
   ;; Enable text object match, e.g. kbd::gn
   (setq evil-search-module 'evil-search)
 
+  ;; https://emacs.stackexchange.com/questions/9583/how-to-treat-underscore-as-part-of-the-word/20717
   ;; @tip: An underscore _ is a word character in Vim, but not in emacs
   ;; so Evil use kbd::o as symbol object, making kbd::cio a good alternative to Vim’s kbd::ciw
   (setq evil-symbol-word-search t)
@@ -1825,9 +1830,9 @@ makes it easier to edit it."
   (advice-add 'evil-ex-start-search :after-until 'xy/evil-ex-match-counter)
   (advice-add 'evil-ex-search :after-while 'xy/evil-ex-match-counter)
 
-  ;; Rebind `universal-argument', since 'C-u' now scrolls the buffer
-  (global-set-key (kbd "M-u") 'universal-argument)
-  (define-key universal-argument-map (kbd "M-u") 'universal-argument-more)
+  ;; ;; Rebind `universal-argument', since 'C-u' now scrolls the buffer
+  ;; (global-set-key (kbd "M-u") 'universal-argument)
+  ;; (define-key universal-argument-map (kbd "M-u") 'universal-argument-more)
 
   ;; @tip: motion state bindings are visible in normal and visual state, and normal state bindings are also visible in visual state.
   (evil-set-leader 'motion (kbd "SPC"))
@@ -2248,7 +2253,7 @@ makes it easier to edit it."
 (use-package transient-showcase
   :vc ( :url "https://github.com/positron-solutions/transient-showcase"
         :rev :newest)
-  :bind ("C-c t s" . tsc-showcase))
+  :bind ("C-h t s" . tsc-showcase))
 
 (use-package disproject
   :bind ( :map ctl-x-map
@@ -2452,6 +2457,34 @@ makes it easier to edit it."
   :config
   (global-wakatime-mode +1))
 
+(use-package pyim
+  :defer 1
+  :bind (("C-x C-\\" . pyim-convert-string-at-point)
+         ("M-f" . pyim-forward-word)
+         ("M-b" . pyim-backward-word))
+  :config
+  (setq default-input-method "pyim")
+  ;; 拼音词库设置，五笔用户 *不需要* 此行设置
+  (use-package pyim-basedict
+    :config
+    (pyim-basedict-enable))
+  ;; 小鹤双拼
+  (pyim-default-scheme 'xiaohe-shuangpin)
+  ;; 使用云拼音(搜索引擎提供的云输入法服务)
+  (setq pyim-cloudim 'baidu)
+  ;; 设置 pyim 探针，可以实现 *无痛* 中英文切换 :-)
+  ;; 1. 中英文动态切换规则：
+  (setq-default pyim-english-input-switch-functions '(pyim-probe-dynamic-english
+                                                      pyim-probe-isearch-mode
+                                                      pyim-probe-program-mode
+                                                      pyim-probe-org-structure-template))
+  ;; 2. 半角标点动态切换规则：
+  (setq-default pyim-punctuation-half-width-functions '(pyim-probe-punctuation-line-beginning
+                                                        pyim-probe-punctuation-after-punctuation))
+
+  ;; 使用拼音搜索中文
+  (pyim-isearch-mode +1))
+
 
 ;;; motion
 ;; Move point through `buffer-undo-list' positions.
@@ -2464,19 +2497,19 @@ makes it easier to edit it."
 
 (use-package goto-chg
   :bind
-  ("M-g ." . goto-last-change)
+  ("M-g ;" . goto-last-change)
   ("M-g ," . goto-last-change-reverse)
   :config
   (defvar-keymap xy/goto-chg-repeat-map
     :repeat t
-    "." #'goto-last-change
+    ";" #'goto-last-change
     "," #'goto-last-change-reverse))
 
 (use-package avy
   :chords
   ("jk" . avy-goto-char-timer)
   ("jl" . avy-goto-line)
-  :bind (("M-g ;" . avy-resume)
+  :bind (("M-g ." . avy-resume)
          ("M-g j" . avy-goto-char)
          ("M-g M-j" . avy-goto-word-1)
          ("M-g l" . avy-goto-char-2)
@@ -2547,12 +2580,12 @@ makes it easier to edit it."
          ("C-M-SPC" . prot/expreg-expand-dwim))
   :config
   (setq expreg-restore-point-on-quit t)
+  ;;
   (defun prot/expreg-expand (n)
     "Expand to N syntactic units, defaulting to 1 if none is provided interactively."
     (interactive "p")
     (dotimes (_ n)
       (expreg-expand)))
-
   (defun prot/expreg-expand-dwim ()
     "Do-What-I-Mean `expreg-expand' to start with symbol or word.
 If over a real symbol, mark that directly, else start with a
@@ -3298,7 +3331,7 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c e d" . #'edebug-defun)
          ("C-c e c" . #'check-parens)
          ("C-c e i" . #'xy/indent-buffer)
-         :map lisp-mode-shared-map
+         ;; :map lisp-mode-shared-map
          ("M-F" . #'forward-symbol)
          ("M-B" . #'xy/backward-symbol))
   :config
@@ -3343,23 +3376,24 @@ word.  Fall back to regular `expreg-expand'."
 
 ;; (use-package paredit
 ;;   :hook (lisp-data-mode eval-expression-minibuffer-setup)
-;;   :bind ( :map paredit-mode-map
-;;           ("M-s" . nil) ;; `paredit-splice-sexp'
-;;           ("M-r" . nil) ;; `paredit-raise-sexp'
-;;           ("M-<up>" . nil) ;; `paredit-splice-sexp-killing-backward'
-;;           ("M-<down>" . nil) ;; `paredit-splice-sexp-killing-forward'
-;;           ("C-<right>" . nil) ;; `paredit-forward-slurp-sexp'
-;;           ("C-<left>" . nil) ;; `paredit-forward-barf-sexp'
-;;           ("C-M-<left>" . nil) ;; `paredit-backward-slurp-sexp'
-;;           ("C-M-<right>" . nil) ;; `paredit-backward-barf-sexp'
-;;           ;; ("M-;" . nil) ;; `paredit-comment-dwim'
-;;           ;; ("C-j" . nil) ;; `paredit-C-j'
-;;           ("M-L" . paredit-splice-sexp) ;; @prefix `paredit-splice-sexp-killing-backward', double @prefix `paredit-splice-sexp-killing-forward'
-;;           ("M-R" . paredit-raise-sexp)
-;;           ("M-N" . paredit-forward-slurp-sexp)
-;;           ("M-P" . paredit-forward-barf-sexp)
-;;           ("M-U" . paredit-backward-slurp-sexp)
-;;           ("M-D" . paredit-backward-barf-sexp))
+;;   :bind (("C-c t p" . paredit-mode)
+;;          :map paredit-mode-map
+;;          ("M-s" . nil)          ;; `paredit-splice-sexp'
+;;          ("M-r" . nil)          ;; `paredit-raise-sexp'
+;;          ("M-<up>" . nil)       ;; `paredit-splice-sexp-killing-backward'
+;;          ("M-<down>" . nil)     ;; `paredit-splice-sexp-killing-forward'
+;;          ("C-<right>" . nil)    ;; `paredit-forward-slurp-sexp'
+;;          ("C-<left>" . nil)     ;; `paredit-forward-barf-sexp'
+;;          ("C-M-<left>" . nil)   ;; `paredit-backward-slurp-sexp'
+;;          ("C-M-<right>" . nil)  ;; `paredit-backward-barf-sexp'
+;;          ;; ("M-;" . nil) ;; `paredit-comment-dwim'
+;;          ;; ("C-j" . nil) ;; `paredit-C-j'
+;;          ("M-L" . paredit-splice-sexp) ;; @prefix `paredit-splice-sexp-killing-backward', double @prefix `paredit-splice-sexp-killing-forward'
+;;          ("M-R" . paredit-raise-sexp)
+;;          ("M-N" . paredit-forward-slurp-sexp)
+;;          ("M-P" . paredit-forward-barf-sexp)
+;;          ("M-U" . paredit-backward-slurp-sexp)
+;;          ("M-D" . paredit-backward-barf-sexp))
 ;;   :config
 ;;   ;; (electric-indent-mode -1)
 ;;   ;; ElDoc can safely print docstring after these commands
@@ -3372,61 +3406,91 @@ word.  Fall back to regular `expreg-expand'."
 ;; Automatic insertion, wrapping and paredit-like navigation with user defined pairs
 ;; -- Handles anything that pairs, not only parentheses
 ;; -- Combination of autopair, textmate, wrap-region, electric-pair-mode, paredit
-(use-package smartparens
-  :hook
-  (prog-mode . smartparens-strict-mode)
-  (markdown-mode . smartparens-strict-mode)
-  (eval-expression-minibuffer-setup . smartparens-strict-mode)
-  :bind (("C-h o S" . sp-cheat-sheet)
-         :map smartparens-mode-map
-         ;; NOTE: from `sp-paredit-bindings'
-         ("C-M-f" . sp-forward-sexp) ;; navigation
-         ("C-M-b" . sp-backward-sexp)
-         ("C-M-u" . sp-backward-up-sexp)
-         ("C-M-d" . sp-down-sexp)
-         ("C-M-p" . sp-backward-down-sexp)
-         ("C-M-n" . sp-up-sexp)
-         ("M-L" . sp-splice-sexp) ;; depth-changing commands
-         ("M-R" . sp-splice-sexp-killing-around)
-         ("M-(" . sp-wrap-round)
-         ("M-N" . sp-forward-slurp-sexp) ;; barf/slurp
-         ("M-P" . sp-forward-barf-sexp)
-         ("M-U" . sp-backward-slurp-sexp)
-         ("M-D" . sp-backward-barf-sexp)
-         ("M-S" . sp-split-sexp) ;; misc
-         ("M-J" . sp-join-sexp)
-         ("M-?" . sp-convolute-sexp)
-         ;; NOTE: from `sp-smartparens-bindings'
-         ("M-F" . sp-forward-symbol)
-         ("M-B" . sp-backward-symbol)
-         ("M-I" . sp-change-inner)
-         ("M-A" . sp-change-enclosing)
-         ;; ("C-M-a" . sp-backward-down-sexp)
-         ;; ("C-M-e" . sp-up-sexp)
-         ("C-S-a" . sp-beginning-of-sexp)
-         ("C-S-e" . sp-end-of-sexp)
-         ("C-S-n" . sp-next-sexp)
-         ("C-S-p" . sp-previous-sexp)
-         ("C-M-k" . sp-kill-sexp)
-         ("C-M-t" . sp-transpose-sexp)
-         ;; ("C-M-w" . sp-copy-sexp)
-         ;; ("M-<delete>" . sp-unwrap-sexp)
-         ;; ("M-<backspace>" . sp-backward-unwrap-sexp)
-         ;; ("C-M-SPC" . sp-mark-sexp)
-         ("C-]" . sp-select-next-thing-exchange)
-         ("C-M-]" . sp-select-next-thing))
-  :config
-  (electric-pair-mode -1)
-  ;;
-  (require 'smartparens-config)
-  ;; (show-smartparens-global-mode +1)
-  (smartparens-global-mode +1))
+;; (use-package smartparens
+;;   :defer 0.5
+;;   :bind (("C-c t s" . smartparens-mode)
+;;          ("C-c t S" . smartparens-strict-mode)
+;;          ("C-h o S" . sp-cheat-sheet)
+;;          :map smartparens-mode-map
+;;          ;; NOTE: from `sp-paredit-bindings'
+;;          ("C-M-f" . sp-forward-sexp) ;; navigation
+;;          ("C-M-b" . sp-backward-sexp)
+;;          ("C-M-u" . sp-backward-up-sexp)
+;;          ("C-M-d" . sp-down-sexp)
+;;          ("C-M-p" . sp-backward-down-sexp)
+;;          ("C-M-n" . sp-up-sexp)
+;;          ("M-L" . sp-splice-sexp) ;; depth-changing commands
+;;          ("M-R" . sp-raise-sexp)
+;;          ("M-(" . sp-wrap-round)
+;;          ("M-N" . sp-forward-slurp-sexp) ;; barf/slurp
+;;          ("M-P" . sp-forward-barf-sexp)
+;;          ("M-U" . sp-backward-slurp-sexp)
+;;          ("M-D" . sp-backward-barf-sexp)
+;;          ("M-S" . sp-split-sexp) ;; misc
+;;          ("M-J" . sp-join-sexp)
+;;          ("M-?" . sp-convolute-sexp)
+;;          ;; NOTE: from `sp-smartparens-bindings'
+;;          ("M-F" . sp-forward-symbol)
+;;          ("M-B" . sp-backward-symbol)
+;;          ("M-I" . sp-change-inner)
+;;          ("M-A" . sp-change-enclosing)
+;;          ;; ("C-M-a" . sp-backward-down-sexp)
+;;          ;; ("C-M-e" . sp-up-sexp)
+;;          ("C-S-a" . sp-beginning-of-sexp)
+;;          ("C-S-e" . sp-end-of-sexp)
+;;          ("C-S-n" . sp-next-sexp)
+;;          ("C-S-p" . sp-previous-sexp)
+;;          ("C-M-k" . sp-kill-sexp)
+;;          ("C-M-t" . sp-transpose-sexp)
+;;          ;; ("C-M-w" . sp-copy-sexp)
+;;          ;; ("M-<delete>" . sp-unwrap-sexp)
+;;          ;; ("M-<backspace>" . sp-backward-unwrap-sexp)
+;;          ;; ("C-M-SPC" . sp-mark-sexp)
+;;          ("C-]" . sp-select-next-thing-exchange)
+;;          ("C-M-]" . sp-select-next-thing))
+;;   :config
+;;   (electric-pair-mode -1)
+;;   (show-paren-mode -1)
+;;   ;;
+;;   (require 'smartparens-config)
+;;   (smartparens-global-mode +1)
+;;   (add-hook 'term-mode-hook #'turn-off-smartparens-mode)
+;;   (dolist (hook '(prog-mode-hook markdown-mode eval-expression-minibuffer-setup-hook))
+;;     (add-hook hook #'smartparens-strict-mode))
+;;   (show-smartparens-global-mode +1))
 
-(use-package awesome-pair
-  :vc ( :url "https://github.com/manateelazycat/awesome-pair"
-        :rev :newest)
-  :bind ( :map awesome-pair-mode-map
-          ("M-o" . awesome-pair-jump-out-pair-and-newline)))
+;; Structured editing (soft deletion, expression navigating & manipulating)
+(use-package puni
+  :defer 0.5
+  :bind (("C-c t p" . puni-mode)
+         :map puni-mode-map
+         ("M-(" . nil)
+         ("M-)" . nil)
+         ("C-M-a" . nil)
+         ("C-M-e" . nil)
+         ("C-M-u" . puni-syntactic-backward-punct)
+         ("C-M-d" . puni-syntactic-forward-punct)
+         ("C-M-p" . puni-beginning-of-sexp)
+         ("C-M-n" . puni-end-of-sexp)
+         ;;
+         ("C-M-m" . puni-expand-region)
+         ("C-M-z" . puni-squeeze)
+         ("C-M-t" . puni-transpose)
+         ;;
+         ("M-N" . puni-slurp-forward)
+         ("M-P" . puni-barf-forward)
+         ("M-U" . puni-slurp-backward)
+         ("M-D" . puni-barf-backward)
+         ("M-L" . puni-splice)
+         ("M-R" . puni-raise)
+         ("M-S" . puni-split)
+         ;;
+         ("M-(" . puni-wrap-round)
+         ("C-(" . puni-wrap-curly))
+  :config
+  (puni-global-mode +1)
+  (add-hook 'term-mode-hook #'puni-disable-puni-mode)
+  (setq puni-blink-pulse-delay 0.1))
 
 ;; (use-package awesome-pair
 ;;   :vc ( :url "https://github.com/manateelazycat/awesome-pair"
@@ -3454,11 +3518,11 @@ word.  Fall back to regular `expreg-expand'."
 ;;           ("M-[" . awesome-pair-wrap-bracket)
 ;;           ("M-{" . awesome-pair-wrap-curly)
 ;;           ("M-(" . awesome-pair-wrap-round)
-;;           ("M-)" . awesome-pair-unwrap)
+;;           ("C-(" . awesome-pair-unwrap)
 ;;           ;;
 ;;           ("M-n" . awesome-pair-jump-right)
 ;;           ("M-p" . awesome-pair-jump-left)
-;;           ("M-o" . awesome-pair-jump-out-pair-and-newline))
+;;           ("M-)" . awesome-pair-jump-out-pair-and-newline))
 ;;   :config
 ;;   (electric-indent-mode -1)
 ;;   (electric-pair-mode -1))
