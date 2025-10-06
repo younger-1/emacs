@@ -627,8 +627,6 @@
   ("C-x x G" . #'redraw-display)
   ;;
   ("C-x f" . nil)
-  ("C-x f d" . #'diff-buffer-with-file)
-  ("C-x f D" . #'diff-buffers)
   ("C-x f s" . #'xy/scratch)
   ;;
   ("C-x j u" . #'browse-url)
@@ -2850,25 +2848,55 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; vc
-(use-package vc
-  :ensure nil
+(use-core vc
   :config
   (setq vc-git-diff-switches '("--histogram")))
 
 
 ;;; diff
-(use-package diff
-  :ensure nil
+(use-core diff
+  :bind
+  ("C-c d b" . #'diff-buffer-with-file)
+  ("C-c d B" . #'diff-buffers)
+  ("C-c d k" . xy/diff-last-two-kills)
   :config
+  ;; @see https://irreal.org/blog/?p=12704
+  (defun xy/diff-last-two-kills (&optional ediff?)
+    "Diff last couple of things in the kill-ring. With prefix open ediff."
+    (interactive "P")
+    (require 'ediff)
+    (let* ((old "/tmp/old-kill")
+           (new "/tmp/new-kill")
+           (prev-ediff-quit-hook ediff-quit-hook))
+      (cl-flet ((kill-temps ()
+                  (dolist (f (list old new))
+                    (kill-buffer (find-buffer-visiting f)))
+                  (setq ediff-quit-hook prev-ediff-quit-hook)))
+        (with-temp-file new
+          (insert (current-kill 0 t)))
+        (with-temp-file old
+          (insert (current-kill 1 t)))
+        (if ediff?
+            (progn
+              (add-hook 'ediff-quit-hook #'kill-temps)
+              (ediff old new))
+          (diff old new "-u" t)))))
   (setq diff-refine 'font-lock)
   (setq diff-font-lock-prettify nil)
   (setq diff-font-lock-syntax t))
 
-(use-package ediff
-  :ensure nil
+;; @see https://irreal.org/blog/?p=11780
+;; @see https://emacs.stackexchange.com/questions/51424/how-can-i-diff-two-long-lines-from-the-same-buffer
+(use-core ediff
+  :bind
+  ("C-c d c" . compare-windows)         ; @tip: Use C-x z z z ... to repeat it
+  ("C-c d w" . ediff-windows-wordwise)
+  ("C-c d w" . ediff-windows-linewise)
+  ("C-c d r" . ediff-regions-wordwise)
+  ("C-c d R" . ediff-regions-linewise)
   :config
   ;; Use a single frame
-  ;; (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+  (setq ediff-window-setup-function #'ediff-setup-windows-plain)
   ;; Split windows horizontally
   (setq ediff-split-window-function #'split-window-horizontally))
 
