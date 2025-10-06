@@ -1386,8 +1386,8 @@ makes it easier to edit it."
          ;; M-s bindings in `search-map'
          ("M-s l" . consult-line)
          ("M-s L" . consult-line-multi)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)
+         ("M-s k" . consult-focus-lines)
+         ("M-s K" . consult-keep-lines)
          ;; Isearch integration
          ("M-s e" . consult-isearch-history)
          :map isearch-mode-map
@@ -1416,13 +1416,7 @@ makes it easier to edit it."
         xref-show-definitions-function #'consult-xref)
 
   :config
-  ;; Optionally configure preview. The default value
-  ;; is 'any, such that any key triggers the preview.
-  ;; (setq consult-preview-key 'any)
-  ;; (setq consult-preview-key "M-.")
-  ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
-  ;; For some commands and buffer sources it is useful to configure the
-  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  ;; Configure the :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
    consult-theme :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep consult-man
@@ -1431,6 +1425,25 @@ makes it easier to edit it."
    consult--source-recent-file consult--source-project-recent-file
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
+
+  ;; TODO: https://arialdomartini.github.io/consult-line-at-point
+  ;; @see https://www.reddit.com/r/emacs/comments/1jwk4dg/consultlinesymbolatpoint/
+  (consult-customize consult-line consult-focus-lines
+   :add-history (seq-some #'thing-at-point '(region symbol)))
+
+  ;; Smart recenter: buffer is recentered only if you jump to match outside of current view
+  ;; @see https://www.reddit.com/r/emacs/comments/14aglvm/highlight_multiple_lines_in_consultline/
+  (defvar-local xy/prev-position nil)
+  (defun xy/consult-maybe-recenter ()
+    "Maybe recenter current window if point is outside of visible region."
+    (when xy/prev-position
+      (set-window-start (selected-window) xy/prev-position))
+    (when (or
+        (< (point) (window-start))
+        (> (point) (window-end (selected-window) t)))
+      (recenter))
+    (setq lazy/consult-prev-position (window-start)))
+  (setq consult-after-jump-hook '(xy/consult-maybe-recenter))
 
   (setq consult-narrow-key "<")
   ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
@@ -2148,6 +2161,8 @@ makes it easier to edit it."
   (setq dired-vc-rename-file t)
   (setq dired-omit-verbose nil)
   ;; (setq dired-omit-files (concat "\\`[.]\\'"))
+  (setq dired-movement-style 'cycle)
+  ;;
   (setq ls-lisp-dirs-first t)
   (setq image-dired-thumb-size 150
         image-dired-thumb-margin 1
@@ -2784,6 +2799,9 @@ word.  Fall back to regular `expreg-expand'."
   :defer 0.6
   ;; :hook prog-mode
   :bind ("C-c h h" . highlight-thing-mode)
+  :custom-face
+  ;; (highlight-thing ((t (:inherit mode-line))))
+  ;; (highlight-thing ((t (:inherit minibuffer-depth-indicator))))
   :config
   (global-highlight-thing-mode +1)
   (setq highlight-thing-prefer-active-region t)
