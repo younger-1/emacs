@@ -2470,34 +2470,53 @@ makes it easier to edit it."
   :config
   (global-wakatime-mode +1))
 
-(use-package pyim
+;; (use-package pyim
+;;   :defer 1
+;;   :bind (("C-x C-\\" . pyim-convert-string-at-point)
+;;          ("M-f" . pyim-forward-word)
+;;          ("M-b" . pyim-backward-word))
+;;   :config
+;;   (setq default-input-method "pyim")
+;;   ;; 拼音词库设置，五笔用户 *不需要* 此行设置
+;;   (use-package pyim-basedict
+;;     :config
+;;     (pyim-basedict-enable))
+;;   ;; 小鹤双拼
+;;   (pyim-default-scheme 'xiaohe-shuangpin)
+;;   ;; 使用云拼音(搜索引擎提供的云输入法服务)
+;;   (setq pyim-cloudim 'baidu)
+;;   ;; 设置 pyim 探针，可以实现 *无痛* 中英文切换 :-)
+;;   ;; 1. 中英文动态切换规则：
+;;   (setq-default pyim-english-input-switch-functions '(pyim-probe-dynamic-english
+;;                                                       pyim-probe-isearch-mode
+;;                                                       pyim-probe-program-mode
+;;                                                       pyim-probe-org-structure-template))
+;;   ;; 2. 半角标点动态切换规则：
+;;   (setq-default pyim-punctuation-half-width-functions '(pyim-probe-punctuation-line-beginning
+;;                                                         pyim-probe-punctuation-after-punctuation))
+;;
+;;   ;; 使用拼音搜索中文
+;;   (pyim-isearch-mode +1))
+
+(use-package sis
   :defer 1
-  :bind (("C-x C-\\" . pyim-convert-string-at-point)
-         ("M-f" . pyim-forward-word)
-         ("M-b" . pyim-backward-word))
   :config
-  (setq default-input-method "pyim")
-  ;; 拼音词库设置，五笔用户 *不需要* 此行设置
-  (use-package pyim-basedict
-    :config
-    (pyim-basedict-enable))
-  ;; 小鹤双拼
-  (pyim-default-scheme 'xiaohe-shuangpin)
-  ;; 使用云拼音(搜索引擎提供的云输入法服务)
-  (setq pyim-cloudim 'baidu)
-  ;; 设置 pyim 探针，可以实现 *无痛* 中英文切换 :-)
-  ;; 1. 中英文动态切换规则：
-  (setq-default pyim-english-input-switch-functions '(pyim-probe-dynamic-english
-                                                      pyim-probe-isearch-mode
-                                                      pyim-probe-program-mode
-                                                      pyim-probe-org-structure-template))
-  ;; 2. 半角标点动态切换规则：
-  (setq-default pyim-punctuation-half-width-functions '(pyim-probe-punctuation-line-beginning
-                                                        pyim-probe-punctuation-after-punctuation))
-
-  ;; 使用拼音搜索中文
-  (pyim-isearch-mode +1))
-
+  ;; Debug: (sis-get) (sis-switch)
+  ;; (sis-log-mode +1)
+  ;;
+  (cond
+   (xy/mac-p
+    (unless (sis-get)
+      (setq sis-english-source "com.apple.keylayout.UnicodeHexInput"))
+    (setq sis-other-source "com.apple.inputmethod.SCIM.Shuangpin")))
+  ;; 启用 /光标颜色/ 模式
+  (sis-global-cursor-color-mode +1)
+  ;; 启用 /respect/ 模式
+  (sis-global-respect-mode +1)
+  ;; 为所有缓冲区启用 /context/ 模式
+  (sis-global-context-mode +1)
+  ;; 为所有缓冲区启用 /inline english/ 模式
+  (sis-global-inline-mode +1))
 
 ;;; motion
 ;; Move point through `buffer-undo-list' positions.
@@ -3532,10 +3551,14 @@ word.  Fall back to regular `expreg-expand'."
          ("M-S" . puni-split)
          ;;
          ("M-(" . puni-wrap-round)
-         ("C-(" . puni-wrap-curly))
+         ("C-(" . puni-wrap-square)
+         ("C-M-(" . puni-wrap-curly))
   :config
-  (puni-global-mode +1)
-  (add-hook 'term-mode-hook #'puni-disable-puni-mode)
+  ;; NOTE: global enable will override DEL/M-DEL in minibuffer
+  ;; (puni-global-mode +1)
+  ;; (add-hook 'term-mode-hook #'puni-disable-puni-mode)
+  (dolist (hook '(fundamental-mode-hook text-mode-hook conf-mode-hook eval-expression-minibuffer-setup-hook))
+    (add-hook hook #'puni-mode))
   (setq puni-blink-pulse-delay 0.1))
 
 ;; (use-package awesome-pair
