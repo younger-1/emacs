@@ -218,6 +218,8 @@
 (keymap-global-set "S-s-<return>" #'toggle-frame-fullscreen) ; <f11>
 ;; s-z -> undo
 (keymap-global-set "s-Z" #'undo-redo)
+;; C-/ -> undo
+;; (keymap-global-set "C-M-/" #'undo-redo) ;; For gui; in tty "C-M-/" == "C-M-_"
 
 ;; @tip I should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
@@ -385,6 +387,7 @@
   (setq save-interprogram-paste-before-kill t)
   ;; To prevent kill and yank commands from accessing the clipboard
   ;; (setq select-enable-clipboard nil)
+  ;; (keymap-global-set "M-w" #'clipboard-kill-ring-save)
 
   ;; register
   (setopt register-use-preview 'insist)
@@ -489,6 +492,7 @@
   (blink-cursor-mode -1)
 
   ;; edit
+  ;; (setq undo-no-redo t)
   ;; (setq next-line-add-newlines t)
   (setq comment-empty-lines t)
   ;; (setq comment-multi-line t)
@@ -1780,6 +1784,12 @@ makes it easier to edit it."
   (keyfreq-mode +1)
   (keyfreq-autosave-mode +1))
 
+;; https://magit.vc/manual/transient/
+(use-package transient-showcase
+  :vc ( :url "https://github.com/positron-solutions/transient-showcase"
+        :rev :newest)
+  :bind ("C-h t s" . tsc-showcase))
+
 (use-package evil
   :defer 0.5
   :init
@@ -2223,6 +2233,8 @@ makes it easier to edit it."
 
 
 ;;; project
+;; `project-prefix-map'
+
 ;; Find file/directory and review Diff/Patch/Commit under any VSC
 (use-package find-file-in-project
   :init
@@ -2259,24 +2271,20 @@ makes it easier to edit it."
   (setq projectile-project-search-path
         '("~/dotter/" "~/notes/" "~/project/" "~/work/" ("~/src/" . 2))))
 
-
-;;; transient
-;; https://magit.vc/manual/transient/
-
-(use-package transient-showcase
-  :vc ( :url "https://github.com/positron-solutions/transient-showcase"
-        :rev :newest)
-  :bind ("C-h t s" . tsc-showcase))
-
 (use-package disproject
-  :bind ( :map ctl-x-map
-          ;; Replace `project-prefix-map'
-          ;; ("p" . disproject-dispatch)
-          ("P" . disproject-dispatch)))
+  :bind (("C-x P" . disproject-dispatch)))
+
+(use-package projection
+  :defer 1
+  :hook (compilation-mode . projection-customize-compilation-mode)
+  :bind-keymap ("C-c P" . projection-map)
+  :config
+  (global-projection-hook-mode +1))
 
 
 ;;; appearance
 ;; Show pretty symbols
+;; (info "(emacs) Misc for Programs")
 (use-core prog-mode
   :config
   ;; Show markup at point
@@ -3557,7 +3565,7 @@ word.  Fall back to regular `expreg-expand'."
   ;; NOTE: global enable will override DEL/M-DEL in minibuffer
   ;; (puni-global-mode +1)
   ;; (add-hook 'term-mode-hook #'puni-disable-puni-mode)
-  (dolist (hook '(fundamental-mode-hook text-mode-hook conf-mode-hook eval-expression-minibuffer-setup-hook))
+  (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook eval-expression-minibuffer-setup-hook))
     (add-hook hook #'puni-mode))
   (setq puni-blink-pulse-delay 0.1))
 
