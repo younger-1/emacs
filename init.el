@@ -64,7 +64,7 @@
 (defun xy/after-enable-theme (&rest _args)
   "Run `xy/after-enable-theme-hook'."
   (run-hooks 'xy/after-enable-theme-hook))
-(advice-add 'enable-theme :after #'xy/after-enable-theme)
+(advice-add #'enable-theme :after #'xy/after-enable-theme)
 
 
 ;;; font
@@ -1848,8 +1848,8 @@ makes it easier to edit it."
                   (total (how-many regexp (point-min) (point-max)))
                   (current (how-many regexp (point-min) (point))))
         (message (format "[%d/%d]: %s" (1+ current) total (car evil-ex-search-pattern))))))
-  (advice-add 'evil-ex-start-search :after-until 'xy/evil-ex-match-counter)
-  (advice-add 'evil-ex-search :after-while 'xy/evil-ex-match-counter)
+  (advice-add #'evil-ex-start-search :after-until 'xy/evil-ex-match-counter)
+  (advice-add #'evil-ex-search :after-while 'xy/evil-ex-match-counter)
 
   ;; ;; Rebind `universal-argument', since 'C-u' now scrolls the buffer
   ;; (global-set-key (kbd "M-u") 'universal-argument)
@@ -2830,14 +2830,22 @@ word.  Fall back to regular `expreg-expand'."
          ("N" . symbol-overlay-switch-forward)
          ("P" . symbol-overlay-switch-backward))
   :config
+  ;; TODO: support region
+  ;; (advice-add #'symbol-overlay-get-symbol :override
+  ;;             (lambda (&optional noerror)
+  ;;               (seq-some #'thing-at-point '(region symbol))))
+  ;; (advice-add #'symbol-overlay-regexp :override
+  ;;             (lambda (symbol)
+  ;;               (regexp-quote symbol)))
+  ;;
   (setq symbol-overlay-idle-time 0.2))
 
-;; (use-package region-occurrences-highlighter
-;;   :defer 0.6
-;;   :bind (:map region-occurrences-highlighter-nav-mode-map
-;;          ("M-n" . region-occurrences-highlighter-next)
-;;          ("M-p" . region-occurrences-highlighter-prev))
-;;   :config (global-region-occurrences-highlighter-mode +1))
+(use-package region-occurrences-highlighter
+  :defer 0.6
+  :bind ( :map region-occurrences-highlighter-nav-mode-map
+          ("M-n" . region-occurrences-highlighter-next)
+          ("M-p" . region-occurrences-highlighter-prev))
+  :config (global-region-occurrences-highlighter-mode +1))
 
 (use-core hi-lock
   :config
@@ -2845,7 +2853,7 @@ word.  Fall back to regular `expreg-expand'."
   (defun xy/disable-message (old-fn &rest args)
     (let ((inhibit-message (derived-mode-p xy/hi-lock-disable-message-modes)))
       (apply old-fn args)))
-  (advice-add 'hi-lock-set-pattern :around #'xy/disable-message))
+  (advice-add #'hi-lock-set-pattern :around #'xy/disable-message))
 
 ;; Uses built-in `thingatpt' and `hi-lock' functionality to identify the thing under point and highlight it.
 (use-package highlight-thing
