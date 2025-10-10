@@ -2761,6 +2761,7 @@ word.  Fall back to regular `expreg-expand'."
   :hook
   (prog-mode . hl-line-mode)
   (text-mode . hl-line-mode)
+  (conf-mode . hl-line-mode)
   (help-mode . hl-line-mode)
   (Info-mode . hl-line-mode)
   (dired-mode . hl-line-mode)
@@ -2779,24 +2780,25 @@ word.  Fall back to regular `expreg-expand'."
 (use-package highlight-defined
   :commands highlight-defined-mode)
 
-(use-package highlight-symbol
-  ;; :hook (prog-mode . highlight-symbol-mode)
-  :bind
-  ;; move within defun
-  ("M-p" . highlight-symbol-prev-in-defun)
-  ("M-n" . highlight-symbol-next-in-defun)
-  ;; move within buffer
-  ("C-c h m" . highlight-symbol-nav-mode)
-  ;;
-  ("C-c h s" . highlight-symbol) ; manual symbol highlighting
-  ("C-c h S" . highlight-symbol-mode) ; automatic symbol highlighting
-  ("C-c h r" . highlight-symbol-query-replace)
-  ("C-c h o" . highlight-symbol-occur)
-  ("C-c h c" . highlight-symbol-count)
-  :config
-  (setq highlight-symbol-highlight-single-occurrence nil)
-  (setq highlight-symbol-idle-delay 0.5)
-  (setq highlight-symbol-ignore-list '("^end$" "^def$" "^class$" "^module$")))
+;; (use-package highlight-symbol
+;;   :defer 0.6
+;;   ;; :hook (prog-mode text-mode conf-mode special-mode)
+;;   :bind
+;;   ;; move within defun
+;;   ("M-p" . highlight-symbol-prev-in-defun)
+;;   ("M-n" . highlight-symbol-next-in-defun)
+;;   ;; move within buffer
+;;   ("C-c h m" . highlight-symbol-nav-mode)
+;;   ;;
+;;   ("C-c h s" . highlight-symbol) ; manual symbol highlighting
+;;   ("C-c h S" . highlight-symbol-mode) ; automatic symbol highlighting
+;;   ("C-c h r" . highlight-symbol-query-replace)
+;;   ("C-c h o" . highlight-symbol-occur)
+;;   ("C-c h c" . highlight-symbol-count)
+;;   :config
+;;   (setq highlight-symbol-highlight-single-occurrence nil)
+;;   (setq highlight-symbol-idle-delay 0.5)
+;;   (setq highlight-symbol-ignore-list '("^end$" "^def$" "^class$" "^module$")))
 
 ;; (use-package auto-highlight-symbol
 ;;   :bind ( :map auto-highlight-symbol-mode-map
@@ -2813,6 +2815,30 @@ word.  Fall back to regular `expreg-expand'."
 ;;   :config
 ;;   (global-auto-highlight-symbol-mode +1))
 
+(use-package symbol-overlay
+  :defer 0.6
+  ;; :hook (prog-mode text-mode conf-mode special-mode)
+  :bind (;; move within buffer
+         ("M-n" . symbol-overlay-jump-next)
+         ("M-p" . symbol-overlay-jump-prev)
+         ;; toggle highlight scope
+         ("C-c h m" . symbol-overlay-toggle-in-scope)
+         ;;
+         ("C-c h s" . symbol-overlay-put)
+         ("C-c h S" . symbol-overlay-mode)
+         :map symbol-overlay-map
+         ("N" . symbol-overlay-switch-forward)
+         ("P" . symbol-overlay-switch-backward))
+  :config
+  (setq symbol-overlay-idle-time 0.2))
+
+;; (use-package region-occurrences-highlighter
+;;   :defer 0.6
+;;   :bind (:map region-occurrences-highlighter-nav-mode-map
+;;          ("M-n" . region-occurrences-highlighter-next)
+;;          ("M-p" . region-occurrences-highlighter-prev))
+;;   :config (global-region-occurrences-highlighter-mode +1))
+
 (use-core hi-lock
   :config
   (setq xy/hi-lock-disable-message-modes '(Info-mode))
@@ -2824,7 +2850,7 @@ word.  Fall back to regular `expreg-expand'."
 ;; Uses built-in `thingatpt' and `hi-lock' functionality to identify the thing under point and highlight it.
 (use-package highlight-thing
   :defer 0.6
-  ;; :hook prog-mode
+  ;; :hook (prog-mode text-mode conf-mode special-mode)
   :bind ("C-c h h" . highlight-thing-mode)
   :custom-face
   ;; (highlight-thing ((t (:inherit mode-line))))
