@@ -943,10 +943,12 @@ makes it easier to edit it."
   :init
   (defun xy/info-elisp () (interactive) (info "elisp"))
   (defun xy/info-eintr () (interactive) (info "eintr"))
+  (defun xy/info-org () (interactive) (info "org"))
   :bind (("C-h r" . nil) ; `info-emacs-manual'
          ("C-h r r" . #'info-emacs-manual)
          ("C-h r e" . #'xy/info-elisp)
          ("C-h r i" . #'xy/info-eintr)
+         ("C-h r o" . #'xy/info-org)
          :map Info-mode-map
          ;; ("M-n" . nil) ; `clone-buffer'
          ("S-SPC" . nil) ; `Info-scroll-down', available as DEL(<backspace>)
@@ -1082,11 +1084,11 @@ makes it easier to edit it."
   ;; Set to nil if too slow
   (setq auto-revert-remote-files t))
 
-(use-package savefold
-  :defer 0.5
-  :config
-  (setq savefold-backends '(outline org hideshow markdown))
-  (savefold-mode +1))
+;; (use-package savefold
+;;   :defer 0.5
+;;   :config
+;;   (setq savefold-backends '(outline org hideshow markdown))
+;;   (savefold-mode +1))
 
 
 ;;; search
@@ -2508,23 +2510,6 @@ makes it easier to edit it."
   (keymap-set ctl-x-4-map "V" #'view-file-other-window)
   (keymap-set ctl-x-5-map "V" #'view-file-other-frame))
 
-(use-package outline
-  :ensure nil
-  ;; :hook
-  ;; (emacs-lisp-mode . outline-minor-mode)
-  :config
-  ;; @tip Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
-  ;; @tip RET at beginning of headers line trigger `outline-cycle'. And for S-RET:
-  (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
-  ;; For TAB/S-TAB
-  ;; (setq outline-minor-mode-cycle t)
-  ;; C-q `outline-hide-sublevels': @prefix Only top n (default 1) headers visible
-  ;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
-  (setopt outline-minor-mode-prefix (kbd "C-c v")) ; v for view
-  ;;; UI
-  ;; (setq outline-minor-mode-highlight 'append)
-  (setq outline-minor-mode-use-buttons 'in-margins))
-
 (use-package wakatime-mode
   :defer 1
   :config
@@ -3229,10 +3214,50 @@ word.  Fall back to regular `expreg-expand'."
   (setq git-messenger:show-detail t))
 
 
+;;; outline
+;; Automatically reveal hidden text at point
+(use-core reveal
+  :hook (hs-minor-mode outline-minor-mode)
+  :bind ("C-c t r" . reveal-mode))
+
+;; Keymap and mouse support to fold(narrow) in subtree
+;; C-z -> `foldout-zoom-subtree'
+;; C-x -> `foldout-exit-fold'
+(use-core foldout
+  :after outline :demand t)
+
+;; TAB(`outline-cycle'): cycles the current section
+;; between “hide all”, “subheadings”, and “show all”
+;; - `outline-hide-subtree'
+;; - `outline-show-children'
+;; - `outline-show-subtree'
+;; S-TAB(`outline-cycle-buffer'): cycles the whole buffer
+;; between “only top-level headings”, “all headings and subheadings”, and “show all”
+;; - `outline-hide-sublevels' (top-level)
+;; - `outline-hide-region-body'
+;; - `outline-show-all'
+;; C-q `outline-hide-sublevels': @prefix Only top n (default 1) headers visible
+;; C-t `outline-hide-body': Hide all body lines in buffer, leaving all headings visible.
+(use-core outline
+  ;; :hook
+  ;; (emacs-lisp-mode . outline-minor-mode)
+  :config
+  ;; @tip Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
+  ;; @tip RET at beginning of headers line trigger `outline-cycle'. And for S-RET:
+  (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
+  ;; For TAB/S-TAB
+  ;; (setq outline-minor-mode-cycle t)
+  (setopt outline-minor-mode-prefix (kbd "C-c v")) ; v for view
+  ;;; UI
+  ;; (setq outline-minor-mode-highlight 'append)
+  (setq outline-minor-mode-use-buttons 'in-margins))
+
+
 ;;; org
 (use-package org
   :ensure nil
   :bind
+  ("C-c o o" . #'xy/open-org-notes)
   ("C-c o d" . #'xy/open-org-dir)
   ("C-c o o" . #'xy/open-org-notes)
   ("C-c o a" . #'org-agenda)
@@ -3240,6 +3265,9 @@ word.  Fall back to regular `expreg-expand'."
   ("C-c o l" . #'org-store-link)
   ("C-c o ;" . #'org-toggle-link-display)
   ("C-c o p" . #'org-publish)
+  ;;
+  ("C-c o t i" . #'org-indent-mode)
+  ("C-c o t n" . #'org-num-mode)
   :init
   (defun xy/open-org-dir ()
     (interactive)
@@ -3250,10 +3278,15 @@ word.  Fall back to regular `expreg-expand'."
     (find-file org-default-notes-file))
   :config
   ;; (add-hook 'org-mode-hook #'visual-line-mode)
-  (setq org-startup-folded 'content)
-  (setq org-hide-leading-stars t)
+
+  ;; (setq org-startup-folded 'content)
+  ;; (setq org-startup-indented t)
+  ;; (setq org-startup-numerated t)
+
+  (setq org-use-speed-commands t)
   (setq org-special-ctrl-a/e t
         org-special-ctrl-k t)
+
   ;; Let `org-goto' use completion
   (setq org-goto-interface 'outline-path-completion)
   ;; Flatten subheadings in `org-goto' completion
