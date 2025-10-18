@@ -147,12 +147,12 @@
 ;;
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 ;; @see (info "(elisp) Key Binding Conventions") to know which keys are safe for users
-(keymap-global-set "C-," (defun xy/open-init-file ()
-                           (interactive)
-                           (find-file user-init-file)))
-(keymap-global-set "C-<" (defun xy/open-init-dir ()
-                           (interactive)
-                           (dired xy/init-dir)))
+(keymap-global-set "C-h j i" (defun xy/open-init-file ()
+                               (interactive)
+                               (find-file user-init-file)))
+(keymap-global-set "C-h j I" (defun xy/open-init-dir ()
+                               (interactive)
+                               (dired xy/init-dir)))
 ;; (keymap-global-set "C-S-v" #'scroll-other-window)
 ;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-v is not M-V
 
@@ -175,7 +175,7 @@
 ;; C-o / C-M-o -> `open-line' / `split-line'
 ;; M-j / C-M-j -> `default-indent-new-line'
 ;; C-x ESC ESC -> `repeat-complex-command'
-(keymap-global-set "M-=" #'count-words)
+(keymap-global-set "M-=" nil) ; `count-words-region'
 (keymap-global-set "M-z" #'zap-up-to-char)
 ;; M-SPC -> `cycle-spacing'
 ;; M-m -> `back-to-indentation'
@@ -597,11 +597,6 @@
   ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
 
   :config
-  (defun xy/scratch ()
-    "Jump to the *scratch* buffer. If it does not exist, create it."
-    (interactive)
-    (switch-to-buffer "*scratch*"))
-
   (when xy/linux-p
     (defun xy/wsl-kill (start end)
       "Copy/Kill text from an Emacs buffer for pasting it into a Windows app"
@@ -625,13 +620,13 @@
   ;; ("C-x k" . #'kill-current-buffer)
   ("C-x K" . #'bury-buffer)
   ("C-x O" . #'switch-to-minibuffer)
-  ;; ("C-x l" . #'count-words)
+  ;;
+  ("C-x l" . nil) ; `count-lines-page'
   ;;
   ("C-x x f" . #'follow-mode)
   ("C-x x G" . #'redraw-display)
   ;;
   ("C-x f" . nil)
-  ("C-x f s" . #'xy/scratch)
   ;;
   ("C-x j u" . #'browse-url)
   ("C-x j U" . #'browse-web))
@@ -764,10 +759,12 @@
                        (format "\n\t\t%s" desc)
                      ""))))))
        (completing-read "Features: " coll))))
+
   (defun xy/help-show-plist ()
     (interactive)
     (require 'apropos)
     (apropos-describe-plist (symbol-at-point)))
+
   (defun xy/set-variable ()
     "Like \\[set-variable] but also run :set property of user options
 
@@ -816,6 +813,16 @@ makes it easier to edit it."
             (set var val))
         (eval `(setopt ,var ,val)))))
 
+  (defun xy/open-scratch-buffer ()
+    "Jump to the *scratch* buffer. If it does not exist, create it."
+    (interactive)
+    (switch-to-buffer "*scratch*"))
+
+  (defun xy/count-pages ()
+    "Combine `what-page' and `count-lines-page'"
+    (interactive)
+    (apply #'message `("Page %d, line %d. Page has %d line (%d + %d)" ,@(page--what-page) ,@(page--count-lines-page))))
+
   :bind (;; @see `help-map'
          ("C-h C-h" . nil)
          ("C-h ?" . #'help-for-help)
@@ -844,6 +851,10 @@ makes it easier to edit it."
          ("C-h S" . #'info-lookup-symbol)
          ("C-h F" . #'Info-goto-emacs-command-node)
          ("C-h K" . #'Info-goto-emacs-key-command-node)
+         ;; ("C-h P" . nil) ; `describe-package'
+         ;; ("C-h L" . nil) ; `describe-language-environment'
+         ;; ("C-h C" . nil) ; `describe-coding-system'
+         ;; ("C-h I" . nil) ; `describe-input-method'
          ;;
          ("C-h a" . nil) ; `apropos-command'
          ("C-h a a" . #'apropos)
@@ -869,47 +880,51 @@ makes it easier to edit it."
          ("C-h d w" . #'describe-widget) ; or "C-u C-h ."
          ("C-h d b" . #'button-describe)
          ("C-h d W" . #'widget-describe)
-         ("C-h d I" . #'describe-input-method)
-         ("C-h d l" . #'describe-language-environment)
          ("C-h d p" . #'describe-text-properties)
-         ("C-h d C" . #'describe-coding-system)
          ("C-h d y" . #'cl-describe-type)
-         ;;
+         ("C-h d L" . #'describe-language-environment)
+         ("C-h d C" . #'describe-coding-system)
+         ("C-h d I" . #'describe-input-method)
+         ;; view
          ("C-h h" . nil) ; `view-hello-file'
          ("C-h h q" . #'view-emacs-FAQ)
          ("C-h h p" . #'view-emacs-problems)
          ("C-h h n" . #'view-emacs-news)
          ("C-h h t" . #'view-emacs-todo)
          ("C-h h d" . #'view-emacs-debugging)
-         ;;
+         ;; where
          ("C-h w" . nil) ; `where-is'
          ("C-h w c" . #'where-is)
          ("C-h w k" . #'describe-key-briefly)
-         ;;
+         ;; doc
          ("C-h o" . nil) ; `describe-symbol'
          ("C-h o s" . #'shortdoc)
-         ("C-h o t" . #'help-with-tutorial)
-         ;;
+         ;; echo
          ("C-h e" . nil) ; `view-echo-area-messages' or click echo area
          ("C-h e e" . #'view-echo-area-messages)
          ("C-h e l" . #'view-lossage)
-         ;;
+         ("C-h e w" . #'count-words)
+         ("C-h e W" . #'count-words-region)
+         ("C-h e p" . #'xy/count-pages)
+         ;; library
          ("C-h l" . nil) ; `view-lossage'
          ("C-h l l" . #'xy/loaded-feature)
          ("C-h l u" . #'unload-feature)
          ;;
+         ;; NOTE: safe keys: j u y z
+         ;;
+         ;; jump
+         ("C-h j t" . #'help-with-tutorial)
+         ("C-h j s" . #'xy/open-scratch-buffer)
+         ;; user
          ("C-h u f" . #'add-file-local-variable)
          ("C-h u d" . #'add-dir-local-variable)
          ("C-h u c" . #'xy/set-variable)
          ("C-h u p" . #'xy/help-show-plist)
          ;;
-         ;; j u y z
          ("C-h t" . nil) ; `help-with-tutorial'
          ("C-h g" . nil) ; `describe-gnu-project'
          ("C-h q" . nil) ; `help-quit'
-         ("C-h C" . nil) ; `describe-input-method'
-         ("C-h I" . nil) ; `describe-coding-system'
-         ("C-h P" . nil) ; `describe-package'
          ;;
          ("C-h C-a" . #'about-emacs)
          ("C-h C-q" . #'help-quick-toggle)
