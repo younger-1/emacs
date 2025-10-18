@@ -3640,7 +3640,7 @@ word.  Fall back to regular `expreg-expand'."
          ("M-P" . puni-barf-forward)
          ("M-U" . puni-slurp-backward)
          ("M-D" . puni-barf-backward)
-         ("M-L" . puni-splice)
+         ("M-L" . xy/puni-splice)
          ("M-R" . puni-raise)
          ("M-S" . puni-split)
          ;;
@@ -3653,7 +3653,13 @@ word.  Fall back to regular `expreg-expand'."
   ;; (add-hook 'term-mode-hook #'puni-disable-puni-mode)
   (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook eval-expression-minibuffer-setup-hook))
     (add-hook hook #'puni-mode))
-  (setq puni-blink-pulse-delay 0.1))
+  (setq puni-blink-pulse-delay 0.1)
+  (defun xy/puni-splice (arg)
+    (interactive "p")
+    (pcase arg
+      (4 (puni-splice-killing-backward))
+      (16 (puni-splice-killing-forward))
+      (_ (puni-splice)))))
 
 ;; (use-package awesome-pair
 ;;   :vc ( :url "https://github.com/manateelazycat/awesome-pair"
