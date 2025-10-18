@@ -408,13 +408,6 @@
   ;; (setq fast-but-imprecise-scrolling t)
   ;; (setq jit-lock-defer-time 0.05)
 
-  ;; mouse
-  ;; (setq mouse-autoselect-window t)
-  ;; Only temporarily active regions set the primary selection
-  (setq select-active-regions 'only)
-  ;; (setq mouse-drag-copy-region t)
-  (setq mouse-yank-at-point t)
-
   ;; limit
   (setq large-file-warning-threshold (* 64 1024 1024)) ; 10m -> 64m
   (setq read-process-output-max (* 1024 1024)) ; 4k -> 1m
@@ -589,9 +582,6 @@
   (emacs-startup . size-indication-mode) ; modeline
   ;; (emacs-startup . pixel-scroll-precision-mode)
   (emacs-startup . delete-selection-mode)
-  (emacs-startup . window-divider-mode)
-  (emacs-startup . undelete-frame-mode)
-  ;; (emacs-startup . context-menu-mode)
   (emacs-startup . global-display-fill-column-indicator-mode)
   (before-save . delete-trailing-whitespace)
   ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
@@ -1281,8 +1271,8 @@ makes it easier to edit it."
   ;; minibuffer UX
   (setq use-short-answers t)
   ;; Disable GUIs because they are inconsistent across systems, desktop environments, and themes, and they don't match the look of Emacs.
+  ;; (setq use-dialog-box nil)
   (setq use-file-dialog nil)
-  (setq use-dialog-box nil)
   (setq resize-mini-windows 'grow-only))
 
 (use-package nerd-icons-completion
@@ -2315,6 +2305,53 @@ makes it easier to edit it."
 
 
 ;;; ui
+(use-core frame
+  :hook
+  (emacs-startup . undelete-frame-mode) ; C-x 5 u -> `undelete-frame'
+  (emacs-startup . window-divider-mode)
+  :config
+  (setopt window-divider-default-places t
+          window-divider-default-right-width 1
+          window-divider-default-bottom-width 1))
+
+(use-core mouse
+  ;; :hook
+  ;; (emacs-startup . context-menu-mode)
+  :config
+  ;; (setq mouse-autoselect-window t)
+  ;; Only temporarily active regions set the primary selection
+  (setq select-active-regions 'only)
+  ;; (setq mouse-drag-copy-region t)
+  (setq mouse-yank-at-point t)
+
+  (setq context-menu-functions '(context-menu-undo
+                                 context-menu-region
+                                 context-menu-middle-separator
+                                 ;; context-menu-toolbar
+                                 ;; context-menu-global
+                                 context-menu-local
+                                 context-menu-minor
+                                 ;; context-menu-buffers
+                                 context-menu-project
+                                 context-menu-vc
+                                 context-menu-ffap
+                                 hi-lock-context-menu
+                                 occur-context-menu
+                                 Man-context-menu
+                                 dictionary-context-menu))
+
+  (setq dnd-indicate-insertion-point t
+        dnd-scroll-margin 3
+        mouse-drag-and-drop-region 'control
+        mouse-drag-and-drop-region-cut-when-buffers-differ t
+        mouse-drag-and-drop-region-cross-program t))
+
+;; Better mouse-buffer-menu
+(use-core msb
+  :defer 0.5
+  :bind ("C-c t m" . msb-mode)
+  :config (msb-mode +1))
+
 (use-package tab-line
   :ensure nil
   :hook
