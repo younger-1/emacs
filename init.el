@@ -2447,6 +2447,17 @@ makes it easier to edit it."
   (breadcrumb-mode +1)
   (setq breadcrumb-imenu-crumb-separator " "))
 
+(use-package sideline
+  :defer 1
+  :config
+  (global-sideline-mode +1))
+
+(use-package sideline-load-cost
+  :vc ( :url "https://github.com/emacs-sideline/sideline-load-cost"
+        :rev :newest)
+  :init
+  (setq sideline-backends-right '(sideline-load-cost)))
+
 
 ;;; util
 (use-core editorconfig
@@ -3594,6 +3605,15 @@ word.  Fall back to regular `expreg-expand'."
   ("C-h z v" . #'elisp-refs-variable)
   ("C-h z o" . #'elisp-refs-symbol)
   ("C-h z s" . #'elisp-refs-special))
+
+;; Evaluation Result OverlayS for Emacs Lisp.
+(use-package eros
+  ;; :bind
+  ;; ("C-c e r" . #'eros-eval-last-sexp)
+  ;; ("C-c e R" . #'eros-eval-defun)
+  :defer 1
+  :config
+  (eros-mode +1))
 
 ;; (use-package paredit
 ;;   :hook (lisp-data-mode eval-expression-minibuffer-setup)
