@@ -482,7 +482,7 @@
   ;; cursor
   (setq-default cursor-type 'box)
   (setq x-stretch-cursor t)
-  (blink-cursor-mode -1)
+  ;; (blink-cursor-mode -1)
 
   ;; edit
   ;; (setq undo-no-redo t)
@@ -566,8 +566,8 @@
 ;;; hooks and keymaps
 (use-core emacs
   :init
-  ;; (show-paren-mode +1) ;; default
-  ;; (electric-indent-mode +1) ;; default
+  ;; (show-paren-mode +1) ;; @default
+  ;; (electric-indent-mode +1) ;; @default
   ;; Pair everywhere, include minibuffer
   (electric-pair-mode +1)
   (global-subword-mode +1)
@@ -2241,6 +2241,19 @@ makes it easier to edit it."
 
 ;;; project
 ;; `project-prefix-map'
+(use-core project
+  :config
+  (setq project-mode-line t))
+
+(use-package disproject
+  :bind (("C-x P" . disproject-dispatch)))
+
+(use-package projection
+  :defer 1
+  :hook (compilation-mode . projection-customize-compilation-mode)
+  :bind-keymap ("C-c P" . projection-map)
+  :config
+  (global-projection-hook-mode +1))
 
 ;; Find file/directory and review Diff/Patch/Commit under any VSC
 (use-package find-file-in-project
@@ -2277,16 +2290,6 @@ makes it easier to edit it."
   (setq projectile-auto-cleanup-known-projects t)
   (setq projectile-project-search-path
         '("~/dotter/" "~/notes/" "~/project/" "~/work/" ("~/src/" . 2))))
-
-(use-package disproject
-  :bind (("C-x P" . disproject-dispatch)))
-
-(use-package projection
-  :defer 1
-  :hook (compilation-mode . projection-customize-compilation-mode)
-  :bind-keymap ("C-c P" . projection-map)
-  :config
-  (global-projection-hook-mode +1))
 
 
 ;;; appearance
@@ -2431,6 +2434,12 @@ makes it easier to edit it."
 ;;   :defer 1
 ;;   :config
 ;;   (mini-echo-mode +1))
+
+;; Print current function in mode/head line
+(use-core which-func
+  :after imenu :demand t
+  :config
+  (which-function-mode +1))
 
 (use-package breadcrumb
   :defer 1
@@ -2716,7 +2725,15 @@ word.  Fall back to regular `expreg-expand'."
     (dolist (pattern '(("Builtin Packages" "^(use-core \\(.+\\)$" 1)
                        ("Features" "^\\s-*(\\(?:use-feature\\|eval-after-load\\|with-eval-after-load\\)\\s-+\\(.+\\)" 1)
                        ("Sections" "^;;; \\(.+\\)$" 1)))
-      (add-to-list 'lisp-imenu-generic-expression pattern))))
+      (add-to-list 'lisp-imenu-generic-expression pattern)))
+  :config
+  ;; (setq imenu-flatten 'group)
+  (setq imenu-flatten 'prefix
+        imenu-level-separator "::")
+
+  ;; Add an Imenu "Index" entry on the menu bar
+  (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
+    (add-hook hook #'imenu-add-menubar-index)))
 
 (use-package imenu-list
   :bind
@@ -2727,16 +2744,28 @@ word.  Fall back to regular `expreg-expand'."
   (setq imenu-list-auto-resize t))
 
 ;; (info "(emacs) Programming Language Doc")
-(use-package eldoc
-  :ensure nil
+(use-core eldoc
   :init
-  ;; (global-eldoc-mode +1) ;; default
+  ;; (global-eldoc-mode +1) ;; @default
   ;; :hook
   ;; (prog-mode . eldoc-mode)
   :bind ("C-h ." . #'eldoc-doc-buffer)
   :config
+  (setq eldoc-idle-delay 0.3)
   ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-  (setq eldoc-minor-mode-string nil))
+  (setq eldoc-minor-mode-string nil)
+
+  ;; https://emacs-china.org/t/elisp-eldoc/7571
+  ;; Eldoc 对函数默认只显示参数列表，让其显示函数文档
+  (define-advice elisp-get-fnsym-args-string (:around (orig-fun sym &rest r) docstring)
+    "If SYM is a function, append its docstring."
+    (concat
+     (apply orig-fun sym r)
+     (let* ((doc (and (fboundp sym) (documentation sym 'raw)))
+            (oneline (and doc (substring doc 0 (string-match "\n" doc)))))
+       (and oneline
+            (concat "  |  " (propertize oneline 'face 'italic))))))
+  )
 
 (use-package eldoc-box
   :after eldoc
