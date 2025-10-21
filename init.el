@@ -487,8 +487,11 @@
   ;; edit
   ;; (setq undo-no-redo t)
   ;; (setq next-line-add-newlines t)
+  (setq-default comment-column 0)
   (setq comment-empty-lines t)
   ;; (setq comment-multi-line t)
+  ;; (setq comment-style 'multi-line)
+  (setq open-paren-in-column-0-is-defun-start nil)
   (setq-default fill-column 80)
   ;; Disable the obsolete practice of end-of-line spacing from the typewriter era.
   (setq sentence-end-double-space nil)
@@ -1463,11 +1466,12 @@ makes it easier to edit it."
   (with-eval-after-load 'consult-imenu
     (add-to-list 'consult-imenu-config
                  '(emacs-lisp-mode :toplevel "Functions"
-                                   :types ((?b "Builtin Packages")
-                                           (?l "Features")
-                                           (?s "Sections")
+                                   :types ((?o "Options"   font-lock-doc-face)
+                                           (?b "Builtin Packages" font-lock-builtin-face)
+                                           (?l "Features"  font-lock-string-face)
+                                           (?s "Sections"  font-lock-comment-face)
                                            (?f "Functions" font-lock-function-name-face)
-                                           (?m "Macros"    font-lock-function-name-face)
+                                           (?m "Macros"    font-lock-keyword-face)
                                            (?p "Packages"  font-lock-constant-face)
                                            (?t "Types"     font-lock-type-face)
                                            (?v "Variables" font-lock-variable-name-face)))))
@@ -2506,9 +2510,10 @@ makes it easier to edit it."
 (use-package persistent-scratch
   :defer 0.5
   :bind ( :map persistent-scratch-mode-map
-          ([remap kill-buffer] . (lambda (&rest _)
-                                   (interactive)
-                                   (user-error "[xy] scratch buffer cannot be killed")))
+          ;; TODO: use `kill-buffer-query-functions'
+          ;; ([remap kill-buffer] . (lambda (&rest _)
+          ;;                          (interactive)
+          ;;                          (user-error "[xy] scratch buffer cannot be killed")))
           ([remap revert-buffer] . persistent-scratch-restore)
           ([remap revert-this-buffer] . persistent-scratch-restore))
   :hook (lisp-interaction-mode)
@@ -2733,7 +2738,8 @@ word.  Fall back to regular `expreg-expand'."
   :init
   ;; imenu support for `use-core', `use-feature', `with-eval-after-load'
   (with-eval-after-load 'lisp-mode
-    (dolist (pattern '(("Builtin Packages" "^(use-core \\(.+\\)$" 1)
+    (dolist (pattern '(("Options" "^\\s-*(defcustom\\s-+\\(.+\\)" 1)
+                       ("Builtin Packages" "^(use-core \\(.+\\)$" 1)
                        ("Features" "^\\s-*(\\(?:use-feature\\|eval-after-load\\|with-eval-after-load\\)\\s-+\\(.+\\)" 1)
                        ("Sections" "^;;; \\(.+\\)$" 1)))
       (add-to-list 'lisp-imenu-generic-expression pattern)))
@@ -3255,6 +3261,11 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; outline
+;; @tip C-x $ -> `set-selective-display'
+
+(use-core hideshow
+  :bind ("C-c t h" . hs-minor-mode))
+
 ;; Automatically reveal hidden text at point
 (use-core reveal
   :hook (hs-minor-mode outline-minor-mode)
@@ -3281,6 +3292,7 @@ word.  Fall back to regular `expreg-expand'."
 (use-core outline
   ;; :hook
   ;; (emacs-lisp-mode . outline-minor-mode)
+  :bind ("C-c t o" . outline-minor-mode)
   :config
   ;; @tip Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
   ;; @tip RET at beginning of headers line trigger `outline-cycle'. And for S-RET:
