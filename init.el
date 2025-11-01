@@ -2081,21 +2081,27 @@ makes it easier to edit it."
 ;; (use-package window-x
 ;;   :bind ("C-x 4 t" . #'rotate-windows))
 
+;; FIXME: not compatible with which-key and sidebar (imenu-list)
 (use-package zoom
   :defer 0.5
   :bind
+  ("C-x w z" . zoom)
   ("C-c t z" . zoom-mode)
   ("C-c t Z" . #'xy/toggle-zoom-size)
   :config
-  (zoom-mode +1)
+  (setq zoom-ignored-major-modes '(dired-mode))
+  (setq zoom-ignored-buffer-names '(" *which-key*"))
+  (setq zoom-ignored-buffer-name-regexps '("^*calc"))
+  (setq zoom-ignore-predicates '((lambda () (< (count-lines (point-min) (point-max)) 20))))
+  ;; (zoom-mode +1)
   (defun xy/toggle-zoom-size ()
     (interactive)
-    (if (equal zoom-size zoom-size-default)
-        (setq zoom-size xy/zoom-size)
-      (setq zoom-size zoom-size-default)))
-  (setq zoom-size-default zoom-size)
-  (defvar xy/zoom-size '(0.618 . 0.618))
-  (xy/toggle-zoom-size))
+    (if (equal zoom-size xy/golden-ratio)
+        (setq zoom-size xy/zoom-default)
+      (setq zoom-size xy/golden-ratio)))
+  (defconst xy/zoom-default zoom-size)
+  (defconst xy/golden-ratio '(0.618 . 0.618))
+  (setq zoom-size xy/golden-ratio))
 
 ;; Manage window configurations
 ;; @note `eyebrowse-keymap-prefix' is C-c C-w
@@ -2525,11 +2531,7 @@ makes it easier to edit it."
 (use-package view
   :ensure nil
   :bind
-  (("C-x C-q" . #'view-mode)
-   ("C-x x v" . #'view-buffer)
-   ("C-x 4 v" . #'view-buffer-other-window)
-   ("C-x 5 v" . #'view-buffer-other-frame)
-   ("C-x x V" . #'view-file)
+  (("C-x x v" . #'view-mode)
    :map view-mode-map
    ("q" . #'switch-to-prev-buffer))
   :config
