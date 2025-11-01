@@ -223,18 +223,18 @@
 
 ;; @tip I should practice more by using `C-]' for `abort-recursive-edit'
 ;; @see (info "(emacs) Quitting")
-(keymap-global-set "C-g" (defun xy/keyboard-quit-dwim ()
-                           "Do-What-I-Mean behaviour for a general `keyboard-quit'."
-                           (interactive)
-                           (cond
-                            ((region-active-p)
-                             (keyboard-quit))
-                            ((derived-mode-p 'completion-list-mode)
-                             (delete-completion-window))
-                            ((> (minibuffer-depth) 0)
-                             (abort-recursive-edit))
-                            (t
-                             (keyboard-quit)))))
+;; (keymap-global-set "C-g" (defun xy/keyboard-quit-dwim ()
+;;                            "Do-What-I-Mean behaviour for a general `keyboard-quit'."
+;;                            (interactive)
+;;                            (cond
+;;                             ((region-active-p)
+;;                              (keyboard-quit))
+;;                             ((derived-mode-p 'completion-list-mode)
+;;                              (delete-completion-window))
+;;                             ((> (minibuffer-depth) 0)
+;;                              (abort-recursive-edit))
+;;                             (t
+;;                              (keyboard-quit)))))
 
 ;; BUG: unfill not working because it no re-select marked region
 (keymap-global-set "M-q" (defun xy/fill-or-unfill ()
@@ -266,7 +266,7 @@
       ;; (setq exec-path (split-string path-from-shell path-separator))
       (dolist (path (split-string path-from-shell path-separator))
         (add-to-list 'exec-path path))))
-  (add-hook 'emacs-startup-hook 'xy/set-exec-path-from-shell-PATH))
+  (add-hook 'emacs-startup-hook #'xy/set-exec-path-from-shell-PATH))
 
 (when xy/win-p
   (defconst xy/git-bin-dir (expand-file-name (file-name-concat (getenv "SCOOP") "apps/git/current/usr/bin")))
@@ -531,8 +531,8 @@
   (setq set-mark-command-repeat-pop t)
   ;; Recenter to the middle of the window for `compile-goto-error', `wgrep', `embark-export'.
   (setq next-error-recenter '(4))
-  ;; (setq next-error-message-highlight 'keep)
-  ;; (setq list-matching-lines-jump-to-current-line t)
+  ;; (setq next-error-message-highlight t)
+  (setq list-matching-lines-jump-to-current-line t)
   ;; By default, emacs "updates" its ui more often than it needs to
   (setq idle-update-delay 1.0)
   ;; `files.el'
@@ -590,6 +590,7 @@
   ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
 
   :config
+  (add-to-list 'global-display-fill-column-indicator-modes '(not calc-mode calc-trail-mode))
   (when xy/linux-p
     (defun xy/wsl-kill (start end)
       "Copy/Kill text from an Emacs buffer for pasting it into a Windows app"
@@ -710,7 +711,7 @@
   ("C-c x M" . benchmark-init/show-durations-tabulated)
   :config
   ;; To disable collection of benchmark data after init is done.
-  (add-hook 'after-init-hook 'benchmark-init/deactivate))
+  (add-hook 'after-init-hook #'benchmark-init/deactivate))
 
 (use-package bug-hunter
   :bind ("C-c x b" . bug-hunter-init-file))
@@ -2749,7 +2750,7 @@ word.  Fall back to regular `expreg-expand'."
         imenu-level-separator "::")
 
   ;; Add an Imenu "Index" entry on the menu bar
-  (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
+  (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook magit-status-mode-hook))
     (add-hook hook #'imenu-add-menubar-index)))
 
 (use-package imenu-list
@@ -2799,6 +2800,10 @@ word.  Fall back to regular `expreg-expand'."
   :config
   (setq eldoc-box-clear-with-C-g t))
 
+;; (use-package eldoc-mouse
+;;   :hook (eglot-managed-mode)
+;;   :bind ("C-h ;" . eldoc-mouse-pop-doc-at-cursor))
+
 ;; @tip
 ;; M-. / M-, -> `xref-find-definitions' / `xref-go-back'
 ;; C-M-. / C-M-, -> `xref-find-apropos' / `xref-go-forward'
@@ -2813,18 +2818,41 @@ word.  Fall back to regular `expreg-expand'."
         xref-show-xrefs-function 'xref-show-definitions-completing-read)
   (setq xref-history-storage 'xref-window-local-history))
 
-(use-package flymake
-  :ensure nil
-  ;; :hook (emacs-lisp-mode)
-  :bind (("C-x j m" . flymake-mode)
+(use-core flymake
+  :hook (emacs-lisp-mode)
+  :bind (("C-c j m" . flymake-mode)
          :map flymake-mode-map
-         ("C-x j n" . flymake-goto-next-error)
-         ("C-x j p" . flymake-goto-prev-error)
-         ("C-x j e" . flymake-show-buffer-diagnostics)
-         ("C-x j E" . flymake-show-project-diagnostics))
+         ("C-c j n" . flymake-goto-next-error)
+         ("C-c j p" . flymake-goto-prev-error)
+         ("C-c j e" . flymake-show-buffer-diagnostics)
+         ("C-c j E" . flymake-show-project-diagnostics))
   :config
-  ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
-  (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+  ;; (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake)
+  ;; In-buffer display
+  ;; (setq flymake-show-diagnostics-at-end-of-line 'fancy) ; TODO: emacs31
+  (setq flymake-show-diagnostics-at-end-of-line 'short)
+  ;; Indicator display
+  ;; (setq flymake-indicator-type 'margins)
+  (setq flymake-fringe-indicator-position 'right-fringe)
+  (setq flymake-margin-indicator-position 'right-margin))
+
+(use-package flymake-collection
+  :after flymake :demand t
+  :bind ("C-c j c" . flymake-collection-change-checker)
+  :config
+  (flymake-collection-hook-setup)
+  ;; TODO: backend for all major-mode
+  ;; (add-to-list 'flymake-collection-hook-config
+  ;;              '(t . ((hl-todo-flymake :disabled t))))
+  (add-to-list 'flymake-collection-hook-config
+               '(emacs-lisp-mode . ((elisp-flymake-checkdoc :disabled t)))))
+
+;; (use-package flymake-diagnostic-at-point
+;;   :hook (flymake-mode . flymake-diagnostic-at-point-mode))
+
+;; Display Flycheck and Flymake errors with overlays
+;; (use-package flyover
+;;   :hook (flymake-mode))
 
 ;; (use-package flycheck
 ;;   :defer 1
@@ -2853,7 +2881,7 @@ word.  Fall back to regular `expreg-expand'."
 ;; Highlight delimiters such as parentheses, brackets or braces according to their depth
 (use-package rainbow-delimiters
   :init
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 ;; Highlight identifiers based on hash of names
 (use-package rainbow-identifiers
@@ -2974,9 +3002,7 @@ word.  Fall back to regular `expreg-expand'."
   ;; To highlight TODO keywords in Magit
   (with-eval-after-load 'magit
     (add-hook 'magit-log-wash-summary-hook #'hl-todo-search-and-highlight t)
-    (add-hook 'magit-revision-wash-message-hook #'hl-todo-search-and-highlight t))
-  (with-eval-after-load 'flymake
-    (add-hook 'flymake-diagnostic-functions #'hl-todo-flymake)))
+    (add-hook 'magit-revision-wash-message-hook #'hl-todo-search-and-highlight t)))
 
 (use-package magit-todos
   :after magit-status :demand t
