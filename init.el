@@ -1392,7 +1392,6 @@ makes it easier to edit it."
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
-         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
          ("M-g k" . consult-global-mark)
@@ -1801,6 +1800,34 @@ makes it easier to edit it."
   :vc ( :url "https://github.com/positron-solutions/transient-showcase"
         :rev :newest)
   :bind ("C-h t s" . tsc-showcase))
+
+;; A collection of Transient menus for various built-in Emacs modes
+(use-package casual
+  :bind (("C-o" . casual-editkit-main-tmenu)
+         :map calc-mode-map
+         ("M-m" . casual-calc-tmenu)
+         :map isearch-mode-map
+         ("M-m" . casual-isearch-tmenu)
+         :map Info-mode-map
+         ("M-m" . casual-info-tmenu))
+  :init
+  (with-eval-after-load 'dired
+    (keymap-set dired-mode-map "M-m" #'casual-dired-tmenu))
+  (with-eval-after-load 'ibuffer
+    (keymap-set ibuffer-mode-map "M-m" #'casual-ibuffer-tmenu)
+    (keymap-set ibuffer-mode-map "F" #'casual-ibuffer-filter-tmenu)
+    (keymap-set ibuffer-mode-map "s" #'casual-ibuffer-sortby-tmenu))
+  ;; Ediff
+  (keymap-global-set "C-c d d" #'casual-ediff-revision)
+  (with-eval-after-load 'ediff
+    (casual-ediff-install) ; run this to enable Casual Ediff
+    (add-hook 'ediff-keymap-setup-hook (lambda () (keymap-set ediff-mode-map "M-m" #'casual-ediff-tmenu))))
+  :config
+  ;; (setq casual-lib-use-unicode t)
+  (keymap-set reb-mode-map "M-m" #'casual-re-builder-tmenu)
+  (keymap-set reb-lisp-mode-map "M-m" #'casual-re-builder-tmenu)
+  (keymap-set bookmark-bmenu-mode-map "M-m" #'casual-bookmarks-tmenu)
+  (keymap-set org-agenda-mode-map "M-m" #'casual-agenda-tmenu))
 
 (use-package evil
   :defer 0.5
@@ -2610,6 +2637,7 @@ makes it easier to edit it."
     ";" #'goto-last-change
     "," #'goto-last-change-reverse))
 
+;; Jump to visible text using a char-based decision tree
 (use-package avy
   :chords
   ("jk" . avy-goto-char-timer)
@@ -2627,6 +2655,9 @@ makes it easier to edit it."
   :after avy :demand t
   :config
   (ace-pinyin-global-mode +1))
+
+(use-package casual-avy
+  :bind ("M-g SPC" . casual-avy-tmenu))
 
 (use-package binky
   :init
@@ -2970,6 +3001,11 @@ word.  Fall back to regular `expreg-expand'."
   ;;
   (setq symbol-overlay-idle-time 0.2))
 
+(use-package casual-symbol-overlay
+  :bind ( :map symbol-overlay-map
+          ("C-o" . casual-symbol-overlay-tmenu)))
+
+;; TODO: navi map not compatible with evil-mode
 (use-package region-occurrences-highlighter
   :defer 0.6
   :bind ( :map region-occurrences-highlighter-nav-mode-map
