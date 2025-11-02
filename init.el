@@ -377,7 +377,7 @@
   ;; (setq-default tab-width 4)
   ;; TAB key for indentation+completion. `completion-at-point' is often bound to M-TAB.
   (setq tab-always-indent 'complete)
-  (setq backward-delete-char-untabify-method 'hungry)
+  (setq backward-delete-char-untabify-method 'all)
 
   ;; mark
   (setq mark-even-if-inactive nil)
@@ -790,11 +790,11 @@ makes it easier to edit it."
            (ov (if (custom-variable-p var) "option" "variable"))
            (minibuffer-help-form `(describe-variable ',var))
            (scope (cond ((local-variable-p var)
-			 "(buffer-local)")
-			((or current-prefix-arg
-			     (local-variable-if-set-p var))
-			 "buffer-locally")
-		        (t "globally")))
+                         "(buffer-local)")
+                        ((or current-prefix-arg
+                             (local-variable-if-set-p var))
+                         "buffer-locally")
+                        (t "globally")))
            (prompt (format "Set %s %s %s to value: " ov var scope))
            (val (read-from-minibuffer prompt nil
                                       read-expression-map t
@@ -1443,7 +1443,8 @@ makes it easier to edit it."
 
   ;; TODO: https://arialdomartini.github.io/consult-line-at-point
   ;; @see https://www.reddit.com/r/emacs/comments/1jwk4dg/consultlinesymbolatpoint/
-  (consult-customize consult-line consult-focus-lines
+  (consult-customize
+   consult-line consult-focus-lines
    :add-history (seq-some #'thing-at-point '(region symbol)))
 
   ;; Smart recenter: buffer is recentered only if you jump to match outside of current view
@@ -1453,9 +1454,8 @@ makes it easier to edit it."
     "Maybe recenter current window if point is outside of visible region."
     (when xy/prev-position
       (set-window-start (selected-window) xy/prev-position))
-    (when (or
-        (< (point) (window-start))
-        (> (point) (window-end (selected-window) t)))
+    (when (or (< (point) (window-start))
+              (> (point) (window-end (selected-window) t)))
       (recenter))
     (setq lazy/consult-prev-position (window-start)))
   (setq consult-after-jump-hook '(xy/consult-maybe-recenter))
@@ -2735,6 +2735,23 @@ word.  Fall back to regular `expreg-expand'."
   ;;
   (setq separedit-default-mode 'markdown-mode))
 
+;; Keeps your code always indented. It reindents after every change
+;; e.g. shifting blocks around, transposing lines, or slurping and barfing sexps
+;; (use-package aggressive-indent
+;;   :defer 1
+;;   :config (global-aggressive-indent-mode +1))
+
+;; Automatic indentation (and optional formatting) when yanking/pasting text
+;; (use-package snap-indent
+;;   :hook (prog-mode . snap-indent-mode)
+;;   :config
+;;   (setq snap-indent-format '(untabify delete-trailing-whitespace))
+;;   (setq snap-indent-on-save nil)
+;;   (setq snap-indent-skip-on-prefix-arg t))
+
+(use-package indentinator
+  :hook (prog-mode . indentinator-mode))
+
 
 ;;; prog
 (use-core imenu
@@ -2814,7 +2831,7 @@ word.  Fall back to regular `expreg-expand'."
   :ensure nil
   :config
   (when (executable-find "rg")
-        (setq xref-search-program 'ripgrep))
+    (setq xref-search-program 'ripgrep))
   ;; Use completion system instead of popup window.
   (setq xref-show-definitions-function 'xref-show-definitions-completing-read
         xref-show-xrefs-function 'xref-show-definitions-completing-read)
@@ -3262,9 +3279,9 @@ word.  Fall back to regular `expreg-expand'."
 
   (defun xy/git-link-byted (hostname dirname filename branch commit start end)
     (format "%s/%s/blob/%s/%s"
-	    hostname
-	    dirname
-	    (or branch commit)
+            hostname
+            dirname
+            (or branch commit)
             (concat filename
                     (when start
                       (concat "#"
@@ -3608,6 +3625,7 @@ word.  Fall back to regular `expreg-expand'."
          ("M-B" . #'xy/backward-symbol))
   :config
   ;; 󰊾 󰕅 󰈍  󰉡 󰝖 󱡠 󰷐      󰓷     󰗁 󱗛  󰈸    󰍐 󰟙 󰍒  󰙑 󰘨 󰌕 󱍵 󰫍 󰕳    󰌱 󱇚 󰜅     
+  ;; (setq lisp-prettify-symbols-alist nil)
   (add-to-list 'lisp-prettify-symbols-alist '("defun" . ?󰡱))
   (add-to-list 'lisp-prettify-symbols-alist '("defmacro" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("defvar" . ?󰓏))
@@ -3615,10 +3633,10 @@ word.  Fall back to regular `expreg-expand'."
   (add-to-list 'lisp-prettify-symbols-alist '("defcustom" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("defface" . ?))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("setq" . ?))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("if" . ?󰞀))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("when" . ? ))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("unless" . ? ))
   (add-to-list 'lisp-prettify-symbols-alist '("add-hook" . ?󰛢))
-  (add-to-list 'lisp-prettify-symbols-alist '("if" . ?󰞀))
-  (add-to-list 'lisp-prettify-symbols-alist '("when" . ? ))
-  (add-to-list 'lisp-prettify-symbols-alist '("unless" . ? ))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("add-to-list" . ?󰾹))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("push" . ?󰕕))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("load" . ?))
@@ -3866,8 +3884,8 @@ word.  Fall back to regular `expreg-expand'."
   (setq gofmt-command "goimports")
 
   (add-hook 'go-mode-hook (lambda ()
-                     (setq-local tab-width 4)
-                     (add-hook 'before-save-hook #'gofmt-before-save nil t))))
+                            (setq-local tab-width 4)
+                            (add-hook 'before-save-hook #'gofmt-before-save nil t))))
 
 ;; Edit struct field tag
 (use-package go-tag
