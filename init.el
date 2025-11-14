@@ -318,10 +318,6 @@
      :ensure nil
      ,@args))
 
-;; Support :chords keyword for `key-chord-mode'
-(use-package use-package-chords
-  :demand t)
-
 
 ;;; startup frame and screen
 (use-core emacs
@@ -1342,7 +1338,7 @@ makes it easier to edit it."
           (consult-line buffer)
           ;; (consult-imenu reverse buffer)
           (execute-extended-command-for-buffer (:not indexed mouse))))
-  (setq vertico-multiform-categories ; categories at `marginalia-annotator-registry'
+  (setq vertico-multiform-categories ; categories at `marginalia-annotators'
         '((file buffer)
           (project-file buffer)
           (buffer buffer)
@@ -1506,7 +1502,7 @@ makes it easier to edit it."
 ;; 1.provide classifiers for embark
 ;; -- `marginalia-classifiers'
 ;; 2.provide annotators for minibuffer
-;; -- `marginalia-annotator-registry'
+;; -- `marginalia-annotators'
 ;; -- `marginalia--symbol-class'
 (use-package marginalia
   :after vertico :demand t
@@ -1524,7 +1520,7 @@ makes it easier to edit it."
       (concat (propertize " " 'display '(space :align-to center))
               (propertize "The quick brown fox jumps over the lazy dog" 'face sym))))
 
-  (add-to-list 'marginalia-annotator-registry
+  (add-to-list 'marginalia-annotators
                '(face marginalia-annotate-face xy/face-annotator builtin none)))
 
 ;; Emacs Mini-Buffer Actions Rooted in Keymaps
@@ -1753,6 +1749,10 @@ makes it easier to edit it."
   (setq which-key-use-C-h-commands t)
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-sort-uppercase-first nil))
+
+;; Support :chords keyword for `key-chord-mode'
+(use-package use-package-chords
+  :demand t)
 
 ;; @note Key chord mode uses `input-method-function'. And so do internationalisation packages (mule, quail, etc). Do not expect them to work well together.
 (use-package key-chord
