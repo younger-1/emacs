@@ -907,6 +907,7 @@ makes it easier to edit it."
          ("C-h j t" . #'help-with-tutorial)
          ("C-h j s" . #'xy/open-scratch-buffer)
          ;; user
+         ("C-h u" . nil) ; `apropos-user-option`
          ("C-h u f" . #'add-file-local-variable)
          ("C-h u d" . #'add-dir-local-variable)
          ("C-h u c" . #'xy/set-variable)

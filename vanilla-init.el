@@ -313,6 +313,7 @@
          ("C-h o" . nil) ; `describe-symbol'
          ("C-h o s" . #'shortdoc)
          ;;
+         ("C-h u" . nil) ; `apropos-user-option`
          ("C-h u f" . #'add-file-local-variable)
          ("C-h u d" . #'add-dir-local-variable)
          ("C-h u l" . #'xy/loaded-feature)

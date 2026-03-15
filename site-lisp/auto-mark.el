@@ -1,4 +1,4 @@
-;;; auto-mark.el --- Mark automatically
+;;; auto-mark.el --- Mark automatically  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008  MATSUYAMA Tomohiro
 
