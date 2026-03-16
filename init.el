@@ -1804,7 +1804,7 @@ makes it easier to edit it."
 
 ;; A collection of Transient menus for various built-in Emacs modes
 (use-package casual
-  :bind (("C-o" . casual-editkit-main-tmenu)
+  :bind (("M-m" . casual-editkit-main-tmenu)
          :map calc-mode-map
          ("M-m" . casual-calc-tmenu)
          :map isearch-mode-map
@@ -2054,7 +2054,17 @@ makes it easier to edit it."
     "List of buffer names of buffers to hide on several occasions.")
 
   ;; (setq ibuffer-use-other-window t)
-  (setq ibuffer-never-show-predicates xy/boring-buffers))
+  (setq ibuffer-never-show-predicates xy/boring-buffers)
+
+  ;; Use these keybindings to configure IBuffer to be consistent with keybindings used by Casual IBuffer
+  (keymap-set ibuffer-mode-map "{" #'ibuffer-backwards-next-marked)
+  (keymap-set ibuffer-mode-map "}" #'ibuffer-forward-next-marked)
+  (keymap-set ibuffer-mode-map "[" #'ibuffer-backward-filter-group)
+  (keymap-set ibuffer-mode-map "]" #'ibuffer-forward-filter-group)
+  (keymap-set ibuffer-mode-map "$" #'ibuffer-toggle-filter-group)
+  ;; Mouse click binding in IBuffer
+  (keymap-set ibuffer-mode-map "<double-mouse-1>" #'ibuffer-visit-buffer)
+  (keymap-set ibuffer-mode-map "M-<double-mouse-1>" #'ibuffer-visit-buffer-other-window))
 
 (use-package nerd-icons-ibuffer
   :hook (ibuffer-mode))
@@ -2927,7 +2937,8 @@ word.  Fall back to regular `expreg-expand'."
   (help-mode . hl-line-mode)
   (Info-mode . hl-line-mode)
   (dired-mode . hl-line-mode)
-  (package-menu-mode . hl-line-mode))
+  (package-menu-mode . hl-line-mode)
+  (ibuffer-mode . hl-line-mode))
 
 ;; Highlight delimiters such as parentheses, brackets or braces according to their depth
 (use-package rainbow-delimiters
@@ -3638,12 +3649,18 @@ word.  Fall back to regular `expreg-expand'."
     (add-hook 'before-save-hook #'check-parens 0 :local))
   (add-hook 'lisp-mode-hook #'xy/check-parens-before-save)
   (add-hook 'emacs-lisp-mode-hook #'xy/check-parens-before-save)
-  (defun xy/indent-buffer ()
-    "Indent the entire buffer without affecting point or mark."
-    (interactive)
-    (save-excursion
-      (save-restriction
-        (indent-region (point-min) (point-max)))))
+  (defun xy/untabify-indent-buffer (beg end)
+    "Untabify and Indent the entire buffer without affecting point or mark."
+    (interactive "r")
+    (unless (region-active-p)
+      (setq beg (point-min))
+      (setq end (point-max)))
+    (let ((mark-even-if-inactive t))
+      (unless indent-tabs-mode
+        (untabify beg end))
+      (save-excursion
+        (save-restriction
+          (indent-region beg end)))))
   (defun xy/backward-symbol (arg)
     (interactive "^p")
     (when  (numberp arg)
@@ -3656,7 +3673,7 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c e r" . #'eval-region)
          ("C-c e d" . #'edebug-defun)
          ("C-c e c" . #'check-parens)
-         ("C-c e i" . #'xy/indent-buffer)
+         ("C-c e i" . #'xy/untabify-indent-buffer)
          ;; :map lisp-mode-shared-map
          ("M-F" . #'forward-symbol)
          ("M-B" . #'xy/backward-symbol))
