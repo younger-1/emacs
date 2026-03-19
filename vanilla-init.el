@@ -207,7 +207,6 @@
     (dir-locals-set-directory-class (file-truename dir) :read-only)))
 
 (use-package server
-  :ensure nil
   :defer 1
   :config
   (setq server-use-tcp t)
@@ -353,7 +352,6 @@
          ("e" . #'end-of-buffer)))
 
 (use-package info
-  :ensure nil
   :init
   (defun xy/info-elisp () (interactive) (info "elisp"))
   (defun xy/info-eintr () (interactive) (info "eintr"))
@@ -657,7 +655,6 @@
 
 ;;; treesit
 (use-package treesit
-  :ensure nil
   :bind (("C-h o i" . treesit-inspect-mode)
          ("C-h o e" . treesit-explore-mode))
   :config
@@ -665,7 +662,6 @@
   (setq treesit-font-lock-level 4))
 
 (use-package go-ts-mode
-  :ensure nil
   :mode (("\\.go\\'" . go-ts-mode)
          ("/go\\.mod\\'" . go-mod-ts-mode))
   :config

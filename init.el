@@ -1025,8 +1025,7 @@ makes it easier to edit it."
 
 ;;; history
 ;; Pick recently visited files
-(use-package recentf
-  :ensure nil
+(use-core recentf
   :defer 0.1
   :bind
   ("C-x f r" . recentf-open)
@@ -1042,15 +1041,13 @@ makes it easier to edit it."
         recentf-max-menu-items 25))
 
 ;; Goto the last location within a file upon reopening
-(use-package saveplace
-  :ensure nil
+(use-core saveplace
   :defer 0.1
   :config
   (save-place-mode +1))
 
 ;; Save various kind of history between sessions
-(use-package savehist
-  :ensure nil
+(use-core savehist
   :defer 0.1
   :config
   ;; `completing-read' and `read-from-minibuffer'
@@ -1075,8 +1072,7 @@ makes it easier to edit it."
   (setq comint-input-ring-size (* 500 1))
   (savehist-mode +1))
 
-(use-package autorevert
-  :ensure nil
+(use-core autorevert
   :defer 0.5
   :config
   (global-auto-revert-mode +1)
@@ -1093,8 +1089,7 @@ makes it easier to edit it."
 
 
 ;;; search
-(use-package isearch
-  :ensure nil
+(use-core isearch
   :config
   ;; @tip `isearch-mode-map'
   ;; [M-s M-.] -> `isearch-forward-thing-at-point' can use active region
@@ -1215,8 +1210,7 @@ makes it easier to edit it."
 
 
 ;;; minibuffer
-(use-package minibuffer
-  :ensure nil
+(use-core minibuffer
   ;; @see `minibuffer-local-map' or (info "(emacs) Minibuffer History")
   ;; @see `minibuffer-local-completion-map'
   :config
@@ -1588,8 +1582,7 @@ makes it easier to edit it."
 
 
 ;;; completion
-;; (use-package completion-preview
-;;   :ensure nil
+;; (use-core completion-preview
 ;;   :defer 0.2
 ;;   :bind ( :map completion-preview-active-mode-map
 ;;           ("M-n" . #'completion-preview-next-candidate)
@@ -1659,8 +1652,7 @@ makes it easier to edit it."
 ;; https://www.emacswiki.org/emacs/AbbrevMode
 ;; https://www.emacswiki.org/emacs/HippieExpand
 ;; @see (info "(emacs) Dynamic Abbrevs")
-(use-package dabbrev
-  :ensure nil
+(use-core dabbrev
   ;; or (keymap-global-set "M-/" #'hippie-expand)
   ;; Swap M-/ and C-M-/
   :bind (("M-/" . dabbrev-completion)
@@ -1726,8 +1718,7 @@ makes it easier to edit it."
     "h" #'mark-defun
     "x" #'eval-defun))
 
-(use-package which-key
-  :ensure nil
+(use-core which-key
   :defer 0.3
   :bind (("C-h w d" . which-key-dump-bindings)
          ("C-h w w" . which-key-show-full-keymap)
@@ -1770,8 +1761,7 @@ makes it easier to edit it."
   (setq key-chord-typing-reset-delay 0.5) ; How long to wait after typing stops before re-enabling chord detection
   (key-chord-mode +1))
 
-;; (use-package ffap
-;;   :ensure nil
+;; (use-core ffap
 ;;   :defer 1
 ;;   :bind
 ;;   ("C-x M-f" . #'ffap-menu)
@@ -2023,15 +2013,13 @@ makes it easier to edit it."
 
 ;;; buffer
 ;; Kill old buffers at midnight
-(use-package midnight
-  :ensure nil
+(use-core midnight
   :defer 5
   :config
   (midnight-mode +1))
 
 ;; Useful to kill multiple buffers
-(use-package ibuffer
-  :ensure nil
+(use-core ibuffer
   :bind
   ("C-x C-b" . #'ibuffer-jump) ; @prefix Display ibuffer in other window
   ("C-x 4 C-b" . #'ibuffer-other-window) ; @prefix Show only file-visiting buffers
@@ -2203,8 +2191,7 @@ makes it easier to edit it."
 
 
 ;;; dired
-(use-package dired
-  :ensure nil
+(use-core dired
   :bind (("C-x d" . nil)
          ("C-x d d" . dired)
          ("C-x d j" . dired-jump)
@@ -2324,19 +2311,16 @@ makes it easier to edit it."
 
 ;; https://docs.projectile.mx/projectile/index.html
 (use-package projectile
-  :defer 0.5
-  :bind (:map projectile-mode-map
-              ;; ("C-c p" . projectile-command-map)
-              ("s-p" . projectile-command-map))
+  :bind ("s-p" . projectile-command-map)
   :config
-  ;; Also enable integration with project.el
+  ;; 1. let project.el use it to locate project by `projectile-project-root-functions'
+  ;;    @see https://docs.projectile.mx/projectile/projects.html#customizing-project-detection
+  ;; 2. provide menu bar items by `projectile-mode-map'
   (projectile-mode +1)
   ;; (setq projectile-switch-project-action #'projectile-dired)
-  ;; To persist between Emacs sessions, set to 'persistent
-  ;; (setq projectile-enable-caching t)
-  ;; (setq projectile-cache-file (expand-file-name "projectile-cache.eld" user-emacs-directory))
   (setq projectile-auto-discover t)
   (setq projectile-auto-cleanup-known-projects t)
+  ;; I use it mainly for "s-p p" -> `projectile-switch-project'
   (setq projectile-project-search-path
         '("~/dotter/" "~/notes/" "~/project/" "~/work/" ("~/src/" . 2))))
 
@@ -2406,8 +2390,7 @@ makes it easier to edit it."
   :bind ("C-c t m" . msb-mode)
   :config (msb-mode +1))
 
-(use-package tab-line
-  :ensure nil
+(use-core tab-line
   :hook
   (emacs-startup . global-tab-line-mode)
   :config
@@ -2426,8 +2409,7 @@ makes it easier to edit it."
                                (delq buffer (window-next-buffers))))))
   (setq tab-line-close-tab-function #'xy/tab-line-close-tab))
 
-(use-package tab-bar
-  :ensure nil
+(use-core tab-bar
   :hook
   (emacs-startup . tab-bar-mode)
   (emacs-startup . tab-bar-history-mode)
@@ -2440,8 +2422,7 @@ makes it easier to edit it."
   (setopt tab-bar-select-tab-modifiers '(super))
   (setopt tab-bar-tab-name-function #'tab-bar-tab-name-current-with-count))
 
-;; (use-package window-tool-bar
-;;   :ensure nil
+;; (use-core window-tool-bar
 ;;   :hook
 ;;   ;; (emacs-startup . global-window-tool-bar-mode)
 ;;   (special-mode . window-tool-bar-mode))
@@ -2485,10 +2466,10 @@ makes it easier to edit it."
 ;;   (mini-echo-mode +1))
 
 ;; Print current function in mode/head line
-(use-core which-func
-  :after imenu :demand t
-  :config
-  (which-function-mode +1))
+;; (use-core which-func
+;;   :after imenu :demand t
+;;   :config
+;;   (which-function-mode +1))
 
 (use-package breadcrumb
   :defer 1
@@ -2566,8 +2547,7 @@ makes it easier to edit it."
 
 
 ;;; tool
-(use-package view
-  :ensure nil
+(use-core view
   :bind
   (("C-x x v" . #'view-mode)
    :map view-mode-map
@@ -2869,8 +2849,7 @@ word.  Fall back to regular `expreg-expand'."
 ;; M-. / M-, -> `xref-find-definitions' / `xref-go-back'
 ;; C-M-. / C-M-, -> `xref-find-apropos' / `xref-go-forward'
 ;; M-? -> `xref-find-references'
-(use-package xref
-  :ensure nil
+(use-core xref
   :config
   (when (executable-find "rg")
     (setq xref-search-program 'ripgrep))
@@ -3399,8 +3378,7 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; org
-(use-package org
-  :ensure nil
+(use-core org
   :bind
   ("C-c o o" . #'xy/open-org-notes)
   ("C-c o d" . #'xy/open-org-dir)
@@ -3480,8 +3458,7 @@ word.  Fall back to regular `expreg-expand'."
 
 ;;; shell
 ;; @see https://www.masteringemacs.org/article/running-shells-in-emacs-overview
-(use-package comint
-  :ensure nil
+(use-core comint
   :bind (("C-x c s" . shell)
          ("C-x c t" . ansi-term)
          :map comint-mode-map
@@ -3503,8 +3480,7 @@ word.  Fall back to regular `expreg-expand'."
   )
 
 ;; @see https://www.masteringemacs.org/article/complete-guide-mastering-eshell
-(use-package eshell
-  :ensure nil
+(use-core eshell
   :bind
   ("C-x c e" . eshell)
   :config
@@ -3528,8 +3504,7 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; theme
-(use-package solar
-  :ensure nil
+(use-core solar
   :defer 1
   :config
   (setq calendar-latitude 40)
@@ -3614,11 +3589,13 @@ word.  Fall back to regular `expreg-expand'."
   ;; (set-face-attribute 'fixed-pitch nil :family "Aporetic Sans Mono" :height 1.0)
   )
 
+;; The theme that Tsoding is using
+(use-package gruber-darker-theme)
+
 
 ;;; treesit
 ;; @see doc of `treesit-major-mode-setup'
-(use-package treesit
-  :ensure nil
+(use-core treesit
   :bind (("C-h o i" . treesit-inspect-mode)
          ("C-h o e" . treesit-explore-mode))
   :config
@@ -3626,8 +3603,7 @@ word.  Fall back to regular `expreg-expand'."
   (setq treesit-font-lock-level 4))
 
 ;; @see https://magnus.therning.org/2023-11-16-using-the-golang-mode-shipped-with-emacs.html
-(use-package go-ts-mode
-  :ensure nil
+(use-core go-ts-mode
   ;; Remapping major mode: (add-to-list 'major-mode-remap-alist '(XXX-mode . XXX-ts-mode))
   ;; (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
   ;; (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
@@ -3642,8 +3618,7 @@ word.  Fall back to regular `expreg-expand'."
 ;;; lisp
 ;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
 ;; `lisp-mode-shared-map' is the parent of `emacs-lisp-mode-map' and `lisp-mode-map'
-(use-package lisp-mode
-  :ensure nil
+(use-core lisp-mode
   :init
   (defun xy/check-parens-before-save ()
     (add-hook 'before-save-hook #'check-parens 0 :local))
@@ -3902,8 +3877,7 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; python-lang
-(use-package python
-  :ensure nil
+(use-core python
   :config
   ;; Remove guess indent python message
   (setq python-indent-guess-indent-offset-verbose nil))
