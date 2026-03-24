@@ -1918,10 +1918,10 @@ makes it easier to edit it."
 
   (with-eval-after-load 'diff-hl
     (evil-define-key 'normal 'global
-      (kbd "<leader>gc]") #'diff-hl-next-hunk
-      (kbd "<leader>gc[") #'diff-hl-previous-hunk
-      (kbd "<leader>gd]") #'diff-hl-show-hunk-next
-      (kbd "<leader>gd]") #'diff-hl-show-hunk-previous))
+      (kbd "]c") #'diff-hl-next-hunk
+      (kbd "[c") #'diff-hl-previous-hunk
+      (kbd "]d") #'diff-hl-show-hunk-next
+      (kbd "[d") #'diff-hl-show-hunk-previous))
   )
 
 ;; (use-package evil-collection
@@ -3004,27 +3004,23 @@ word.  Fall back to regular `expreg-expand'."
           ("M-p" . region-occurrences-highlighter-prev))
   :config (global-region-occurrences-highlighter-mode +1))
 
-(use-core hi-lock
-  :config
-  (setq xy/hi-lock-disable-message-modes '(Info-mode))
-  (defun xy/disable-message (old-fn &rest args)
-    (let ((inhibit-message (derived-mode-p xy/hi-lock-disable-message-modes)))
-      (apply old-fn args)))
-  (advice-add #'hi-lock-set-pattern :around #'xy/disable-message))
-
-;; Uses built-in `thingatpt' and `hi-lock' functionality to identify the thing under point and highlight it.
-(use-package highlight-thing
-  :defer 0.6
-  ;; :hook (prog-mode text-mode conf-mode special-mode)
-  :bind ("C-c h h" . highlight-thing-mode)
-  :custom-face
-  ;; (highlight-thing ((t (:inherit mode-line))))
-  ;; (highlight-thing ((t (:inherit minibuffer-depth-indicator))))
-  :config
-  (global-highlight-thing-mode +1)
-  (setq highlight-thing-prefer-active-region t)
-  ;; (setq highlight-thing-limit-to-defun t)
-  (setq highlight-thing-all-visible-buffers-p t))
+;; ;; Uses built-in `thingatpt' and `hi-lock' functionality to identify the thing under point and highlight it.
+;; ;; BUG: @my https://github.com/fgeller/highlight-thing.el/issues/28
+;; ;; BUG: @my https://github.com/fgeller/highlight-thing.el/pull/29
+;; (use-package highlight-thing
+;;   :defer 0.6
+;;   ;; :hook (prog-mode text-mode conf-mode special-mode)
+;;   :bind ("C-c h h" . highlight-thing-mode)
+;;   :custom-face
+;;   ;; (highlight-thing ((t (:inherit mode-line))))
+;;   ;; (highlight-thing ((t (:inherit minibuffer-depth-indicator))))
+;;   :config
+;;   (global-highlight-thing-mode +1)
+;;   (setq highlight-thing-prefer-active-region t)
+;;   ;; (setq highlight-thing-limit-to-defun t)
+;;   (setq highlight-thing-all-visible-buffers-p t)
+;;   (setq highlight-thing-limit-to-region-in-large-buffers-p t
+;;         highlight-thing-narrow-region-lines 100))
 
 
 ;;; todo
@@ -3592,6 +3588,9 @@ word.  Fall back to regular `expreg-expand'."
 ;; The theme that Tsoding is using
 (use-package gruber-darker-theme)
 
+;; https://emacs-china.org/t/emacs/29503/18
+(use-package koishi-theme)
+
 
 ;;; treesit
 ;; @see doc of `treesit-major-mode-setup'
@@ -3662,6 +3661,7 @@ word.  Fall back to regular `expreg-expand'."
   (add-to-list 'lisp-prettify-symbols-alist '("defcustom" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("defface" . ?))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("setq" . ?))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("setopt" . ?))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("if" . ?󰞀))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("when" . ? ))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("unless" . ? ))
