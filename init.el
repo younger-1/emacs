@@ -1865,7 +1865,7 @@ makes it easier to edit it."
   (setq evil-emacs-state-modes (append evil-emacs-state-modes evil-motion-state-modes))
   (setq evil-motion-state-modes nil)
   (setq evil-insert-state-modes nil)
-  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(dired-mode diff-mode difftastic-mode deadgrep-mode deadgrep-edit-mode)))
+  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(minibuffer-mode dired-mode diff-mode difftastic-mode deadgrep-mode deadgrep-edit-mode shell-mode eshell-mode term-mode eat-mode)))
 
   ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
   (setq display-line-numbers-type 'visual)
@@ -3451,6 +3451,20 @@ word.  Fall back to regular `expreg-expand'."
       :config
       (xclip-mode +1))))
 
+;; https://www.reddit.com/r/emacs/comments/17nl7cw/shout_out_to_the_eat_terminal_emulator_package/
+;; 1. Input Mode (C-c C-e) = similar to vterm's copy mode the buffer becomes "frozen" for you to copy the text and scroll back and basically use all of emacs's nifty search features.
+;; 2. Char Mode (C-c M-d) = One of my favorite modes where basically every input you make short of the keys C-M-m or M-RET will be sent to the terminal. This means I can open vim/nano/emacs -nw all within the terminal buffer (which I do a lot as I ssh into machines regulary) and it works absolutely perfectly.
+;; 3. Semi-Char Mode: The default mode where most inputs will be sent to the terminal. This mode does 90% of the job but if sometimes you have a weird mix of alt and control input combinations to send then the Char Mode is there for you.
+;;
+;; @see https://abode.karthinks.com/share/eat-modes.png
+(use-package eat
+  :bind ("C-x c c" . eat)
+  :init
+  ;; Use Eat to handle term codes in program output
+  (add-hook 'eshell-load-hook #'eat-eshell-mode)
+  ;; Use Eat to handle `eshell-visual-commands'
+  (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode))
+
 
 ;;; shell
 ;; @see https://www.masteringemacs.org/article/running-shells-in-emacs-overview
@@ -3473,7 +3487,8 @@ word.  Fall back to regular `expreg-expand'."
         comint-buffer-maximum-size (* 2 1024))
   (setq comint-history-isearch 'dwim)
   ;; (setq comint-input-autoexpand 'input)
-  )
+  ;; Process the escape codes, e.g. "ls --hyperlink" will be made into clickable buttons
+  (add-hook 'comint-output-filter-functions #'comint-osc-process-output))
 
 ;; @see https://www.masteringemacs.org/article/complete-guide-mastering-eshell
 (use-core eshell
@@ -3493,7 +3508,33 @@ word.  Fall back to regular `expreg-expand'."
   ;; Plan 9 Smart Shell: improve the write-run-revise
   ;; (require 'em-smart)
   ;; (eshell-smart-initialize)
-  )
+
+  ;; https://lambdaland.org/posts/2024-08-19_fancy_eshell_prompt/
+  ;; (setq eshell-prompt-function 'xy/eshell-prompt)
+  (defun xy/eshell-prompt ()
+    "A pretty shell with git status"
+    (require 'magit-git)
+    (require 'magit-process)
+    (let* ((cwd (abbreviate-file-name (eshell/pwd)))
+           (ref (magit-get-shortname "HEAD"))
+           (stat (magit-file-status))
+           (x-stat eshell-last-command-status)
+           (git-chunk
+            (if ref
+                (format "%s%s%s "
+                        (propertize (if stat "[" "(") 'font-lock-face (list :foreground (if stat "red" "green")))
+                        (propertize ref 'font-lock-face '(:foreground "yellow"))
+                        (propertize (if stat "]" ")") 'font-lock-face (list :foreground (if stat "red" "green"))))
+              "")))
+      (propertize
+       (format "%s %s %s$ "
+               (if (< 0 x-stat) (format (propertize "!%s" 'font-lock-face '(:foreground "red")) x-stat)
+                 (propertize "➤" 'font-lock-face (list :foreground (if (< 0 x-stat) "red" "green"))))
+               (propertize cwd 'font-lock-face '(:foreground "#45babf"))
+               git-chunk)
+       'read-only t
+       'front-sticky   '(font-lock-face read-only)
+       'rear-nonsticky '(font-lock-face read-only)))))
 
 ;; @see https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs
 ;; (use-package pcomplete)
