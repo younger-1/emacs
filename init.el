@@ -68,7 +68,7 @@
 
 
 ;;; font
-(defconst xy/font-size (if xy/win-p 120 140))
+(defconst xy/font-size (if xy/win-p 120 160))
 (defconst xy/font-name "Maple Mono NF CN")
 (set-face-attribute 'default nil :height xy/font-size :family xy/font-name)
 
@@ -2968,8 +2968,8 @@ word.  Fall back to regular `expreg-expand'."
 ;;   (global-auto-highlight-symbol-mode +1))
 
 (use-package symbol-overlay
-  :defer 0.6
-  ;; :hook (prog-mode text-mode conf-mode special-mode)
+  ;; :defer 0.6
+  :hook (prog-mode text-mode conf-mode special-mode)
   :bind (;; move within buffer
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
@@ -2979,8 +2979,8 @@ word.  Fall back to regular `expreg-expand'."
          ("C-c h s" . symbol-overlay-put)
          ("C-c h S" . symbol-overlay-mode)
          :map symbol-overlay-map
-         ("N" . symbol-overlay-switch-forward)
-         ("P" . symbol-overlay-switch-backward))
+         ("]" . symbol-overlay-switch-forward)
+         ("[" . symbol-overlay-switch-backward))
   :config
   ;; TODO: support region
   ;; (advice-add #'symbol-overlay-get-symbol :override
@@ -2993,6 +2993,7 @@ word.  Fall back to regular `expreg-expand'."
   (setq symbol-overlay-idle-time 0.2))
 
 (use-package casual-symbol-overlay
+  :after symbol-overlay :demand t
   :bind ( :map symbol-overlay-map
           ("C-o" . casual-symbol-overlay-tmenu)))
 
@@ -3633,28 +3634,6 @@ word.  Fall back to regular `expreg-expand'."
 (use-package koishi-theme)
 
 
-;;; treesit
-;; @see doc of `treesit-major-mode-setup'
-(use-core treesit
-  :bind (("C-h o i" . treesit-inspect-mode)
-         ("C-h o e" . treesit-explore-mode))
-  :config
-  ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
-  (setq treesit-font-lock-level 4))
-
-;; @see https://magnus.therning.org/2023-11-16-using-the-golang-mode-shipped-with-emacs.html
-(use-core go-ts-mode
-  ;; Remapping major mode: (add-to-list 'major-mode-remap-alist '(XXX-mode . XXX-ts-mode))
-  ;; (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-  ;; (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
-  ;; :mode (("\\.go\\'" . go-ts-mode)
-  ;;        ("/go\\.mod\\'" . go-mod-ts-mode))
-  :config
-  ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
-  (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
-  (add-to-list 'treesit-language-source-alist '(gomod "https://github.com/camdencheek/tree-sitter-go-mod")))
-
-
 ;;; lisp
 ;; `lisp-data-mode' is the parent of `emacs-lisp-mode' and `lisp-mode'
 ;; `lisp-mode-shared-map' is the parent of `emacs-lisp-mode-map' and `lisp-mode-map'
@@ -3916,8 +3895,6 @@ word.  Fall back to regular `expreg-expand'."
   :bind (:map markdown-mode-map
               ("C-c C-e" . markdown-do)))
 
-
-;;; python-lang
 (use-core python
   :config
   ;; Remove guess indent python message
@@ -3974,6 +3951,28 @@ word.  Fall back to regular `expreg-expand'."
   :config
   (unless (executable-find "fillstruct")
     (xy/install-go-tool "github.com/davidrjenni/reftools/cmd/fillstruct")))
+
+
+;;; treesit
+;; @see doc of `treesit-major-mode-setup'
+(use-core treesit
+  :bind (("C-h o i" . treesit-inspect-mode)
+         ("C-h o e" . treesit-explore-mode))
+  :config
+  ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+  (setq treesit-font-lock-level 4))
+
+;; @see https://magnus.therning.org/2023-11-16-using-the-golang-mode-shipped-with-emacs.html
+(use-core go-ts-mode
+  ;; Remapping major mode: (add-to-list 'major-mode-remap-alist '(XXX-mode . XXX-ts-mode))
+  ;; (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+  ;; (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
+  ;; :mode (("\\.go\\'" . go-ts-mode)
+  ;;        ("/go\\.mod\\'" . go-mod-ts-mode))
+  :config
+  ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
+  (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
+  (add-to-list 'treesit-language-source-alist '(gomod "https://github.com/camdencheek/tree-sitter-go-mod")))
 
 
 ;;; lsp

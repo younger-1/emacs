@@ -26,7 +26,7 @@
 
 (set-face-attribute 'default nil
                     :family nil
-                    :height 140)
+                    :height 160)
 
 (keymap-global-set "C-," (defun xy/open-init-dir ()
                            (interactive)
