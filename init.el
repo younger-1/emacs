@@ -3442,6 +3442,42 @@ word.  Fall back to regular `expreg-expand'."
         org-html-prefer-user-labels t
         org-html-self-link-headlines t))
 
+(use-package denote
+  :hook (dired-mode . denote-dired-mode)
+  :bind (("C-c n n" . denote)
+         ("C-c n r" . denote-rename-file)
+         ("C-c n R" . denote-rename-file-using-front-matter)
+         ("C-c n l" . denote-link)
+         ("C-c n L" . denote-add-links)
+         ("C-c n c" . denote-link-after-creating)
+         ;; ("C-c n b" . denote-backlinks)
+         ("C-c n b" . denote-find-backlink-with-location)
+         ("C-c n d" . denote-dired)
+         ("C-c n g" . denote-grep)
+         :map dired-mode-map
+         ("C-c n i" . denote-dired-link-marked-notes)
+         ("C-c n r" . denote-dired-rename-files)
+         ("C-c n k" . denote-dired-rename-marked-files-with-keywords)
+         ("C-c n R" . denote-dired-rename-marked-files-using-front-matter))
+  :config
+  (setq denote-directory (expand-file-name "~/denotes/"))
+  (setq denote-file-type 'markdown-yaml)
+  (setq denote-sort-keywords nil)
+  (setq denote-date-prompt-use-org-read-date t)
+  ;; Automatically rename Denote buffers instead of their long file name
+  (denote-rename-buffer-mode +1)
+
+  (defun xy/denote-always-rename-on-save-based-on-front-matter ()
+    "Rename the current Denote file, if needed, upon saving the file.
+Rename the file based on its front matter, checking for changes in the
+title or keywords fields."
+    (let ((denote-rename-confirmations nil)
+          (denote-save-buffers t))      ; to save again post-rename
+      (when (and buffer-file-name (denote-file-is-note-p buffer-file-name))
+        (ignore-errors (denote-rename-file-using-front-matter buffer-file-name)))))
+
+  (add-hook 'after-save-hook #'xy/denote-always-rename-on-save-based-on-front-matter))
+
 
 ;;; terminal
 (unless (display-graphic-p)
@@ -3825,6 +3861,8 @@ word.  Fall back to regular `expreg-expand'."
   :defer 0.5
   :bind (("C-c t p" . puni-mode)
          :map puni-mode-map
+         ;; For deleting the char before point, no matter they are balanced or not
+         ;; "C-c DEL" (`puni-force-delete') or "C-u DEL"
          ("M-(" . nil)
          ("M-)" . nil)
          ("C-M-a" . nil)
