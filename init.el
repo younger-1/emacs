@@ -202,11 +202,6 @@
 ;; (global-set-key [C-down-mouse-2] #'facemenu-menu)
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
-;; @see `mouse-wheel-scroll-amount'
-;; Disable `mouse-wheel-text-scale' by `mouse-wheel-mode' when use `pixel-scroll-precision-mode'
-;; (keymap-global-unset "C-<wheel-down>")
-;; (keymap-global-unset "C-<wheel-up>")
-
 ;; @tip from `term/ns-win'
 ;; s-w -> `delete-frame'
 ;; s-t -> `menu-set-font'
@@ -579,7 +574,6 @@
   (emacs-startup . global-display-line-numbers-mode)
   (emacs-startup . column-number-mode) ; modeline
   (emacs-startup . size-indication-mode) ; modeline
-  ;; (emacs-startup . pixel-scroll-precision-mode)
   (emacs-startup . delete-selection-mode)
   (emacs-startup . global-display-fill-column-indicator-mode)
   (before-save . delete-trailing-whitespace)
@@ -2544,6 +2538,25 @@ makes it easier to edit it."
           ([remap revert-this-buffer] . persistent-scratch-restore))
   :hook (lisp-interaction-mode)
   :config (persistent-scratch-autosave-mode +1))
+
+(use-core pixel-scroll
+  :defer 1
+  :config
+  (pixel-scroll-precision-mode +1)
+  (setq pixel-scroll-precision-interpolate-page t)
+  ;; @see `mouse-wheel-scroll-amount'
+  ;; Disable `mouse-wheel-text-scale' by `mouse-wheel-mode' when use `pixel-scroll-precision-mode'
+  (keymap-global-unset "C-<wheel-down>")
+  (keymap-global-unset "C-<wheel-up>"))
+
+;; Faster and can handle tall image scrolling
+(use-package ultra-scroll
+  :defer 1
+  :init
+  ;; NOTE: scroll-margin > 0 not yet supported
+  (setq scroll-margin 0)
+  :config
+  (ultra-scroll-mode +1))
 
 
 ;;; tool
