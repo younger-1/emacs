@@ -243,18 +243,27 @@
                              (call-interactively #'fill-paragraph))))
 
 
-;;; path
+;;; env/path
+;; https://github.com/purcell/exec-path-from-shell
+;; support non-POSIX-standard shell: fish, nu
+
 (defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
 (add-to-list 'exec-path xy/mason-bin-dir)
 
 (when (and xy/mac-p (display-graphic-p)) ; (memq window-system '(ns))
-  ;; https://www.emacswiki.org/emacs/ExecPath
+  (defun xy/set-env (env)
+    (setenv env (shell-command-to-string (format "$SHELL --login -c 'echo -n $%s'" env))))
+  (xy/set-env "XDG_RUNTIME_DIR")
+
+  ;; @see https://www.emacswiki.org/emacs/ExecPath
   (defun xy/set-exec-path-from-shell-PATH ()
     "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell. This is particularly useful under macOS, where GUI apps are not started from a shell."
     (interactive)
+    ;; TODO: when using fish shell "$SHELL --login -c 'string join : $PATH'" should be used as argument to shell-command-to-string,
+    ;; as fish prints $PATH (and other variables ending in path) separated with spaces instead of colons.
     (let ((path-from-shell (replace-regexp-in-string
                             "[ \t\n]*$" "" (shell-command-to-string
-                                            "$SHELL --login -c 'echo $PATH'"))))
+                                            "$SHELL --login -c 'echo -n $PATH'"))))
       ;; For (shell-command-to-string "gls")
       (setenv "PATH" path-from-shell)
       ;; For (executable-find "gls")
@@ -651,8 +660,12 @@
   :defer 1
   :config
   ;; (setq server-client-instructions nil)
-  ;; File with `server-name' under `server-auth-dir'
-  (setq server-use-tcp t)
+  ;; Local socket file is `server-name' under `server-socket-dir'
+  ;; TCP server file is `server-name' under `server-auth-dir'
+  (when xy/win-p
+    (setq server-use-tcp t)
+    ;; 将目录换回为标准路径 ;; emacsclient does not read the init file
+    (setq server-auth-dir (expand-file-name "server" xy/init-dir)))
   (unless (or (server-running-p) (daemonp))
     (server-start))
   ;; (add-hook 'server-switch-hook
@@ -2621,6 +2634,18 @@ makes it easier to edit it."
   (sis-global-context-mode +1)
   ;; 为所有缓冲区启用 /inline english/ 模式
   (sis-global-inline-mode +1))
+
+;; https://unclex.net/projects/launcher/
+;; Combined with M-x.app to get a system-wide launcher that never leaves your editor
+;; brew install --cask xiaoxinghu/tools/m-x
+;; In M-x.app, settings:
+;; - path: /opt/homebrew/bin/emacsclient -s ~/.xdg/emacs/server
+;; - mapping: M-S-SPC -> (select-frame-set-input-focus (selected-frame)) (launcher)
+(use-package launcher
+  :vc ( :url "https://github.com/xiaoxinghu/launcher.el"
+        :rev :newest)
+  :commands launcher)
+
 
 ;;; motion
 ;; Move point through `buffer-undo-list' positions.
