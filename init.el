@@ -1837,11 +1837,12 @@ makes it easier to edit it."
   (keymap-set bookmark-bmenu-mode-map "M-m" #'casual-bookmarks-tmenu)
   (keymap-set org-agenda-mode-map "M-m" #'casual-agenda-tmenu))
 
+;; @tip
+;; `evil-toggle-key' is "C-z"
+;; Use "\" to execute next command in Emacs state
 (use-package evil
   :defer 0.5
   :init
-  ;; `evil-toggle-key' is "C-z"
-  ;; Use "\" to execute next command in Emacs state
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
 
@@ -1861,7 +1862,7 @@ makes it easier to edit it."
   (setq evil-search-module 'evil-search)
 
   ;; https://emacs.stackexchange.com/questions/9583/how-to-treat-underscore-as-part-of-the-word/20717
-  ;; @tip: An underscore _ is a word character in Vim, but not in emacs
+  ;; @tip An underscore _ is a word character in Vim, but not in emacs
   ;; so Evil use kbd::o as symbol object, making kbd::cio a good alternative to Vim’s kbd::ciw
   (setq evil-symbol-word-search t)
 
@@ -1899,7 +1900,7 @@ makes it easier to edit it."
   ;; (global-set-key (kbd "M-u") 'universal-argument)
   ;; (define-key universal-argument-map (kbd "M-u") 'universal-argument-more)
 
-  ;; @tip: motion state bindings are visible in normal and visual state, and normal state bindings are also visible in visual state.
+  ;; @tip motion state bindings are visible in normal and visual state, and normal state bindings are also visible in visual state.
   (evil-set-leader 'motion (kbd "SPC"))
   (evil-set-leader 'motion (kbd "C-c SPC") t)
 
@@ -2637,14 +2638,15 @@ makes it easier to edit it."
 ;;   ;; 使用拼音搜索中文
 ;;   (pyim-isearch-mode +1))
 
+;; Smart Input Source minimize manual switching input source (input method) in Emacs
 (use-package sis
   :defer 1
   :config
   ;; Debug: (sis-get) (sis-switch)
   ;; (sis-log-mode +1)
   ;;
-  (cond
-   (xy/mac-p
+  (cond ;; see `sis-ism-lazyman-config'
+   (xy/mac-p ;; brew install laishulu/homebrew/macism
     (unless (sis-get)
       (setq sis-english-source "com.apple.keylayout.UnicodeHexInput"))
     (setq sis-other-source "com.apple.inputmethod.SCIM.Shuangpin")))
@@ -3180,7 +3182,7 @@ word.  Fall back to regular `expreg-expand'."
 ;; @see https://emacs.stackexchange.com/questions/51424/how-can-i-diff-two-long-lines-from-the-same-buffer
 (use-core ediff
   :bind
-  ("C-c d c" . compare-windows)         ; @tip: Use C-x z z z ... to repeat it
+  ("C-c d c" . compare-windows)         ; @tip Use C-x z z z ... to repeat it
   ("C-c d w" . ediff-windows-wordwise)
   ("C-c d w" . ediff-windows-linewise)
   ("C-c d r" . ediff-regions-wordwise)
