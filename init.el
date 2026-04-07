@@ -449,19 +449,21 @@
   ;; (auto-save-visited-mode +1)
 
   ;; wrap
+  ;; Useful for long lines in comments or markdown list
+  (global-visual-wrap-prefix-mode +1)
   ;; (global-visual-line-mode +1)
   (setq-default word-wrap t)
   (setq word-wrap-by-category t)
 
   ;; truncate
-  ;; Auto truncate lines
-  (setq truncate-partial-width-windows 80)
+  ;; Auto truncate lines if a split window becomes too narrow, regardless of `truncate-lines'
+  (setq truncate-partial-width-windows 40)
   ;; @tip use "C-x x t" (`toggle-truncate-lines')
   ;; (setq-default truncate-lines t)
   (defun xy/truncate-lines ()
     (setq-local truncate-lines t))
-  (add-hook 'prog-mode-hook #'xy/truncate-lines)
-  (add-hook 'log-view-mode-hook #'xy/truncate-lines)
+  ;; (add-hook 'prog-mode-hook #'xy/truncate-lines)
+  ;; (add-hook 'log-view-mode-hook #'xy/truncate-lines)
 
   ;; buffer
   (setq uniquify-buffer-name-style 'forward)
@@ -483,6 +485,15 @@
   (setq-default cursor-type 'box)
   (setq x-stretch-cursor t)
   ;; (blink-cursor-mode -1)
+
+  ;; line number
+  ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
+  (setq display-line-numbers-type 'visual)
+  (setq display-line-numbers-current-absolute nil)
+  ;; (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
+
+  ;; fringe
+  ;; https://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
 
   ;; edit
   ;; (setq undo-no-redo t)
@@ -560,7 +571,6 @@
   ;; No beeping or blinking
   ;; (setq ring-bell-function #'ignore
   ;;       visible-bell nil)
-  (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
   ;; (setq-default show-trailing-whitespace t)
   ;; (setq-default indicate-empty-lines t)
   (setq-default indicate-buffer-boundaries 'left))
@@ -1874,9 +1884,6 @@ makes it easier to edit it."
   (setq evil-insert-state-modes nil)
   (setq evil-emacs-state-modes (append evil-emacs-state-modes '(minibuffer-mode dired-mode diff-mode difftastic-mode deadgrep-mode deadgrep-edit-mode shell-mode eshell-mode term-mode eat-mode)))
 
-  ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
-  (setq display-line-numbers-type 'visual)
-
   ;; Show search match count in echo area. Replace package evil-anzu
   (defun xy/evil-ex-match-counter (&rest _)
     (let ((message-log-max nil)
@@ -2570,6 +2577,21 @@ makes it easier to edit it."
   (setq scroll-margin 0)
   :config
   (ultra-scroll-mode +1))
+
+;; Wrapping visual-line-mode buffers at fill-column
+(use-package visual-fill-column
+  :bind (("C-x x l" . visual-line-mode)
+         ("C-x x c" . visual-fill-column-mode)
+         ("C-x x C" . visual-fill-column-toggle-center-text))
+  :hook markdown-mode prog-mode
+  :init
+  (add-hook 'visual-line-mode-hook #'visual-fill-column-for-vline)
+  :config
+  ;; To not hide `display-fill-column-indicator'
+  ;; @see https://codeberg.org/joostkremers/visual-fill-column/issues/14
+  (add-hook 'visual-fill-column-mode-hook
+            (lambda () (setq-local visual-fill-column-fringes-outside-margins nil)))
+  (setq visual-fill-column-enable-sensible-window-split t))
 
 
 ;;; tool
@@ -3759,7 +3781,7 @@ title or keywords fields."
   ;; (add-to-list 'lisp-prettify-symbols-alist '("if" . ?󰞀))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("when" . ? ))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("unless" . ? ))
-  (add-to-list 'lisp-prettify-symbols-alist '("add-hook" . ?󰛢))
+  ;; (add-to-list 'lisp-prettify-symbols-alist '("add-hook" . ?󰛢))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("add-to-list" . ?󰾹))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("push" . ?󰕕))
   ;; (add-to-list 'lisp-prettify-symbols-alist '("load" . ?))
