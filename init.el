@@ -2764,11 +2764,25 @@ makes it easier to edit it."
 ;; (use-package expand-region
 ;;   :bind ("C-=" . er/expand-region))
 
+(use-package whole-line-or-region
+  :defer 0.3
+  :config
+  (whole-line-or-region-global-mode +1))
+
 (use-package expreg
   :bind (("C-=" . expreg-expand)
          ("C-M-SPC" . prot/expreg-expand-dwim))
+  :init
+  (defvar-keymap xy/expreg-repeat-map
+    :repeat t
+    "=" #'expreg-expand
+    "-" #'expreg-contract)
   :config
   (setq expreg-restore-point-on-quit t)
+  ;; For markdown and org file
+  (add-hook 'text-mode-hook
+            (lambda ()
+              (add-to-list 'expreg-functions #'expreg--sentence)))
   ;;
   (defun prot/expreg-expand (n)
     "Expand to N syntactic units, defaulting to 1 if none is provided interactively."
@@ -3968,8 +3982,20 @@ title or keywords fields."
 ;; Structured editing (soft deletion, expression navigating & manipulating)
 (use-package puni
   :defer 0.5
+  :init
+  (defun xy/puni-splice (arg)
+    (interactive "p")
+    (pcase arg
+      (4 (puni-splice-killing-backward))
+      (16 (puni-splice-killing-forward))
+      (_ (puni-splice))))
+  (defvar-keymap xy/puni-repeat-map
+    :repeat t
+    "m" #'puni-expand-region
+    "M" #'puni-contract-region)
   :bind (("C-c t p" . puni-mode)
          :map puni-mode-map
+         ("C-w" . nil)
          ;; For deleting the char before point, no matter they are balanced or not
          ;; "C-c DEL" (`puni-force-delete') or "C-u DEL"
          ("M-(" . nil)
@@ -3989,7 +4015,7 @@ title or keywords fields."
          ("M-P" . puni-barf-forward)
          ("M-U" . puni-slurp-backward)
          ("M-D" . puni-barf-backward)
-         ("M-L" . xy/puni-splice)
+         ("M-L" . #'xy/puni-splice)
          ("M-R" . puni-raise)
          ("M-S" . puni-split)
          ;;
@@ -4002,13 +4028,7 @@ title or keywords fields."
   ;; (add-hook 'term-mode-hook #'puni-disable-puni-mode)
   (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook eval-expression-minibuffer-setup-hook))
     (add-hook hook #'puni-mode))
-  (setq puni-blink-pulse-delay 0.1)
-  (defun xy/puni-splice (arg)
-    (interactive "p")
-    (pcase arg
-      (4 (puni-splice-killing-backward))
-      (16 (puni-splice-killing-forward))
-      (_ (puni-splice)))))
+  (setq puni-blink-pulse-delay 0.1))
 
 ;; (use-package awesome-pair
 ;;   :vc ( :url "https://github.com/manateelazycat/awesome-pair"
