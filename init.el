@@ -137,14 +137,6 @@
 
 
 ;;; keymap
-;; free keys: C-x c/g/j/y
-;; [C-x e] `kmacro-end-and-call-macro'
-;; [C-x f] `set-fill-column'
-;; [C-x i] `insert-file'
-;; [C-x l] `count-lines-page'
-;; [C-x m] `compose-mail'
-;; [C-x q] `kbd-macro-query'
-;;
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 ;; @see (info "(elisp) Key Binding Conventions") to know which keys are safe for users
 (keymap-global-set "C-h j i" (defun xy/open-init-file ()
@@ -172,21 +164,29 @@
 ;; C-M-m is M-RET, not M-<return>
 ;; C-M-i is M-TAB, not M-<tab>
 ;;
-;; C-o / C-M-o -> `open-line' / `split-line'
-;; M-j / C-M-j -> `default-indent-new-line'
 ;; C-x ESC ESC -> `repeat-complex-command'
-(keymap-global-set "M-=" nil) ; `count-words-region'
-(keymap-global-set "M-z" #'zap-up-to-char)
 ;; M-SPC -> `cycle-spacing'
 ;; M-m -> `back-to-indentation'
-(keymap-global-set "<backtab>" #'back-to-indentation)
+(keymap-global-set "<backtab>" #'back-to-indentation) ; or "S-<tab>"
+
+;; @tip from `newcomment', see (info "(emacs) Comment Commands")
+;; https://emacsredux.com/blog/2026/02/25/so-many-ways-to-work-with-comments/
+;; M-j -> `default-indent-new-line' (continue a comment on the next line)
 ;; M-; -> `comment-dwim'
 (keymap-global-set "C-;" #'comment-line)
-
+(keymap-global-set "C-x C-;" #'comment-box) ; @orig `comment-line'
+;;
 ;; @tip from `indent'
-;; C-x TAB -> `indent-rigidly'
-;; C-M-\ -> `indent-region'
+;; -- 1. Basic: see (info "(emacs) Indentation Commands")
+;; C-o / C-x C-o -> `open-line' / `delete-blank-lines'
+;; C-M-o -> `split-line'
+;; M-^ -> `delete-indentation' (inverse of `split-line')
 ;; M-i -> `tab-to-tab-stop'
+;; C-M-\ -> `indent-region'
+;; C-x TAB -> `indent-rigidly'
+;;
+;; -- 2. Programming: see (info "(emacs) Multi-line Indent")
+;; M-q -> `prog-fill-reindent-defun'
 ;; C-M-q -> `indent-pp-sexp' ; from `emacs-lisp-mode-map'
 
 ;; @see https://www.reddit.com/r/emacs/comments/1ohr4uy/tip_use_deletepair_to_change_surroundings_similar/
@@ -226,16 +226,24 @@
 ;; (global-set-key [C-down-mouse-3] (mouse-menu-major-mode-map))
 
 ;; @tip from `term/ns-win'
-;; s-w -> `delete-frame'
+;; s-? -> `info'
 ;; s-t -> `menu-set-font'
 ;; s-, -> `customize'
 (keymap-global-set "M-s-," #'customize-group)
-(keymap-global-set "s-x" #'execute-extended-command)
-(keymap-global-set "s-X" #'execute-extended-command-for-buffer)
 (keymap-global-set "s-<return>" #'toggle-frame-maximized) ; M-<f10>
 (keymap-global-set "S-s-<return>" #'toggle-frame-fullscreen) ; <f11>
-;; s-z -> undo
+;; s-' -> `next-window-any-frame'
+;; s-` -> `other-frame'
+;; s-n -> `make-frame'
+;; s-w -> `delete-frame'
+;; s-u -> `revert-buffer'
+;; s-k/s-& -> `kill-current-buffer'
+;; s-^ -> `kill-some-buffer'
+(keymap-global-set "s-b" #'switch-to-buffer)
+(keymap-global-set "s-K" #'bury-buffer)
+(keymap-global-set "s-z" #'undo-only) ; @orig `undo'
 (keymap-global-set "s-Z" #'undo-redo)
+
 ;; C-/ -> undo
 ;; (keymap-global-set "C-M-/" #'undo-redo) ;; For gui; in tty "C-M-/" == "C-M-_"
 
@@ -650,6 +658,21 @@
     (keymap-global-set "C-x y y" #'xy/wsl-yank))
 
   :bind
+  ;; free keys
+  ("C-x c" . nil)
+  ("C-x g" . nil)
+  ("C-x j" . nil)
+  ("C-x y" . nil)
+  ;; rebind keys
+  ("C-x f" . nil) ; `set-fill-column'
+  ("C-x l" . nil) ; `count-lines-page'
+  ("C-x m" . nil) ; `compose-mail'
+  ;; ("C-x i" . nil) ; `insert-file'
+  ;; ("C-x e" . nil) ; `kmacro-end-and-call-macro'
+  ;; ("C-x q" . nil) ; `kbd-macro-query'
+  ;; ("C-x ;" . nil) ; `comment-set-column'
+  ;; ("C-x C-n" . nil) ; `set-goal-column'
+  ;;
   ("C-z" . nil) ; `suspend-frame', use C-x C-z
   ;;
   ;; @tip s-k is `kill-current-buffer'
@@ -657,12 +680,8 @@
   ("C-x K" . #'bury-buffer)
   ("C-x O" . #'switch-to-minibuffer)
   ;;
-  ("C-x l" . nil) ; `count-lines-page'
-  ;;
   ("C-x x f" . #'follow-mode)
   ("C-x x G" . #'redraw-display)
-  ;;
-  ("C-x f" . nil)
   ;;
   ("C-x j u" . #'browse-url)
   ("C-x j U" . #'browse-web))
