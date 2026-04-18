@@ -189,6 +189,29 @@
 ;; M-i -> `tab-to-tab-stop'
 ;; C-M-q -> `indent-pp-sexp' ; from `emacs-lisp-mode-map'
 
+;; @see https://www.reddit.com/r/emacs/comments/1ohr4uy/tip_use_deletepair_to_change_surroundings_similar/
+;; To change surroundings/delimiters, e.g. (some text) to [some text]
+;; - 1. C-M-SPC to mark
+;; - 2. Type [ to add []. Note: require `electric-pair-mode'
+;; - 3. M-_ to remove (). Note: point should at open delimiter
+;; To only paste the inside of [foo bar]
+;; - 1. C-M-SPC to mark, M-w to copy, C-y to yank
+;; - 2. M-_ with negative-argument (M-- M-_). Note: point should at close delimiter
+;; To change [foo] to [bar]
+;; - 1. C-M-k to delete
+;; - 2. Type [ to recreate it
+(keymap-global-set "M-_" #'delete-pair)
+(keymap-global-set "M-+" #'duplicate-dwim)
+(keymap-global-set "M-=" #'copy-from-above-command) ; @orig `count-words-region'
+(keymap-global-set "M-z" #'zap-up-to-char) ; @orig `zap-to-char'
+
+;; @tip use prefix arguments to insert pairs without mark activating
+;; To insert pairs of (), [], {} and ""
+;; (define-key esc-map "("  #'insert-pair)
+;; (define-key esc-map "["  #'insert-pair)
+;; (define-key esc-map "{"  #'insert-pair)
+;; (define-key esc-map "\"" #'insert-pair)
+
 ;; @tip from `files' / `window'
 (keymap-global-set "S-<return>" #'save-buffer)
 ;; M-r -> `move-to-window-line-top-bottom'
@@ -563,6 +586,8 @@
   (setopt show-paren-delay 0.2)
   (setq show-paren-when-point-inside-paren t
         show-paren-when-point-in-periphery t)
+  (setq delete-pair-blink-delay 0.1
+        delete-pair-push-mark t)
   ;; `compile.el'
   (setq compilation-scroll-output 'first-error)
   ;; (setq compilation-always-kill t
@@ -1976,10 +2001,10 @@ makes it easier to edit it."
   (add-hook 'c++-mode-hook (lambda () (push '(?< . ("< " . " >")) evil-surround-pairs-alist))))
 
 ;; Make evil-surround better, enable custom surrouding pairs
-(use-package evil-embrace
-  :after evil :demand t
-  :config
-  (evil-embrace-enable-evil-surround-integration))
+;; (use-package evil-embrace
+;;   :after evil :demand t
+;;   :config
+;;   (evil-embrace-enable-evil-surround-integration))
 
 (use-package evil-snipe
   :after evil :demand t
@@ -2801,21 +2826,25 @@ word.  Fall back to regular `expreg-expand'."
        (symbol (prot/expreg-expand 2))
        (t (expreg-expand))))))
 
+;; To add pairs: select something, then M-' s (
+(use-package surround
+  :bind-keymap ("M-'" . surround-keymap))
+
 ;; Add/Change/Delete pairs based on `expand-region', similar to vim-surround
-(use-package embrace
-  :defer 0.8
-  :bind ("C-c z" . embrace-commander)
-  :init
-  (defun embrace-markdown-mode-hook ()
-    (dolist (lst '((?* "*" . "*")
-                   (?\ "\\" . "\\")
-                   (?$ "$" . "$")
-                   (?/ "/" . "/")))
-      (embrace-add-pair (car lst) (cadr lst) (cddr lst))))
-  :hook
-  (org-mode . embrace-org-mode-hook)
-  (emacs-lisp-mode . embrace-emacs-lisp-mode-hook)
-  (markdown-mode . embrace-markdown-mode-hook))
+;; (use-package embrace
+;;   :defer 0.8
+;;   :bind ("C-c z" . embrace-commander)
+;;   :init
+;;   (defun embrace-markdown-mode-hook ()
+;;     (dolist (lst '((?* "*" . "*")
+;;                    (?\ "\\" . "\\")
+;;                    (?$ "$" . "$")
+;;                    (?/ "/" . "/")))
+;;       (embrace-add-pair (car lst) (cadr lst) (cddr lst))))
+;;   :hook
+;;   (org-mode . embrace-org-mode-hook)
+;;   (emacs-lisp-mode . embrace-emacs-lisp-mode-hook)
+;;   (markdown-mode . embrace-markdown-mode-hook))
 
 ;; Edit regions in separate buffers, like `org-edit-special'
 (use-package edit-indirect
