@@ -496,12 +496,27 @@
   ;; (add-hook 'prog-mode-hook #'xy/truncate-lines)
   ;; (add-hook 'log-view-mode-hook #'xy/truncate-lines)
 
+  ;; comment
+  (setq-default comment-column 0)
+  (setq comment-empty-lines t)
+  ;; (setq comment-multi-line t)
+  ;; (setq comment-auto-fill-only-comments t)
+  ;; (setq comment-style 'multi-line)
+
   ;; buffer
   (setq uniquify-buffer-name-style 'forward)
   (setq switch-to-buffer-obey-display-actions t)
   (setq switch-to-buffer-in-dedicated-window 'pop)
   ;; (setq display-buffer-base-action '((display-buffer-reuse-window display-buffer-same-window)
   ;;                                    (reusable-frames . t)))
+  ;;
+  ;; TODO: https://christiantietze.de/posts/2025/05/compilation-window-display-in-emacs-via-display-buffer-alist/
+  ;; Do not show warnings when installing packages
+  ;; from https://protesilaos.com/codelog/2024-11-28-basic-emacs-configuration/
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+                 (display-buffer-no-window)
+                 (allow-no-window . t)))
   ;; Keep the compilation buffer in the background, except when there's an error
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window)))
@@ -511,6 +526,8 @@
   ;;       split-width-threshold 0)
   ;; Avoid resizing
   ;; (setq even-window-sizes nil)
+  ;; Proportional Window Resizing
+  ;; (setq window-combination-resize t)
 
   ;; cursor
   (setq-default cursor-type 'box)
@@ -529,10 +546,6 @@
   ;; edit
   ;; (setq undo-no-redo t)
   ;; (setq next-line-add-newlines t)
-  (setq-default comment-column 0)
-  (setq comment-empty-lines t)
-  ;; (setq comment-multi-line t)
-  ;; (setq comment-style 'multi-line)
   (setq open-paren-in-column-0-is-defun-start nil)
   (setq-default fill-column 80)
   ;; Disable the obsolete practice of end-of-line spacing from the typewriter era.
@@ -564,6 +577,8 @@
 
   ;; GnuPG
   (setq epg-pinentry-mode 'loopback)
+
+  (setq reb-re-syntax 'string)
 
   ;; misc
   (require 'net-utils)
