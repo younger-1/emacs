@@ -634,28 +634,28 @@
 
 ;;; hooks and keymaps
 (use-core emacs
-  :init
-  ;; (show-paren-mode +1) ;; @default
-  ;; (electric-indent-mode +1) ;; @default
-  ;; Pair everywhere, include minibuffer
-  (electric-pair-mode +1)
-  (global-subword-mode +1)
   :hook
   ;; (prog-mode . show-paren-local-mode)
   ;; (prog-mode . electric-indent-local-mode)
   ;; (prog-mode . electric-pair-local-mode)
   ;; (prog-mode . subword-mode)
   ;;
-  (emacs-startup . global-display-line-numbers-mode)
-  (emacs-startup . column-number-mode) ; modeline
-  (emacs-startup . size-indication-mode) ; modeline
-  (emacs-startup . delete-selection-mode)
-  (emacs-startup . global-display-fill-column-indicator-mode)
   (before-save . delete-trailing-whitespace)
-  ;; (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
-
+  (after-save . executable-make-buffer-file-executable-if-script-p) ; Only work if buffer begin with "#!"
   :config
+  ;; (show-paren-mode +1) ; @default
+  ;; (electric-indent-mode +1) ; @default
+  (electric-pair-mode +1) ; Pair everywhere, include minibuffer
+  (global-subword-mode +1)
+  ;;
+  (global-display-line-numbers-mode +1)
+  (column-number-mode +1) ; modeline
+  (size-indication-mode +1) ; modeline
+  (delete-selection-mode +1)
+  (global-display-fill-column-indicator-mode +1)
+
   (add-to-list 'global-display-fill-column-indicator-modes '(not calc-mode calc-trail-mode))
+
   (when xy/linux-p
     (defun xy/wsl-kill (start end)
       "Copy/Kill text from an Emacs buffer for pasting it into a Windows app"
@@ -1167,7 +1167,7 @@ makes it easier to edit it."
   (savehist-mode +1))
 
 (use-core autorevert
-  :defer 0.5
+  :defer 0.4
   :config
   (global-auto-revert-mode +1)
   ;; @tip "C-x x g" is `revert-buffer-quick', "s-u" is `revert-buffer'
@@ -1921,7 +1921,7 @@ makes it easier to edit it."
 ;; `evil-toggle-key' is "C-z"
 ;; Use "\" to execute next command in Emacs state
 (use-package evil
-  :defer 0.5
+  :defer 1
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -2155,7 +2155,7 @@ makes it easier to edit it."
 
 ;;; window
 (use-core winner
-  :defer 0.5
+  :defer 0.4
   :bind
   ("C-x 4 u" . #'winner-undo)
   ("C-x 4 r" . #'winner-redo)
@@ -2163,7 +2163,7 @@ makes it easier to edit it."
   (winner-mode +1))
 
 (use-core windmove
-  :defer 0.5
+  :defer 0.4
   :config
   ;; @tip shift and ctrl-shift is used by Org-Mode
   (windmove-default-keybindings 'ctrl)
@@ -2483,7 +2483,7 @@ makes it easier to edit it."
 
 ;; Better mouse-buffer-menu
 (use-core msb
-  :defer 0.5
+  :defer 0.4
   :bind ("C-c t m" . msb-mode)
   :config (msb-mode +1))
 
@@ -2589,7 +2589,7 @@ makes it easier to edit it."
 
 ;;; util
 (use-core editorconfig
-  :defer 0.5
+  :defer 0.4
   :config (editorconfig-mode +1))
 
 ;; https://www.emacswiki.org/emacs/VisibleMark
@@ -3476,6 +3476,7 @@ word.  Fall back to regular `expreg-expand'."
 
 ;;; git
 (use-package magit
+  :defer 10
   :bind (;; ("C-x g"   . magit-status)
          ;; ("C-x C-g" . magit-dispatch)
          ;; ("C-x M-g" . magit-file-dispatch)
@@ -3627,6 +3628,7 @@ word.  Fall back to regular `expreg-expand'."
 
 ;;; org
 (use-core org
+  :defer 15
   :bind
   ("C-c o o" . #'xy/open-org-notes)
   ("C-c o d" . #'xy/open-org-dir)

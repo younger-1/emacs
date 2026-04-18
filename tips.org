@@ -3,10 +3,12 @@
 
 * The Emacs Editor
 
-# Emacs is the advanced, extensible, customizable, self-documenting editor.
+#+begin_quote
+Emacs is the advanced, extensible, customizable, self-documenting editor.
+#+end_quote
 
 #+begin_src emacs-lisp
-(message "Hello world")
+(message "Hello Emacs")
 #+end_src
 
 ** Important General Concepts
