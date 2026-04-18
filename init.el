@@ -2689,11 +2689,27 @@ makes it easier to edit it."
 ;; brew install --cask xiaoxinghu/tools/m-x
 ;; In M-x.app, settings:
 ;; - path: /opt/homebrew/bin/emacsclient -s ~/.xdg/emacs/server
-;; - mapping: M-S-SPC -> (select-frame-set-input-focus (selected-frame)) (launcher)
+;; - mapping: C-s-1 -> (select-frame-set-input-focus (selected-frame)) (launcher)
 (use-package launcher
   :vc ( :url "https://github.com/xiaoxinghu/launcher.el"
         :rev :newest)
-  :commands launcher)
+  :bind ("C-s-1" .  launcher))
+
+(use-package quake-frame
+  :vc ( :url "https://codeberg.org/ctietze/quake-frame.el"
+        :rev :newest)
+  :bind ("C-s-`" . quake-frame-toggle)
+  :config
+  (setq quake-frame-position 'top)
+  ;; Size options accept three formats:
+  ;; float (0.8 = 80% of screen), integer (1500 = pixels), or cons cell ((columns . 140) or (rows . 40)).
+  (setq quake-frame-width 0.9)
+  (setq quake-frame-height 0.4)
+  ;; (setq quake-frame-width 40)
+  ;; (setq quake-frame-height 20)
+  ;; (setq quake-frame-width '(columns . 20))
+  ;; (setq quake-frame-height '(rows . 20))
+  (setq quake-frame-margin 0))
 
 
 ;;; motion
@@ -3666,6 +3682,10 @@ title or keywords fields."
   (add-hook 'eshell-load-hook #'eat-eshell-mode)
   ;; Use Eat to handle `eshell-visual-commands'
   (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode))
+
+(use-package ghostel
+  :bind
+  ("C-x c g" . ghostel))
 
 
 ;;; shell
