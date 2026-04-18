@@ -433,7 +433,7 @@
 
   ;; limit
   (setq large-file-warning-threshold (* 64 1024 1024)) ; 10m -> 64m
-  (setq read-process-output-max (* 1024 1024)) ; 4k -> 1m
+  (setq read-process-output-max (* 512 1024)) ; 64k -> 512k
   (setq undo-limit (* 10 160000) ; 10x
         undo-strong-limit (* 10 240000)
         undo-outer-limit (* 10 24000000))
@@ -531,6 +531,14 @@
   (setq sentence-end-double-space nil)
   ;; According to the POSIX, a line is defined as "a sequence of zero or more non-newline characters followed by a terminating newline".
   (setq require-final-newline t)
+
+  ;; Disable Bidirectional Text Scanning (Doom Emacs)
+  (setq-default bidi-display-reordering 'left-to-right
+                bidi-paragraph-direction 'left-to-right)
+  (setq bidi-inhibit-bpa t)
+
+  ;; Skip Fontification During Input (Doom Emacs)
+  (setq redisplay-skip-fontification-on-input t)
 
   ;; proced
   (setq proced-auto-update-interval 1)
@@ -1112,6 +1120,12 @@ makes it easier to edit it."
   (setq search-ring-max (* 16 2)
         regexp-search-ring-max (* 16 2))
   (setq comint-input-ring-size (* 500 1))
+  ;; Strip all text properties (fonts, overlays, etc.) in kill ring before saving, not to bloat the savehist file.
+  (add-hook 'savehist-save-hook
+            (lambda ()
+              (setq kill-ring
+                    (mapcar #'substring-no-properties
+                            (cl-remove-if-not #'stringp kill-ring)))))
   (savehist-mode +1))
 
 (use-core autorevert
@@ -1803,15 +1817,17 @@ makes it easier to edit it."
   (setq key-chord-typing-reset-delay 0.5) ; How long to wait after typing stops before re-enabling chord detection
   (key-chord-mode +1))
 
-;; (use-core ffap
-;;   :defer 1
-;;   :bind
-;;   ("C-x M-f" . #'ffap-menu)
-;;   :config
-;;   ;; @tip
-;;   ;; (keymap-global-set "S-<mouse-3>" 'ffap-at-mouse)
-;;   ;; (keymap-global-set "C-S-<mouse-3>" 'ffap-menu)
-;;   (ffap-bindings))
+(use-core ffap
+  :defer 1
+  :bind
+  ("C-x M-f" . #'ffap-menu)
+  :config
+  ;; @tip
+  ;; (keymap-global-set "S-<mouse-3>" 'ffap-at-mouse)
+  ;; (keymap-global-set "C-S-<mouse-3>" 'ffap-menu)
+  ;; (ffap-bindings)
+  ;; Tells ffap to never try network lookups to prevent it from pinging hostnames when run `find-file-at-point'
+  (setq ffap-machine-p-known 'reject))
 
 (use-package keyfreq
   :defer 0.3
@@ -2543,21 +2559,21 @@ makes it easier to edit it."
   (setq visible-mark-faces `(visible-mark-face1 visible-mark-face2)))
 
 ;; https://www.emacswiki.org/emacs/AutoMark
-(use-package auto-mark
-  :ensure nil ; site-lisp
-  :defer 0.5
-  :config
-  (setq auto-mark-command-class-alist
-        '((anything . anything)
-          (goto-line . jump)
-          (indent-for-tab-command . ignore)
-          (undo . ignore)))
-  (setq auto-mark-command-classifiers
-        (list (lambda (command)
-                (if (and (eq command 'self-insert-command)
-                         (eq last-command-event ? ))
-                    'ignore))))
-  (global-auto-mark-mode +1))
+;; (use-package auto-mark
+;;   :ensure nil ; site-lisp
+;;   :defer 0.5
+;;   :config
+;;   (setq auto-mark-command-class-alist
+;;         '((anything . anything)
+;;           (goto-line . jump)
+;;           (indent-for-tab-command . ignore)
+;;           (undo . ignore)))
+;;   (setq auto-mark-command-classifiers
+;;         (list (lambda (command)
+;;                 (if (and (eq command 'self-insert-command)
+;;                          (eq last-command-event ? ))
+;;                     'ignore))))
+;;   (global-auto-mark-mode +1))
 
 ;; Make hypertext with active links in any buffer
 (use-package linkd
@@ -2596,6 +2612,7 @@ makes it easier to edit it."
   (keymap-global-unset "C-<wheel-up>"))
 
 ;; Faster and can handle tall image scrolling
+;; @tip `ultra-scroll-push-mark'
 (use-package ultra-scroll
   :defer 1
   :init
