@@ -3649,13 +3649,17 @@ word.  Fall back to regular `expreg-expand'."
 (use-package denote
   :hook (dired-mode . denote-dired-mode)
   :bind (("C-c n n" . denote)
-         ("C-c n r" . denote-rename-file)
-         ("C-c n R" . denote-rename-file-using-front-matter)
+         ("C-c n o" . denote-open-or-create)
+         ;; ("C-c n c" . denote-link-or-create)
+         ("C-c n c" . denote-link-after-creating)
+         ;;
          ("C-c n l" . denote-link)
          ("C-c n L" . denote-add-links)
-         ("C-c n c" . denote-link-after-creating)
          ;; ("C-c n b" . denote-backlinks)
          ("C-c n b" . denote-find-backlink-with-location)
+         ;;
+         ("C-c n r" . denote-rename-file)
+         ("C-c n R" . denote-rename-file-using-front-matter)
          ("C-c n d" . denote-dired)
          ("C-c n g" . denote-grep)
          :map dired-mode-map
@@ -4152,13 +4156,14 @@ title or keywords fields."
 
 
 ;;; lang
+;; https://jblevins.org/projects/markdown-mode/
 (use-package markdown-mode
   :mode ("README\\.md\\'" . gfm-mode)
+  :bind (:map markdown-mode-map
+              ("C-c C-e" . markdown-do))
   :config
   ;; Markdown processor: not required for editing, for rendering HTML for preview and export.
-  ;; (setq markdown-command "multimarkdown")
-  :bind (:map markdown-mode-map
-              ("C-c C-e" . markdown-do)))
+  (setq markdown-command "pandoc"))
 
 (use-core python
   :config
