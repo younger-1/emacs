@@ -3559,17 +3559,27 @@ word.  Fall back to regular `expreg-expand'."
 (use-core outline
   ;; :hook
   ;; (emacs-lisp-mode . outline-minor-mode)
-  :bind ("C-c t o" . outline-minor-mode)
+  :bind (("C-c t o" . outline-minor-mode)
+         :map outline-minor-mode-map
+         ("C-c v SPC" . (lambda () (interactive) (outline-back-to-heading))))
   :config
   ;; @tip Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
   ;; @tip RET at beginning of headers line trigger `outline-cycle'. And for S-RET:
   (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
   ;; For TAB/S-TAB
-  ;; (setq outline-minor-mode-cycle t)
+  (setq outline-minor-mode-cycle t)
   (setopt outline-minor-mode-prefix (kbd "C-c v")) ; v for view
   ;;; UI
-  ;; (setq outline-minor-mode-highlight 'append)
+  (setq outline-minor-mode-highlight 'append)
   (setq outline-minor-mode-use-buttons 'in-margins))
+
+;; (use-package outli
+;;   :hook prog-mode)
+
+;; (use-package outline-stars
+;;   :vc ( :url "https://codeberg.org/phmcc/outline-stars"
+;;         :rev :newest)
+;;   :init (outline-stars-mode +1))
 
 
 ;;; org
@@ -3595,11 +3605,12 @@ word.  Fall back to regular `expreg-expand'."
     (interactive)
     (find-file org-default-notes-file))
   :config
-  ;; (add-hook 'org-mode-hook #'visual-line-mode)
-
   ;; (setq org-startup-folded 'content)
   ;; (setq org-startup-indented t)
   ;; (setq org-startup-numerated t)
+
+  ;; (setq org-hide-emphasis-markers t)
+  ;; (add-hook 'org-mode-hook #'visual-line-mode)
 
   (setq org-use-speed-commands t)
   (setq org-special-ctrl-a/e t
@@ -3626,6 +3637,14 @@ word.  Fall back to regular `expreg-expand'."
   (setq org-html-checkbox-type 'unicode
         org-html-prefer-user-labels t
         org-html-self-link-headlines t))
+
+;; https://www.reddit.com/r/emacs/comments/18y85l9/orgmargin_mode/
+(use-package org-margin
+  :vc ( :url "https://github.com/rougier/org-margin"
+        :rev :newest)
+  ;; :hook org-mode
+  :bind
+  ("C-c o t m" . org-margin-mode))
 
 (use-package denote
   :hook (dired-mode . denote-dired-mode)
