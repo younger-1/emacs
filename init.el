@@ -2833,8 +2833,10 @@ word.  Fall back to regular `expreg-expand'."
 ;;   (setq snap-indent-on-save nil)
 ;;   (setq snap-indent-skip-on-prefix-arg t))
 
+;; Automatic indentation mode
 (use-package indentinator
-  :hook (prog-mode . indentinator-mode))
+  :bind ("C-c t i" . indentinator-mode)
+  :hook (prog-mode))
 
 
 ;;; prog
@@ -2971,6 +2973,7 @@ word.  Fall back to regular `expreg-expand'."
 
 ;;; highlight
 (use-core hl-line
+  :bind ("C-c t l" . hl-line-mode)
   :hook
   (prog-mode . hl-line-mode)
   (text-mode . hl-line-mode)
@@ -2980,6 +2983,63 @@ word.  Fall back to regular `expreg-expand'."
   (dired-mode . hl-line-mode)
   (package-menu-mode . hl-line-mode)
   (ibuffer-mode . hl-line-mode))
+
+;; Make `hl-line-mode' more suitable for selection UIs
+;; Lin 让 “选行界面” 更清晰、“编辑界面” 更柔和 (醒目选择 vs 柔和编辑)
+;; TODO: https://christiantietze.de/posts/2022/03/hl-line-priority/
+(use-package lin
+  :after hl-line :demand t
+  :bind ("C-c t L" . lin-mode)
+  :config
+  ;; red cyan magenta purple orange
+  (setopt lin-face 'lin-purple)
+  ;; @see `lin-mode-hooks'
+  (lin-global-mode +1))
+
+;; Temporarily highlights current line
+;; 1. Automatic pulse after a function in the `pulsar-pulse-functions'
+;; 2. Region-related changes, covers copyring, pasting, undoing, redoing
+;; 3. Window-related changes, includes selection, addition, deletion, resize
+(use-package pulsar
+  :defer 1
+  :bind
+  ("C-x l" . pulsar-pulse-line) ; @orig `count-lines-page'
+  ("C-x L" . pulsar-highlight-permanently-dwim) ; or use `pulsar-highlight-temporarily-dwim'
+  :hook
+  (next-error . pulsar-pulse-line-red)
+  (minibuffer-setup . pulsar-pulse-line-green)
+  ;; integration with `consult':
+  (consult-after-jump . pulsar-recenter-top) ; or `pulsar-recenter-center'
+  (consult-after-jump . pulsar-reveal-entry) ; displays the hidden contents of an Org or Outline heading
+  ;; integration with `imenu':
+  (imenu-after-jump . pulsar-recenter-top)
+  (imenu-after-jump . pulsar-reveal-entry)
+  :config
+  (pulsar-global-mode +1)
+  ;; (setq pulsar-pulse-on-window-change t)
+  ;; (setq pulsar-inhibit-hidden-buffers nil)
+  (setq pulsar-delay 0.05)
+  (setq pulsar-iterations 15)
+  ;; for `pulsar-pulse-functions'
+  (setq pulsar-face 'pulsar-generic)
+  ;; for `pulsar-pulse-region-functions'
+  (setq pulsar-region-face 'pulsar-yellow)
+  ;; for static highlight (temporary or permanent)
+  (setq pulsar-highlight-face 'pulsar-magenta))
+
+;; Temporarily highlight focused windows
+(use-package winpulse
+  :vc ( :url "https://github.com/xenodium/winpulse"
+        :rev :newest)
+  :defer 1
+  :config
+  (winpulse-mode +1))
+
+;; Pulse modified region. Undo, yank, kill and delete are supported
+(use-package goggles
+  :hook (prog-mode text-mode)
+  :config
+  (setq goggles-pulse-delay 0.2))
 
 ;; Highlight delimiters such as parentheses, brackets or braces according to their depth
 (use-package rainbow-delimiters
