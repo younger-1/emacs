@@ -751,10 +751,11 @@
   (setq esup-depth 0))
 
 (use-package benchmark-init
-  :demand t
   :bind
   ("C-c x m" . benchmark-init/show-durations-tree)
   ("C-c x M" . benchmark-init/show-durations-tabulated)
+  ;; :init ;; only activate when doing benchmark
+  ;; (benchmark-init/activate)
   :config
   ;; To disable collection of benchmark data after init is done.
   (add-hook 'after-init-hook #'benchmark-init/deactivate))
@@ -784,6 +785,9 @@
   (setq describe-bindings-show-prefix-commands t)
   ;; Let . as punctuation instead of word
   (add-hook 'help-mode-hook (lambda () (modify-syntax-entry ?. ".")))
+  ;; Add shortdoc examples to help buffer
+  (add-hook 'help-fns-describe-function-functions
+            #'shortdoc-help-fns-examples-function)
 
   (defun xy/loaded-feature ()
     "Find loaded features"
@@ -858,10 +862,10 @@ makes it easier to edit it."
     (interactive)
     (switch-to-buffer "*scratch*"))
 
-  (defun xy/count-pages ()
-    "Combine `what-page' and `count-lines-page'"
+  (defun xy/count-lines-pages ()
+    "Combine `what-line', `what-page' and `count-lines-page'"
     (interactive)
-    (apply #'message `("Page %d, line %d. Page has %d line (%d + %d)" ,@(page--what-page) ,@(page--count-lines-page))))
+    (apply #'message `("%s. Page %d, line %d. Page has %d line (%d + %d)." ,(what-line) ,@(page--what-page) ,@(page--count-lines-page))))
 
   :bind (;; @see `help-map'
          ("C-h C-h" . nil)
@@ -945,7 +949,7 @@ makes it easier to edit it."
          ("C-h e l" . #'view-lossage)
          ("C-h e w" . #'count-words)
          ("C-h e W" . #'count-words-region)
-         ("C-h e p" . #'xy/count-pages)
+         ("C-h =" . #'xy/count-lines-pages)
          ;; library
          ("C-h l" . nil) ; `view-lossage'
          ("C-h l l" . #'xy/loaded-feature)
@@ -2131,6 +2135,7 @@ makes it easier to edit it."
   (windmove-default-keybindings 'ctrl)
   (windmove-swap-states-default-keybindings '(ctrl shift))
   ;; (windmove-display-default-keybindings '(ctrl meta))
+  ;; @tip C-x shift-arrow to delete window
   (windmove-delete-default-keybindings))
 
 (use-package ace-window
@@ -2366,9 +2371,10 @@ makes it easier to edit it."
    ("," . ffip-find-relative-path)
    ("d" . ffip-show-diff)))
 
+;; @tip "s-p p" -> `projectile-switch-project'
 ;; https://docs.projectile.mx/projectile/index.html
 (use-package projectile
-  :bind ("s-p" . projectile-command-map)
+  :bind-keymap ("s-p" . projectile-command-map)
   :config
   ;; 1. let project.el use it to locate project by `projectile-project-root-functions'
   ;;    @see https://docs.projectile.mx/projectile/projects.html#customizing-project-detection
@@ -2377,7 +2383,7 @@ makes it easier to edit it."
   ;; (setq projectile-switch-project-action #'projectile-dired)
   (setq projectile-auto-discover t)
   (setq projectile-auto-cleanup-known-projects t)
-  ;; I use it mainly for "s-p p" -> `projectile-switch-project'
+  ;; I use it mainly for this
   (setq projectile-project-search-path
         '("~/dotter/" "~/notes/" "~/project/" "~/work/" ("~/src/" . 2))))
 
@@ -2526,6 +2532,7 @@ makes it easier to edit it."
 ;; (use-core which-func
 ;;   :after imenu :demand t
 ;;   :config
+;;   (setq which-func-display 'header)
 ;;   (which-function-mode +1))
 
 (use-package breadcrumb
@@ -2627,7 +2634,7 @@ makes it easier to edit it."
   :bind (("C-x x l" . visual-line-mode)
          ("C-x x c" . visual-fill-column-mode)
          ("C-x x C" . visual-fill-column-toggle-center-text))
-  :hook markdown-mode prog-mode
+  :hook markdown-mode
   :init
   (add-hook 'visual-line-mode-hook #'visual-fill-column-for-vline)
   :config
