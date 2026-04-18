@@ -1145,6 +1145,9 @@ makes it easier to edit it."
 
 
 ;;; search
+
+(keymap-global-set "M-s M-r" #'replace-regexp-as-diff)
+
 (use-core isearch
   :config
   ;; @tip `isearch-mode-map'
@@ -1189,8 +1192,6 @@ makes it easier to edit it."
 ;;   :config
 ;;   (global-smartscan-mode +1))
 
-
-;;; grep
 (use-core grep
   :bind ( :map grep-mode-map
           ("H" . xy/toggle-grep-headings))
@@ -1223,10 +1224,10 @@ makes it easier to edit it."
   (setq wgrep-auto-save-buffer t))
 
 ;; @see `ripgrep--base-arguments'
-(use-package ripgrep
-  :bind (("M-s S" . ripgrep-regexp)
-         :map ripgrep-search-mode-map
-         ("e" . wgrep-change-to-wgrep-mode)))
+;; (use-package ripgrep
+;;   :bind (("M-s S" . ripgrep-regexp)
+;;          :map ripgrep-search-mode-map
+;;          ("e" . wgrep-change-to-wgrep-mode)))
 
 ;; 1. `rg-dwim':
 ;; -- @prefix Use current dir instead of project root
@@ -1245,7 +1246,7 @@ makes it easier to edit it."
          :map isearch-mode-map
          ("M-s s" . rg-isearch-menu))
   :bind-keymap
-  ("M-s r" . rg-global-map)
+  ("M-s S" . rg-global-map)
   :config
   (setq rg-buffer-name
         (defun xy/rg-buffer-name ()
@@ -1413,17 +1414,17 @@ makes it easier to edit it."
          ("C-c s i" . consult-info)
          ([remap Info-search] . consult-info)
          ;; C-x bindings in `ctl-x-map'
-         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-         ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+         ("C-x M-:" . consult-complex-command)     ;; @orig repeat-complex-command
+         ("C-x b" . consult-buffer)                ;; @orig switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; @orig switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; @orig switch-to-buffer-other-frame
+         ("C-x t b" . consult-buffer-other-tab)    ;; @orig switch-to-buffer-other-tab
          ("C-x f b" . consult-bookmark)
          ("C-x f f" . consult-recent-file)
-         ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+         ("C-x p b" . consult-project-buffer)      ;; @orig project-switch-to-buffer
          ;; Custom M-# bindings for fast register access
          ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("M-'" . consult-register-store)          ;; @orig abbrev-prefix-mark (unrelated)
          ("C-M-#" . consult-register)
          ;; Other custom bindings
          ("C-M-y" . #'yank-pop) ; show the view of kill history
@@ -1438,7 +1439,7 @@ makes it easier to edit it."
          ;; M-g bindings in `goto-map'
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g g" . consult-goto-line)             ;; @orig goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
          ("M-g k" . consult-global-mark)
@@ -1452,13 +1453,13 @@ makes it easier to edit it."
          ;; Isearch integration
          ("M-s e" . consult-isearch-history)
          :map isearch-mode-map
-         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; @orig isearch-edit-string
          ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
          ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
          ;; Minibuffer history
          :map minibuffer-local-map
-         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+         ("M-s" . consult-history)                 ;; @orig next-matching-history-element
+         ("M-r" . consult-history))                ;; @orig previous-matching-history-element
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
   ;; relevant when you use the default completion UI.
@@ -2860,6 +2861,7 @@ word.  Fall back to regular `expreg-expand'."
        (t (expreg-expand))))))
 
 ;; To add pairs: select something, then M-' s (
+;; https://emacsredux.com/blog/2026/03/17/surround-el-vim-style-pair-editing-comes-to-emacs/
 (use-package surround
   :bind-keymap ("M-'" . surround-keymap))
 
