@@ -346,9 +346,22 @@ NOTE: PATH in emacs should always separated by `:'"
 (setq use-package-always-defer t)
 (setq use-package-enable-imenu-support t)
 (setq use-package-expand-minimally t)
-(setq use-package-compute-statistics init-file-debug)
-;; (setq use-package-minimum-reported-time (if init-file-debug 0 0.1))
-;; (setq use-package-verbose init-file-debug)
+;; TODO
+;; (setq use-package-hook-name-suffix nil)
+;; (setq use-package-inject-hooks t)
+
+(when init-file-debug
+  (require 'use-package)
+  (setq use-package-expand-minimally nil)
+  (setq use-package-compute-statistics t) ; for `use-package-report'
+  ;; (setq use-package-minimum-reported-time 0)
+  (setq use-package-verbose t))
+
+;; Load `use-package' macro definition. Should only use in compiled init.el
+;; @see (info "(elisp) Compiling Macros")
+;; To avoid loading the macro definition files when someone _runs_ the compiled program, write ‘eval-when-compile’ around the ‘require’ calls
+;; (eval-when-compile
+;;   (require 'use-package))
 
 (defmacro use-core (name &rest args)
   (declare (indent 1))
@@ -782,7 +795,7 @@ NOTE: PATH in emacs should always separated by `:'"
 ;;   (compile-angel-on-load-mode))
 
 (use-package gcmh
-  :hook (after-init)
+  :hook emacs-startup
   :config
   (setq gcmh-high-cons-threshold (* 128 1024 1024)))
 
@@ -802,7 +815,7 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; (benchmark-init/activate)
   :config
   ;; To disable collection of benchmark data after init is done.
-  (add-hook 'after-init-hook #'benchmark-init/deactivate))
+  (add-hook 'emacs-startup-hook #'benchmark-init/deactivate))
 
 (use-package bug-hunter
   :bind ("C-c x b" . bug-hunter-init-file))
@@ -991,6 +1004,7 @@ makes it easier to edit it."
          ("C-h e" . nil) ; `view-echo-area-messages' or click echo area
          ("C-h e e" . #'view-echo-area-messages)
          ("C-h e l" . #'view-lossage)
+         ("C-h e v" . #'getenv)
          ("C-h e w" . #'count-words)
          ("C-h e W" . #'count-words-region)
          ("C-h =" . #'xy/count-lines-pages)
@@ -2642,7 +2656,7 @@ makes it easier to edit it."
 ;;   (setq indent-hints-profile-switching-enabled t))
 
 (use-package persistent-scratch
-  :defer 0.5
+  :defer 2
   :bind ( :map persistent-scratch-mode-map
           ;; TODO: use `kill-buffer-query-functions'
           ;; ([remap kill-buffer] . (lambda (&rest _)
