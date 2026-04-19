@@ -281,20 +281,30 @@
 (defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
 (add-to-list 'exec-path xy/mason-bin-dir)
 
-(when (and xy/mac-p (display-graphic-p)) ; (memq window-system '(ns))
-  (defun xy/set-env (env)
+;; For fish shell
+(when (string-suffix-p "fish" (getenv "SHELL"))
+  (setq path-separator " "))
+
+;; For mac gui
+;; TODO (memq window-system '(ns))
+(when (and xy/mac-p (display-graphic-p) (not (getenv "EMACS_PLUS_PATH")))
+  (defun xy/set-env-simple (env)
+    "Set environment variable to value without seperator"
     (setenv env (shell-command-to-string (format "$SHELL --login -c 'echo -n $%s'" env))))
-  (xy/set-env "XDG_RUNTIME_DIR")
+  ;; To put server file where emacsclient knows
+  (xy/set-env-simple "XDG_RUNTIME_DIR")
 
   ;; @see https://www.emacswiki.org/emacs/ExecPath
   (defun xy/set-exec-path-from-shell-PATH ()
-    "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell. This is particularly useful under macOS, where GUI apps are not started from a shell."
+    "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell.
+
+This is particularly useful under macOS, where GUI apps are not started from a shell.
+NOTE: PATH in emacs should always separated by `:'"
     (interactive)
-    ;; TODO: when using fish shell "$SHELL --login -c 'string join : $PATH'" should be used as argument to shell-command-to-string,
-    ;; as fish prints $PATH (and other variables ending in path) separated with spaces instead of colons.
-    (let ((path-from-shell (replace-regexp-in-string
-                            "[ \t\n]*$" "" (shell-command-to-string
-                                            "$SHELL --login -c 'echo -n $PATH'"))))
+    (let* ((path-str (if (string-suffix-p "fish" (getenv "SHELL"))
+                         (shell-command-to-string "$SHELL --login -c 'string join : $PATH'")
+                       (shell-command-to-string "$SHELL --login -c 'echo -n $PATH'")))
+           (path-from-shell (replace-regexp-in-string "[ \t\n]*$" "" path-str)))
       ;; For (shell-command-to-string "gls")
       (setenv "PATH" path-from-shell)
       ;; For (executable-find "gls")
