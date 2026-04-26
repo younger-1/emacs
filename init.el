@@ -440,6 +440,7 @@ NOTE: PATH in emacs should always separated by `:'"
   (setq mark-even-if-inactive nil)
 
   ;; kill
+  ;; (setq kill-whole-line t)
   (setq kill-do-not-save-duplicates t)
   (setq save-interprogram-paste-before-kill t)
   ;; To prevent kill and yank commands from accessing the clipboard
@@ -553,12 +554,13 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; Avoid resizing
   ;; (setq even-window-sizes nil)
   ;; Proportional Window Resizing
-  ;; (setq window-combination-resize t)
+  (setq window-combination-resize t)
 
   ;; cursor
   (setq-default cursor-type 'box)
   (setq x-stretch-cursor t)
   ;; (blink-cursor-mode -1)
+  (setq track-eol t)
 
   ;; line number
   ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
@@ -568,6 +570,8 @@ NOTE: PATH in emacs should always separated by `:'"
 
   ;; fringe
   ;; https://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
+  (setq-default indicate-buffer-boundaries 'left)
+  ;; (setq-default indicate-empty-lines t)
 
   ;; edit
   ;; (setq undo-no-redo t)
@@ -653,9 +657,7 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; No beeping or blinking
   ;; (setq ring-bell-function #'ignore
   ;;       visible-bell nil)
-  ;; (setq-default show-trailing-whitespace t)
-  ;; (setq-default indicate-empty-lines t)
-  (setq-default indicate-buffer-boundaries 'left))
+  (setq-default show-trailing-whitespace t))
 
 
 ;;; hooks and keymaps
@@ -2115,6 +2117,31 @@ makes it easier to edit it."
   (setq evil-exchange-cancel-key (kbd "gZ"))
   (evil-exchange-install))
 
+;; Align left/right with gl/gL
+;; `gl{motion}{char}' to align on char
+;; [glip=]
+;; one = 1
+;; three = 3
+;; fifteen = 15
+;;
+;; [gLip,]
+;; one, two, three,
+;; fifteen, sixteen, seventeen
+;;
+;; [1glip"]
+;; (red "red")
+;; (teal-green "#6fb593")
+;; (wheat "#b9c791")
+;; (blue "blue")
+;; (cyan "#54b6b6")
+;;
+(use-package evil-lion
+  :after evil :demand t
+  :config
+  ;; (setq evil-lion-left-align-key (kbd "g a"))
+  ;; (setq evil-lion-right-align-key (kbd "g A"))
+  (evil-lion-mode +1))
+
 (use-package evil-visual-mark-mode
   :after evil :demand t
   :config
@@ -2490,7 +2517,6 @@ makes it easier to edit it."
   ;; (emacs-startup . context-menu-mode)
   :config
   ;; (setq mouse-autoselect-window t)
-  ;; Only temporarily active regions set the primary selection
   (setq select-active-regions 'only)
   ;; (setq mouse-drag-copy-region t)
   (setq mouse-yank-at-point t)
