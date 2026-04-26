@@ -560,7 +560,7 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; line number
   ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
   (setq display-line-numbers-type 'visual)
-  (setq display-line-numbers-current-absolute nil)
+  ;; (setq display-line-numbers-current-absolute nil)
   ;; (setq-default display-line-numbers-widen t) ; widen line numbers when in narrow
 
   ;; fringe
@@ -675,7 +675,7 @@ NOTE: PATH in emacs should always separated by `:'"
   (column-number-mode +1) ; modeline
   (size-indication-mode +1) ; modeline
   (delete-selection-mode +1)
-  (global-display-fill-column-indicator-mode +1)
+  ;; (global-display-fill-column-indicator-mode +1)
 
   (add-to-list 'global-display-fill-column-indicator-modes '(not calc-mode calc-trail-mode))
 
@@ -720,6 +720,9 @@ NOTE: PATH in emacs should always separated by `:'"
   ;;
   ("C-x x f" . #'follow-mode)
   ("C-x x G" . #'redraw-display)
+  ;;
+  ("C-x f n" . #'clone-indirect-buffer)
+  ("C-x f N" . #'clone-indirect-buffer-other-window)
   ;;
   ("C-x j u" . #'browse-url)
   ("C-x j U" . #'browse-web))
@@ -1198,12 +1201,6 @@ makes it easier to edit it."
   (setq global-auto-revert-non-file-buffers t)
   ;; Set to nil if too slow
   (setq auto-revert-remote-files t))
-
-;; (use-package savefold
-;;   :defer 0.5
-;;   :config
-;;   (setq savefold-backends '(outline org hideshow markdown))
-;;   (savefold-mode +1))
 
 
 ;;; search
@@ -2455,12 +2452,12 @@ makes it easier to edit it."
   (setq prettify-symbols-unprettify-at-point 'right-edge)
   (global-prettify-symbols-mode +1))
 
-(use-package page-break-lines
-  :defer 1
-  :bind ("C-c t p" . page-break-lines-mode)
-  :config
-  (global-page-break-lines-mode +1)
-  (setq page-break-lines-max-width 80))
+;; (use-package page-break-lines
+;;   :defer 1
+;;   :bind ("C-c t p" . page-break-lines-mode)
+;;   :config
+;;   (global-page-break-lines-mode +1)
+;;   (setq page-break-lines-max-width 80))
 
 
 ;;; ui
@@ -2701,6 +2698,12 @@ makes it easier to edit it."
   (add-hook 'visual-fill-column-mode-hook
             (lambda () (setq-local visual-fill-column-fringes-outside-margins nil)))
   (setq visual-fill-column-enable-sensible-window-split t))
+
+;; Hide comments if code is obvious
+(use-package obvious
+  :vc ( :url "https://github.com/alphapapa/obvious.el"
+        :rev :newest)
+  :bind ("C-c t c" . obvious-mode))
 
 
 ;;; tool
@@ -3596,12 +3599,11 @@ word.  Fall back to regular `expreg-expand'."
 
 
 ;;; outline
-;; @tip C-x $ -> `set-selective-display'
 
-(use-core hideshow
-  :bind ("C-c t h" . hs-minor-mode))
+;; Emacs' oldest built-in folding method
+;; C-x $ -> `set-selective-display'
 
-;; Automatically reveal hidden text at point
+;; Reveal hidden text at point, and re-hiding them when you navigate away
 (use-core reveal
   :hook (hs-minor-mode outline-minor-mode)
   :bind ("C-c t r" . reveal-mode))
@@ -3629,25 +3631,116 @@ word.  Fall back to regular `expreg-expand'."
   ;; (emacs-lisp-mode . outline-minor-mode)
   :bind (("C-c t o" . outline-minor-mode)
          :map outline-minor-mode-map
-         ("C-c v SPC" . (lambda () (interactive) (outline-back-to-heading))))
+         ("C-c v SPC" . outline-back-to-head))
+  :init
+  (defun outline-back-to-head () (interactive) (outline-back-to-heading))
   :config
-  ;; @tip Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
-  ;; @tip RET at beginning of headers line trigger `outline-cycle'. And for S-RET:
-  (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
-  ;; For TAB/S-TAB
+  ;; @tip TAB/S-TAB on the heading line
   (setq outline-minor-mode-cycle t)
+  ;; @tip RET/S-RET at start of heading
+  (keymap-set outline-overlay-button-map "S-<return>" #'outline-cycle-buffer)
   (setopt outline-minor-mode-prefix (kbd "C-c v")) ; v for view
   ;;; UI
   (setq outline-minor-mode-highlight 'append)
-  (setq outline-minor-mode-use-buttons 'in-margins))
+  ;; Click left margin with mouse-1/S-mouse-1. see `outline-minor-mode-cycle-map'
+  (setq outline-minor-mode-use-buttons 'in-margins)
+  (setq outline-blank-line t))
 
-;; (use-package outli
-;;   :hook prog-mode)
+;; Comment-based outline folding, using `outline'
+(use-package outli
+  :hook (prog-mode text-mode conf-mode)
+  :config
+  ;; Remove overline on headings
+  ;; (setf (alist-get 'emacs-lisp-mode outli-heading-config) '(";;" ?\; t t))
+  )
 
+;; Comment-based outline folding, using `outline'
 ;; (use-package outline-stars
 ;;   :vc ( :url "https://codeberg.org/phmcc/outline-stars"
 ;;         :rev :newest)
 ;;   :init (outline-stars-mode +1))
+
+;; Syntax-aware folding, for C-style languages and others that use braces {}
+(use-core hideshow
+  :init (defalias 'hideshow-mode 'hs-minor-mode)
+  :hook (prog-mode) ; TODO remove ts-based major mode
+  :bind (("C-c t h" . hs-minor-mode)
+         :map hs-minor-mode-map
+         ("C-<return>" . hs-toggle-hiding)
+         ("S-<return>" . hs-hide-all)
+         ("C-S-<return>" . hs-show-all)))
+
+;; Indentation-based folding
+;; (use-package yafolding
+;;   :hook prog-mode
+;;   :bind (:map yafolding-mode-map))
+
+;; Parser-based structural folding with indentation fallback
+;; (use-package origami
+;;   :hook prog-mode
+;;   :bind ( :map origami-mode-map
+;;           ("C-<return>" . origami-toggle-node)
+;;           ("S-<return>" . origami-toggle-all-nodes)
+;;           ("C-S-<return>" . origami-show-only-node)
+;;           ("C-c v u" . origami-undo)
+;;           ("C-c v r" . origami-redo)))
+
+;; Indentation-based folding, for Python, Haskell, and YAML
+(use-package outline-indent
+  :init (defalias 'outline-indent-mode 'outline-indent-minor-mode)
+  :hook (python-mode yaml-mode haskell-mode)
+  ;; (outline-indent-minor-mode-hook . outline-indent-close-folds)
+  :config
+  (setq outline-indent-ellipsis " ▼"))
+
+;; Tree-sitter-based folding, using `treesit'
+(use-package treesit-fold
+  :after treesit :demand t
+  :bind ( :map treesit-fold-mode-map
+          ("C-<return>" . treesit-fold-toggle)
+          ("S-<return>" . treesit-fold-close-all)
+          ("C-S-<return>" . treesit-fold-open-all))
+  :hook
+  ;; Add support for non-ts modes
+  (go-mode . (lambda () (treesit-parser-create 'go)))
+  ;; (emacs-lisp-mode. (lambda () (treesit-parser-create 'elisp)))
+  :config
+  (setq treesit-fold-line-count-show t)
+  ;; (setq treesit-fold-line-count-format " %d ▼")
+  (global-treesit-fold-mode +1)
+  (global-treesit-fold-indicators-mode +1))
+
+;; Manual folding arbitrary regions into a one-line summary in any buffer
+(use-package occult
+  :bind
+  ("C-c z z" . occult-toggle)
+  ("C-c z a" . occult-reveal-all))
+
+;; A Unified Method to Fold and Unfold Text
+(use-package kirigami
+  :init
+  (global-set-key (kbd "C-c z o") 'kirigami-open-fold)
+  (global-set-key (kbd "C-c z O") 'kirigami-open-fold-rec)
+  (global-set-key (kbd "C-c z r") 'kirigami-open-folds)
+  (global-set-key (kbd "C-c z c") 'kirigami-close-fold)
+  (global-set-key (kbd "C-c z m") 'kirigami-close-folds)
+  (global-set-key (kbd "C-c z a") 'kirigami-toggle-fold)
+  ;;
+  (with-eval-after-load 'evil
+    (define-key evil-normal-state-map "zo" 'kirigami-open-fold)
+    (define-key evil-normal-state-map "zO" 'kirigami-open-fold-rec)
+    (define-key evil-normal-state-map "zc" 'kirigami-close-fold)
+    (define-key evil-normal-state-map "za" 'kirigami-toggle-fold)
+    (define-key evil-normal-state-map "zr" 'kirigami-open-folds)
+    (define-key evil-normal-state-map "zm" 'kirigami-close-folds))
+  :config
+  (setq kirigami-preserve-visual-position t))
+
+;; (use-package savefold
+;;   :defer 0.5
+;;   :config
+;;   (setq savefold-backends '(outline org hideshow markdown))
+;;   (savefold-mode +1))
 
 
 ;;; org
@@ -3799,6 +3892,7 @@ title or keywords fields."
 
 ;;; shell
 ;; @see https://www.masteringemacs.org/article/running-shells-in-emacs-overview
+;; TODO https://emacsredux.com/blog/2026/03/17/tree-sitter-font-lock-and-indentation-in-comint-buffers/
 (use-core comint
   :bind (("C-x c s" . shell)
          ("C-x c t" . ansi-term)
@@ -4225,6 +4319,7 @@ title or keywords fields."
 
 
 ;;; lang
+
 ;; https://jblevins.org/projects/markdown-mode/
 (use-package markdown-mode
   :mode ("README\\.md\\'" . gfm-mode)
