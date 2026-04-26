@@ -2038,7 +2038,11 @@ makes it easier to edit it."
       (kbd "[c") #'diff-hl-previous-hunk
       (kbd "]d") #'diff-hl-show-hunk-next
       (kbd "[d") #'diff-hl-show-hunk-previous))
-  )
+
+  (with-eval-after-load 'goggles
+    (goggles-define undo primitive-undo evil-undo)
+    (goggles-define yank yank yank-pop evil-yank evil-yank-line)
+    (goggles-define delete delete-region evil-delete evil-delete-line)))
 
 ;; (use-package evil-collection
 ;;   :after evil :demand t
@@ -2125,6 +2129,14 @@ makes it easier to edit it."
                  (side . bottom)
                  (window-height . 0.3)))
   (evil-owl-mode +1))
+
+;; Display visual hint on evil edit operations
+;; (use-package evil-goggles
+;;   :after evil :demand t
+;;   :config
+;;   (setq evil-goggles-duration 0.3)
+;;   (evil-goggles-mode +1)
+;;   (evil-goggles-use-diff-faces))
 
 
 ;;; buffer
@@ -2699,6 +2711,12 @@ makes it easier to edit it."
             (lambda () (setq-local visual-fill-column-fringes-outside-margins nil)))
   (setq visual-fill-column-enable-sensible-window-split t))
 
+;; Show major mode heirarchy
+(use-package mode-minder
+  :vc ( :url "https://github.com/jdtsmith/mode-minder"
+        :rev :newest)
+  :commands mode-minder)
+
 ;; Hide comments if code is obvious
 (use-package obvious
   :vc ( :url "https://github.com/alphapapa/obvious.el"
@@ -2797,8 +2815,12 @@ makes it easier to edit it."
   ;; (setq quake-frame-height '(rows . 20))
   (setq quake-frame-margin 0))
 
+(use-package browser-hist
+  :bind ("C-c b h" . browser-hist-search))
+
 
 ;;; motion
+
 ;; Move point through `buffer-undo-list' positions.
 ;; (use-package goto-last-change
 ;;   :bind ("M-g SPC" . goto-last-change)
@@ -2888,9 +2910,7 @@ makes it easier to edit it."
   (undo-fu-session-global-mode +1)
   (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
-;; (use-package expand-region
-;;   :bind ("C-=" . er/expand-region))
-
+;; C-w and M-w act on the current line when the mark is not active
 (use-package whole-line-or-region
   :defer 0.3
   :config
@@ -2927,6 +2947,9 @@ word.  Fall back to regular `expreg-expand'."
         (prot/expreg-expand 1))
        (symbol (prot/expreg-expand 2))
        (t (expreg-expand))))))
+
+;; (use-package expand-region
+;;   :bind ("C-=" . er/expand-region))
 
 ;; To add pairs: select something, then M-' s (
 ;; https://emacsredux.com/blog/2026/03/17/surround-el-vim-style-pair-editing-comes-to-emacs/
@@ -2973,7 +2996,7 @@ word.  Fall back to regular `expreg-expand'."
 
 ;; Automatic indentation (and optional formatting) when yanking/pasting text
 ;; (use-package snap-indent
-;;   :hook (prog-mode . snap-indent-mode)
+;;   :hook prog-mode
 ;;   :config
 ;;   (setq snap-indent-format '(untabify delete-trailing-whitespace))
 ;;   (setq snap-indent-on-save nil)
@@ -2981,8 +3004,8 @@ word.  Fall back to regular `expreg-expand'."
 
 ;; Automatic indentation mode
 (use-package indentinator
-  :bind ("C-c t i" . indentinator-mode)
-  :hook (prog-mode))
+  ;; :hook prog-mode
+  :bind ("C-c t i" . indentinator-mode))
 
 
 ;;; prog
@@ -3146,32 +3169,38 @@ word.  Fall back to regular `expreg-expand'."
 ;; 1. Automatic pulse after a function in the `pulsar-pulse-functions'
 ;; 2. Region-related changes, covers copyring, pasting, undoing, redoing
 ;; 3. Window-related changes, includes selection, addition, deletion, resize
-(use-package pulsar
-  :defer 1
-  :bind
-  ("C-x l" . pulsar-pulse-line) ; @orig `count-lines-page'
-  ("C-x L" . pulsar-highlight-permanently-dwim) ; or use `pulsar-highlight-temporarily-dwim'
-  :hook
-  (next-error . pulsar-pulse-line-red)
-  (minibuffer-setup . pulsar-pulse-line-green)
-  ;; integration with `consult':
-  (consult-after-jump . pulsar-recenter-top) ; or `pulsar-recenter-center'
-  (consult-after-jump . pulsar-reveal-entry) ; displays the hidden contents of an Org or Outline heading
-  ;; integration with `imenu':
-  (imenu-after-jump . pulsar-recenter-top)
-  (imenu-after-jump . pulsar-reveal-entry)
+;; (use-package pulsar
+;;   :defer 1
+;;   :bind
+;;   ("C-x l" . pulsar-pulse-line) ; @orig `count-lines-page'
+;;   ("C-x L" . pulsar-highlight-permanently-dwim) ; or use `pulsar-highlight-temporarily-dwim'
+;;   :hook
+;;   (next-error . pulsar-pulse-line-red)
+;;   (minibuffer-setup . pulsar-pulse-line-green)
+;;   ;; integration with `consult':
+;;   (consult-after-jump . pulsar-recenter-top) ; or `pulsar-recenter-center'
+;;   (consult-after-jump . pulsar-reveal-entry) ; displays the hidden contents of an Org or Outline heading
+;;   ;; integration with `imenu':
+;;   (imenu-after-jump . pulsar-recenter-top)
+;;   (imenu-after-jump . pulsar-reveal-entry)
+;;   :config
+;;   (pulsar-global-mode +1)
+;;   ;; (setq pulsar-pulse-on-window-change t)
+;;   ;; (setq pulsar-inhibit-hidden-buffers nil)
+;;   (setq pulsar-delay 0.05)
+;;   (setq pulsar-iterations 15)
+;;   ;; for `pulsar-pulse-functions'
+;;   (setq pulsar-face 'pulsar-generic)
+;;   ;; for `pulsar-pulse-region-functions'
+;;   (setq pulsar-region-face 'pulsar-yellow)
+;;   ;; for static highlight (temporary or permanent)
+;;   (setq pulsar-highlight-face 'pulsar-magenta))
+
+;; Pulse modified region. Undo, yank, kill and delete are supported
+(use-package goggles
+  :hook (prog-mode text-mode conf-mode)
   :config
-  (pulsar-global-mode +1)
-  ;; (setq pulsar-pulse-on-window-change t)
-  ;; (setq pulsar-inhibit-hidden-buffers nil)
-  (setq pulsar-delay 0.05)
-  (setq pulsar-iterations 15)
-  ;; for `pulsar-pulse-functions'
-  (setq pulsar-face 'pulsar-generic)
-  ;; for `pulsar-pulse-region-functions'
-  (setq pulsar-region-face 'pulsar-yellow)
-  ;; for static highlight (temporary or permanent)
-  (setq pulsar-highlight-face 'pulsar-magenta))
+  (setq goggles-pulse-delay 0.2))
 
 ;; Temporarily highlight focused windows
 (use-package winpulse
@@ -3180,12 +3209,6 @@ word.  Fall back to regular `expreg-expand'."
   :defer 1
   :config
   (winpulse-mode +1))
-
-;; Pulse modified region. Undo, yank, kill and delete are supported
-(use-package goggles
-  :hook (prog-mode text-mode)
-  :config
-  (setq goggles-pulse-delay 0.2))
 
 ;; Highlight delimiters such as parentheses, brackets or braces according to their depth
 (use-package rainbow-delimiters
@@ -3596,6 +3619,11 @@ word.  Fall back to regular `expreg-expand'."
   ;; Enable `magit-show-commit' instead of `pop-to-buffer'
   (setq git-messenger:use-magit-popup t)
   (setq git-messenger:show-detail t))
+
+(use-package remoto
+  :vc ( :url "https://github.com/agzam/remoto.el"
+        :rev :newest)
+  :bind ("C-c g r" . remoto-browse))
 
 
 ;;; outline
