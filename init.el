@@ -5,6 +5,9 @@
 
 ;; (set-default-coding-systems 'utf-8)
 (prefer-coding-system 'utf-8)
+;; (setenv "LC_CTYPE" "UTF-8")
+;; (setenv "LC_ALL" "en_US.UTF-8")
+;; (setenv "LANG" "en_US.UTF-8")
 
 (eval-and-compile
   (add-to-list 'load-path (expand-file-name "lisp" xy/init-dir))
@@ -17,12 +20,15 @@
 ;; For finer granularity, use `system-type' or `system-configuration' directly.
 (defconst xy/linux-p
   (eq system-type 'gnu/linux) ; 'berkeley-unix 'gnu 'gnu/kfreebsd
+  ;; (memq window-system '(x))
   "Are we running on a GNU/Linux system?")
 (defconst xy/win-p
   (eq system-type 'windows-nt) ; 'cygwin 'ms-dos
+  ;; (memq window-system '(win32 pc))
   "Are we running on a MS-Window system?")
 (defconst xy/mac-p
   (eq system-type 'darwin)
+  ;; (memq window-system '(mac ns))
   "Are we running on a Mac system?")
 
 
@@ -278,22 +284,18 @@
 ;; https://github.com/purcell/exec-path-from-shell
 ;; support non-POSIX-standard shell: fish, nu
 
-(defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
-(add-to-list 'exec-path xy/mason-bin-dir)
+(defun xy/set-env-simple (env)
+  "Set environment variable to value without seperator"
+  (setenv env (shell-command-to-string (format "$SHELL --login -c 'echo -n $%s'" env))))
+;; To put server file where emacsclient knows
+(xy/set-env-simple "XDG_RUNTIME_DIR")
 
 ;; For fish shell
 (when (string-suffix-p "fish" (getenv "SHELL"))
   (setq path-separator " "))
 
 ;; For mac gui
-;; TODO (memq window-system '(ns))
 (when (and xy/mac-p (display-graphic-p) (not (getenv "EMACS_PLUS_PATH")))
-  (defun xy/set-env-simple (env)
-    "Set environment variable to value without seperator"
-    (setenv env (shell-command-to-string (format "$SHELL --login -c 'echo -n $%s'" env))))
-  ;; To put server file where emacsclient knows
-  (xy/set-env-simple "XDG_RUNTIME_DIR")
-
   ;; @see https://www.emacswiki.org/emacs/ExecPath
   (defun xy/set-exec-path-from-shell-PATH ()
     "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell.
@@ -308,9 +310,7 @@ NOTE: PATH in emacs should always separated by `:'"
       ;; For (shell-command-to-string "gls")
       (setenv "PATH" path-from-shell)
       ;; For (executable-find "gls")
-      ;; (setq exec-path (split-string path-from-shell path-separator))
-      (dolist (path (split-string path-from-shell path-separator))
-        (add-to-list 'exec-path path))))
+      (setq exec-path (split-string path-from-shell path-separator))))
   (add-hook 'emacs-startup-hook #'xy/set-exec-path-from-shell-PATH))
 
 (when xy/win-p
@@ -322,6 +322,9 @@ NOTE: PATH in emacs should always separated by `:'"
     (setenv "PATH" (concat xy/git-bin-dir ";" (getenv "PATH"))))
   (setenv "LANG" "en_US")
   (cd "~/"))
+
+(defconst xy/mason-bin-dir (expand-file-name "~/.local/share/nvim/mason/bin"))
+(add-to-list 'exec-path xy/mason-bin-dir)
 
 
 ;;; builtin package setup
