@@ -1805,6 +1805,7 @@ makes it easier to edit it."
   (setq repeat-exit-key "q")
   :init
   (keymap-global-set "C-x U" #'undo-only)
+  ;; @tip Modify the given :keymap and refer to it by a new name
   (defvar-keymap xy/undo-repeat-map
     :keymap undo-repeat-map
     :repeat t
@@ -2035,7 +2036,19 @@ makes it easier to edit it."
   (evil-define-key 'visual 'global
     "X" #'clipboard-kill-region
     "Y" #'clipboard-kill-ring-save
-    "d" #'delete-region)
+    "d" #'delete-region
+    ">" (defun xy/evil-shift-right ()
+          "vnoremap < <gv"
+          (interactive)
+          (call-interactively #'evil-shift-right)
+          (evil-normal-state)
+          (evil-visual-restore))
+    "<" (defun xy/evil-shift-left ()
+          "vnoremap > >gv"
+          (interactive)
+          (call-interactively #'evil-shift-left)
+          (evil-normal-state)
+          (evil-visual-restore)))
 
   (evil-define-key 'insert 'global
     (kbd "s-v") #'clipboard-yank)
@@ -2507,6 +2520,41 @@ makes it easier to edit it."
 ;;   (global-page-break-lines-mode +1)
 ;;   (setq page-break-lines-max-width 80))
 
+;; Simple distraction-free editing
+;; (use-package darkroom
+;;   :bind ("C-c t w" . darkroom-tentative-mode)
+;;   :config
+;;   (setq darkroom-fringes-outside-margins nil))
+
+;; Like olivetti/darkroom, but also effect current frame by `writeroom-global-effects'
+(use-package writeroom-mode
+  :bind (("C-c t w" . writeroom-mode)
+         ("C-c t W" . global-writeroom-mode)
+         :map writeroom-mode-map
+         ;; @tip Use "s-?" toggle mode-line
+         ("C-c {" . writeroom-decrease-width)
+         ("C-c }" . writeroom-increase-width))
+  :config
+  (defvar-keymap xy/writeroom-mode-map
+    :repeat t
+    "{" #'writeroom-decrease-width
+    "}" #'writeroom-increase-width
+    "=" #'writeroom-adjust-width)
+  (setq writeroom-fullscreen-effect 'maximized)
+  (setq writeroom-width 0.618)
+  ;; In which `global-writeroom-mode' will active
+  (setq writeroom-major-modes '(text-mode org-mode markdown-mode Info-mode))
+  (setq writeroom-restore-window-config t)
+  (setq writeroom-mode-line-toggle-position 'mode-line-format))
+
+;; A distraction-free writing environment, by automatically balance window margins
+;; (use-package olivetti
+;;   ;; @tip Change body width with: C-c { and C-c }
+;;   :bind ("C-c t w" . olivetti-mode)
+;;   :config
+;;   ;; (setq olivetti-style 'fancy)
+;;   (setq olivetti-body-width 0.618))
+
 
 ;;; ui
 (use-core frame
@@ -2732,6 +2780,7 @@ makes it easier to edit it."
   ;; @see https://codeberg.org/joostkremers/visual-fill-column/issues/14
   (add-hook 'visual-fill-column-mode-hook
             (lambda () (setq-local visual-fill-column-fringes-outside-margins nil)))
+  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
   (setq visual-fill-column-enable-sensible-window-split t))
 
 ;; Show major mode heirarchy
