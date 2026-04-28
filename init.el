@@ -462,7 +462,7 @@ NOTE: PATH in emacs should always separated by `:'"
   (setq hscroll-margin 10
         hscroll-step 0
         auto-hscroll-mode 'current-line)
-  ;; scroll performance
+  ;; @perf
   ;; (setq fast-but-imprecise-scrolling t)
   ;; (setq jit-lock-defer-time 0.05)
 
@@ -531,7 +531,7 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; (setq comment-style 'multi-line)
 
   ;; buffer
-  (setq uniquify-buffer-name-style 'forward)
+  ;; (setq uniquify-buffer-name-style 'forward)
   (setq switch-to-buffer-obey-display-actions t)
   (setq switch-to-buffer-in-dedicated-window 'pop)
   ;; (setq display-buffer-base-action '((display-buffer-reuse-window display-buffer-same-window)
@@ -583,12 +583,12 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; According to the POSIX, a line is defined as "a sequence of zero or more non-newline characters followed by a terminating newline".
   (setq require-final-newline t)
 
-  ;; Disable Bidirectional Text Scanning (Doom Emacs)
+  ;; @perf Disable Bidirectional Text Scanning (Doom Emacs)
   (setq-default bidi-display-reordering 'left-to-right
                 bidi-paragraph-direction 'left-to-right)
   (setq bidi-inhibit-bpa t)
 
-  ;; Skip Fontification During Input (Doom Emacs)
+  ;; @perf Skip Fontification During Input (Doom Emacs)
   (setq redisplay-skip-fontification-on-input t)
 
   ;; proced
@@ -596,11 +596,12 @@ NOTE: PATH in emacs should always separated by `:'"
   (setq-default proced-auto-update-flag t)
 
   ;; flyspell
-  ;; (setq flyspell-issue-welcome-flag nil)
-  ;; Greatly improves flyspell performance by preventing messages from being displayed for each word when checking the entire buffer.
+  ;; (setq flyspell-check-changes t)
+  ;; @perf Prevent messages from being displayed for each word when checking the entire buffer.
   ;; (setq flyspell-issue-message-flag nil)
 
   ;; ispell
+  ;; @dep @cli Spelling checker program, one of Hunspell, Aspell, Ispell or Enchant
   ;; Disable ispell completion to avoid annotation errors when no `ispell' dictionary is set.
   ;; (setq text-mode-ispell-word-completion nil)
   (setq ispell-silently-savep t)
@@ -630,6 +631,7 @@ NOTE: PATH in emacs should always separated by `:'"
   (setq list-matching-lines-jump-to-current-line t)
   ;; By default, emacs "updates" its ui more often than it needs to
   (setq idle-update-delay 1.0)
+
   ;; `files.el'
   (setq delete-by-moving-to-trash t)
   (setq confirm-kill-emacs #'yes-or-no-p)
@@ -641,6 +643,7 @@ NOTE: PATH in emacs should always separated by `:'"
   (setq find-file-visit-truename t
         vc-follow-symlinks t)
   (setq view-read-only t)
+
   ;; `paren.el'
   (setq show-paren-context-when-offscreen 'overlay
         blink-matching-paren-highlight-offscreen t)
@@ -649,11 +652,14 @@ NOTE: PATH in emacs should always separated by `:'"
         show-paren-when-point-in-periphery t)
   (setq delete-pair-blink-delay 0.1
         delete-pair-push-mark t)
+
   ;; `compile.el'
   (setq compilation-scroll-output 'first-error)
   ;; (setq compilation-always-kill t
   ;;       compilation-ask-about-save nil)
+
   ;; `C-code'
+  (setq highlight-nonselected-windows t)
   ;; No beeping or blinking
   ;; (setq ring-bell-function #'ignore
   ;;       visible-bell nil)
@@ -723,11 +729,11 @@ NOTE: PATH in emacs should always separated by `:'"
   ("C-x K" . #'bury-buffer)
   ("C-x O" . #'switch-to-minibuffer)
   ;;
+  ("C-x x d" . #'display-fill-column-indicator-mode)
   ("C-x x f" . #'follow-mode)
   ("C-x x G" . #'redraw-display)
-  ;;
-  ("C-x f n" . #'clone-indirect-buffer)
-  ("C-x f N" . #'clone-indirect-buffer-other-window)
+  ("C-x x b" . #'clone-indirect-buffer)
+  ("C-x x B" . #'clone-indirect-buffer-other-window)
   ;;
   ("C-x j u" . #'browse-url)
   ("C-x j U" . #'browse-web))
@@ -1614,7 +1620,7 @@ makes it easier to edit it."
     (orderless-style-dispatchers '(xy/-orderless-fast-dispatch))
     (orderless-matching-styles '(orderless-literal orderless-regexp))))
 
-;; Enriches the completion display with annotation
+;; Enriches the completion display with annotation, e.g. docstring, value of variable
 ;; 1.provide classifiers for embark
 ;; -- `marginalia-classifiers'
 ;; 2.provide annotators for minibuffer
@@ -2693,18 +2699,6 @@ makes it easier to edit it."
 ;;   :config
 ;;   (setq indent-hints-profile-switching-enabled t))
 
-(use-package persistent-scratch
-  :defer 2
-  :bind ( :map persistent-scratch-mode-map
-          ;; TODO: use `kill-buffer-query-functions'
-          ;; ([remap kill-buffer] . (lambda (&rest _)
-          ;;                          (interactive)
-          ;;                          (user-error "[xy] scratch buffer cannot be killed")))
-          ([remap revert-buffer] . persistent-scratch-restore)
-          ([remap revert-this-buffer] . persistent-scratch-restore))
-  :hook (lisp-interaction-mode)
-  :config (persistent-scratch-autosave-mode +1))
-
 (use-core pixel-scroll
   :defer 1
   :config
@@ -2745,6 +2739,12 @@ makes it easier to edit it."
   :vc ( :url "https://github.com/jdtsmith/mode-minder"
         :rev :newest)
   :commands mode-minder)
+
+;; A word cloud of the current buffer
+(use-package wordcloud
+  :vc ( :url "https://github.com/davep/wordcloud.el"
+        :rev :newest)
+  :commands woldcloud)
 
 ;; Hide comments if code is obvious
 (use-package obvious
@@ -2847,6 +2847,43 @@ makes it easier to edit it."
 (use-package browser-hist
   :bind ("C-c b h" . browser-hist-search))
 
+;; Merriam-Webster Thesaurus in Emacs, in `org-mode'
+;; - RET or "C-c C-o" -> lookup for the word at the cursor (lets you “drill” into definition further)
+;; - q -> kill mw-thesaurus buffer and close the window
+(use-package mw-thesaurus
+  :bind (("C-h o m" . mw-thesaurus-lookup-dwim)
+         :map mw-thesaurus-mode-map
+         ([remap evil-ret] . mw-thesaurus-lookup-at-point)
+         ([remap evil-record-macro] . mw-thesaurus--quit))
+  :hook (mw-thesaurus-mode . variable-pitch-mode)
+  :config
+  ;; Window on the right side
+  (add-to-list 'display-buffer-alist
+               `(,mw-thesaurus-buffer-name
+                 (display-buffer-reuse-window
+                  display-buffer-in-direction)
+                 (direction . right)
+                 (window . root)
+                 (window-width . 0.3))))
+
+;; Wiktionary browser in Emacs, in `org-mode'
+;; 维基词典 - 词源查找 (Etymology Lookup)
+;; - Wiktionary is an amazing dictionary, a comprehensive toolkit with main focus on word etymology
+;; - C-c C-l -> to change the language and re-render the entry
+;; @dep @cli Pronunciation gets played via ffplay (typically bundled in ffmpeg)
+(use-package wiktionary-bro
+  :bind ("C-h o w" . wiktionary-bro-dwim)
+  :config
+  (add-hook 'wiktionary-bro-mode-hook
+            (defun xy/wiktionary-use-system-browser ()
+              (setq-local browse-url-browser-function #'browse-url-default-browser))))
+
+(use-core eww
+  :config
+  ;; https://emacs-china.org/t/eww-readable/22956
+  ;; (setq eww-retrieve-command '("readable"))
+  )
+
 
 ;;; motion
 
@@ -2910,6 +2947,14 @@ makes it easier to edit it."
   ;; Save and restore
   (binky-restore)
   (add-hook 'kill-emacs-hook #'binky-save))
+
+;; Vim’s jump list, just generalized for Emacs
+;; recording movements into the backlog
+;; (use-package gumshoe
+;;   :defer 1
+;;   :config
+;;   ;; Enabing global-gumshoe-mode will initiate tracking
+;;   (global-gumshoe-mode +1))
 
 
 ;;; edit
@@ -3000,6 +3045,18 @@ word.  Fall back to regular `expreg-expand'."
 ;;   (org-mode . embrace-org-mode-hook)
 ;;   (emacs-lisp-mode . embrace-emacs-lisp-mode-hook)
 ;;   (markdown-mode . embrace-markdown-mode-hook))
+
+(use-package persistent-scratch
+  :defer 2
+  :bind ( :map persistent-scratch-mode-map
+          ;; TODO: use `kill-buffer-query-functions'
+          ;; ([remap kill-buffer] . (lambda (&rest _)
+          ;;                          (interactive)
+          ;;                          (user-error "[xy] scratch buffer cannot be killed")))
+          ([remap revert-buffer] . persistent-scratch-restore)
+          ([remap revert-this-buffer] . persistent-scratch-restore))
+  :hook (lisp-interaction-mode)
+  :config (persistent-scratch-autosave-mode +1))
 
 ;; Edit regions in separate buffers, like `org-edit-special'
 (use-package edit-indirect
@@ -3316,6 +3373,12 @@ word.  Fall back to regular `expreg-expand'."
   :after symbol-overlay :demand t
   :bind ( :map symbol-overlay-map
           ("C-o" . casual-symbol-overlay-tmenu)))
+
+;; @problem Can't exclude current highlight when only one match
+;; (use-package idle-highlight-mode
+;;   :hook (prog-mode text-mode conf-mode special-mode)
+;;   :config
+;;   (setq idle-highlight-visible-buffers t))
 
 ;; TODO: navi map not compatible with evil-mode
 (use-package region-occurrences-highlighter
