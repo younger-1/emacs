@@ -3720,8 +3720,33 @@ word.  Fall back to regular `expreg-expand'."
 
 ;;; outline
 
+;; Why code folding, @see https://www.jamescherti.com/emacs-the-definitive-guide-to-code-folding/
+;; - Reading: manage cognitive load, preserve spatial memory, save screen real estate
+;; - Navigating: reveal only a specific entry and its parents for seeing hierarchy without losing position
+;; - Debugging: reduce visual noise, make hostile codebases readable
+;; - Moving: delete, cut, copy, or move a massive function or block safely and cleanly
+;; - Reviewing: fold previously examined functions or blocks
+
 ;; Emacs' oldest built-in folding method
 ;; C-x $ -> `set-selective-display'
+
+;; Indentation-based folding -
+;; https://www.reddit.com/r/emacs/comments/1stnc6q/the_definitive_guide_to_code_folding_in_emacs/
+(defun xy/set-selective-display ()
+  "Toggle fold all lines with indentation larger than the point column"
+  (interactive)
+  (if selective-display
+      (set-selective-display nil)
+    (set-selective-display (+ (current-column) 1))))
+(keymap-global-set "C-x $" #'xy/set-selective-display)
+
+(defun xy/toggle-fold ()
+  "Toggle fold all lines with indentation larger than current line"
+  (interactive)
+  (set-selective-display (if selective-display
+                             nil
+                           (or (save-excursion (back-to-indentation) (+ 1 (current-column))) 1))))
+(keymap-global-set "C-x %" #'xy/toggle-fold)
 
 ;; Reveal hidden text at point, and re-hiding them when you navigate away
 (use-core reveal
@@ -3830,21 +3855,31 @@ word.  Fall back to regular `expreg-expand'."
   (global-treesit-fold-mode +1)
   (global-treesit-fold-indicators-mode +1))
 
-;; Manual folding arbitrary regions into a one-line summary in any buffer
+;; Arbitrary region folding into a one-line summary in any buffer
+;; for inspecting long log files, dealing with LLM output
 (use-package occult
-  :bind
+  :bind ; @tip Press e to open the fold at point in a narrowed indirect buffer for editing
   ("C-c z z" . occult-toggle)
   ("C-c z a" . occult-reveal-all))
 
 ;; A Unified Method to Fold and Unfold Text
+;; `outline-minor-mode' relies on hierarchical headings
+;; - emacs-lisp-mode conf-mode
+;; - org-mode markdown-mode gfm-mode
+;; `hs-minor-mode' parses buffer syntax, for legacy non-treesit mode
+;; - c-mode c++-mode java-mode rust-mode go-mode ruby-mode lua-mode
+;; - js-mode typescript-mode css-mode json-mode sh-mode
+;; `outline-indent-minor-mode' for indent-sensitive lang
+;; - python-mode yaml-mode haskell-mode
+;; `treesit-fold-mode' for treesit mode
 (use-package kirigami
   :init
   (global-set-key (kbd "C-c z o") 'kirigami-open-fold)
   (global-set-key (kbd "C-c z O") 'kirigami-open-fold-rec)
-  (global-set-key (kbd "C-c z r") 'kirigami-open-folds)
   (global-set-key (kbd "C-c z c") 'kirigami-close-fold)
-  (global-set-key (kbd "C-c z m") 'kirigami-close-folds)
   (global-set-key (kbd "C-c z a") 'kirigami-toggle-fold)
+  (global-set-key (kbd "C-c z r") 'kirigami-open-folds)
+  (global-set-key (kbd "C-c z m") 'kirigami-close-folds)
   ;;
   (with-eval-after-load 'evil
     (define-key evil-normal-state-map "zo" 'kirigami-open-fold)
@@ -3867,17 +3902,19 @@ word.  Fall back to regular `expreg-expand'."
 (use-core org
   :defer 15
   :bind
-  ("C-c o o" . #'xy/open-org-notes)
-  ("C-c o d" . #'xy/open-org-dir)
-  ("C-c o o" . #'xy/open-org-notes)
-  ("C-c o a" . #'org-agenda)
-  ("C-c o c" . #'org-capture)
-  ("C-c o l" . #'org-store-link)
-  ("C-c o ;" . #'org-toggle-link-display)
-  ("C-c o p" . #'org-publish)
-  ;;
-  ("C-c o t i" . #'org-indent-mode)
-  ("C-c o t n" . #'org-num-mode)
+  (("C-c o o" . #'xy/open-org-notes)
+   ("C-c o d" . #'xy/open-org-dir)
+   ("C-c o o" . #'xy/open-org-notes)
+   ("C-c o a" . #'org-agenda)
+   ("C-c o c" . #'org-capture)
+   ("C-c o l" . #'org-store-link)
+   ("C-c o ;" . #'org-toggle-link-display)
+   ("C-c o p" . #'org-publish)
+   :map org-mode-map
+   ;; @tip
+   ;; "C-c C-o" ->
+   ("C-c o t i" . org-indent-mode)
+   ("C-c o t n" . org-num-mode))
   :init
   (defun xy/open-org-dir ()
     (interactive)
