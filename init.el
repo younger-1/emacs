@@ -53,14 +53,14 @@
   (keymap-global-set "C-c y m t" #'modus-themes-toggle)
   (keymap-global-set "C-c y m s" #'modus-themes-select))
 
-(defun xy/load-theme (theme &optional no-confirm no-enable)
+(defun xy/load-theme (theme &optional _ _)
   "Load a single theme interactively. Without prefix argument, disable all other enabled themes."
   (interactive (eval (cadr (interactive-form 'load-theme))))
   (if (called-interactively-p)
       (message "[xy]: load theme: %s" theme))
   (unless current-prefix-arg
     (mapc #'disable-theme custom-enabled-themes))
-  (funcall-interactively 'load-theme theme :no-confirm no-enable))
+  (funcall-interactively 'load-theme theme :no-confirm))
 
 (keymap-global-set "C-c y l" #'xy/load-theme)
 (keymap-global-set "C-c y u" #'disable-theme)
@@ -2520,6 +2520,23 @@ makes it easier to edit it."
 ;;   (global-page-break-lines-mode +1)
 ;;   (setq page-break-lines-max-width 80))
 
+;; Visually distinguish "real" buffers from "unreal" buffers
+;; by giving the latter a slightly different -- often darker -- background:
+;; (use-package solaire-mode
+;;   :bind ("C-c t s" . solaire-mode)
+;;   :init
+;;   ;; TODO
+;;   ;; (defvar xy/theme-bg-alist
+;;   ;;   '((modus-vivendi . "black")))
+;;   ;; (cdr (assoc 'modus-vivendi xy/theme-bg-alist))
+;;   ;; (car custom-enabled-themes)
+;;   ;; (set-face-attribute 'solaire-default-face nil
+;;   ;;                     :background "black")
+;;   ;; (custom-theme-set-faces 'modus-vivendi
+;;   ;;                         '(solaire-default-face ((t (:background "black")))))
+;;   :config
+;;   (solaire-global-mode +1))
+
 ;; Simple distraction-free editing
 ;; (use-package darkroom
 ;;   :bind ("C-c t w" . darkroom-tentative-mode)
@@ -4055,7 +4072,7 @@ title or keywords fields."
   (add-hook 'after-save-hook #'xy/denote-always-rename-on-save-based-on-front-matter))
 
 
-;;; terminal
+;;; tty
 (unless (display-graphic-p)
   (keymap-global-set "<mouse-4>" #'scroll-down-line)
   (keymap-global-set "<mouse-5>" #'scroll-up-line)
@@ -4076,6 +4093,9 @@ title or keywords fields."
       :defer 0.5
       :config
       (xclip-mode +1))))
+
+
+;;; terminal
 
 ;; https://www.reddit.com/r/emacs/comments/17nl7cw/shout_out_to_the_eat_terminal_emulator_package/
 ;; 1. Input Mode (C-c C-e) = similar to vterm's copy mode the buffer becomes "frozen" for you to copy the text and scroll back and basically use all of emacs's nifty search features.
