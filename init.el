@@ -591,10 +591,6 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; @perf Skip Fontification During Input (Doom Emacs)
   (setq redisplay-skip-fontification-on-input t)
 
-  ;; proced
-  (setq proced-auto-update-interval 1)
-  (setq-default proced-auto-update-flag t)
-
   ;; flyspell
   ;; (setq flyspell-check-changes t)
   ;; @perf Prevent messages from being displayed for each word when checking the entire buffer.
@@ -1954,7 +1950,7 @@ makes it easier to edit it."
 ;; `evil-toggle-key' is "C-z"
 ;; Use "\" to execute next command in Emacs state
 (use-package evil
-  :defer 1
+  :defer 2
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -2725,6 +2721,9 @@ makes it easier to edit it."
   :defer 0.4
   :config (editorconfig-mode +1))
 
+;; https://github.com/rolandwalker/back-button
+;; TODO: clean legacy code, and put it under site-lisp
+
 ;; https://www.emacswiki.org/emacs/VisibleMark
 (use-package visible-mark
   :defer 0.5
@@ -2950,6 +2949,18 @@ makes it easier to edit it."
   ;; (setq eww-retrieve-command '("readable"))
   )
 
+;; https://www.reddit.com/r/emacs/comments/1su4ips/getting_emacs_procedel_to_show_cpu_and_memory_on/
+(use-package proced
+  :config
+  (setq-default proced-auto-update-flag 'visible)
+  (setq proced-auto-update-interval 1)
+  (setq proced-enable-color-flag t)
+  (setq proced-tree-flag t)
+  (setq proced-descend t)
+  (setq proced-format 'medium) ;; can be changed interactively with `F'
+  (setq proced-filter 'user)   ;; can be changed interactively with `f'
+  )
+
 
 ;;; motion
 
@@ -3052,9 +3063,22 @@ makes it easier to edit it."
 
 ;; C-w and M-w act on the current line when the mark is not active
 (use-package whole-line-or-region
-  :defer 0.3
+  :defer 1
   :config
   (whole-line-or-region-global-mode +1))
+
+;; super-c/x/v to copy/cut/paste without affecting the kill ring
+;; NOTE good choice if I not use evil with s-v mapping
+;; TODO enable for tty
+;; (use-package simpleclip
+;;   :defer 1
+;;   :config
+;;   (simpleclip-mode +1))
+
+(use-package copy-as-format
+  :bind ("C-c w w" . copy-as-format) ; @prefix prompt for the format
+  :config
+  (setq copy-as-format-default "org-mode"))
 
 (use-package expreg
   :bind (("C-=" . expreg-expand)
@@ -3684,7 +3708,7 @@ word.  Fall back to regular `expreg-expand'."
 
 ;;; git
 (use-package magit
-  :defer 10
+  ;; :defer 10
   :bind (;; ("C-x g"   . magit-status)
          ;; ("C-x C-g" . magit-dispatch)
          ;; ("C-x M-g" . magit-file-dispatch)
@@ -3966,7 +3990,7 @@ word.  Fall back to regular `expreg-expand'."
 
 ;;; org
 (use-core org
-  :defer 15
+  ;; :defer 15
   :bind
   (("C-c o o" . #'xy/open-org-notes)
    ("C-c o d" . #'xy/open-org-dir)
