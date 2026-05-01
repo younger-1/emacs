@@ -211,6 +211,8 @@
 (keymap-global-set "M-=" #'copy-from-above-command) ; @orig `count-words-region'
 (keymap-global-set "M-z" #'zap-up-to-char) ; @orig `zap-to-char'
 
+;; M-( -> `insert-parentheses'
+;; M-) -> `move-past-close-and-reindent'
 ;; @tip use prefix arguments to insert pairs without mark activating
 ;; To insert pairs of (), [], {} and ""
 ;; (define-key esc-map "("  #'insert-pair)
@@ -560,7 +562,7 @@ NOTE: PATH in emacs should always separated by `:'"
   (setq-default cursor-type 'box)
   (setq x-stretch-cursor t)
   ;; (blink-cursor-mode -1)
-  (setq track-eol t)
+  ;; (setq track-eol t)
 
   ;; line number
   ;; The 'visual is like 'relative but counts screen lines instead of buffer lines
@@ -865,10 +867,10 @@ NOTE: PATH in emacs should always separated by `:'"
             (completion-extra-properties
              '(:annotation-function
                (lambda (k) ; only accept string
-                 (let ((desc (feature-file (intern k))))
-                   (if desc
-                       (format "\n\t\t%s" desc)
-                     ""))))))
+                 (when-let ((path (feature-file (intern k)))
+                            (path (abbreviate-file-name path)))
+                   (concat (propertize "-" 'display '(space :align-to 40))
+                           (propertize path 'face 'completions-annotations)))))))
        (completing-read "Features: " coll))))
 
   (defun xy/help-show-plist ()
@@ -1020,7 +1022,8 @@ makes it easier to edit it."
          ("C-h =" . #'xy/count-lines-pages)
          ;; library
          ("C-h l" . nil) ; `view-lossage'
-         ("C-h l l" . #'xy/loaded-feature)
+         ("C-h l l" . #'load-library)
+         ("C-h l L" . #'xy/loaded-feature)
          ("C-h l u" . #'unload-feature)
          ;;
          ;; NOTE: safe keys: j u y z
@@ -3137,7 +3140,7 @@ word.  Fall back to regular `expreg-expand'."
 ;;   (markdown-mode . embrace-markdown-mode-hook))
 
 (use-package persistent-scratch
-  :defer 2
+  ;; :defer 2
   :bind ( :map persistent-scratch-mode-map
           ;; TODO: use `kill-buffer-query-functions'
           ;; ([remap kill-buffer] . (lambda (&rest _)
@@ -4339,7 +4342,12 @@ title or keywords fields."
          ("C-c e f" . #'eval-defun)
          ("C-c e b" . #'eval-buffer)
          ("C-c e r" . #'eval-region)
-         ("C-c e d" . #'edebug-defun)
+         ;;
+         ("C-c e d" . #'debug-on-entry)
+         ("C-c e u" . #'cancel-debug-on-entry)
+         ("C-c e D" . #'edebug-on-entry)
+         ;; ("C-c e D" . #'edebug-defun)
+         ;;
          ("C-c e c" . #'check-parens)
          ("C-c e i" . #'xy/untabify-indent-buffer)
          ;; :map lisp-mode-shared-map
@@ -4388,13 +4396,13 @@ title or keywords fields."
   ("C-h z s" . #'elisp-refs-special))
 
 ;; Evaluation Result OverlayS for Emacs Lisp.
-(use-package eros
-  ;; :bind
-  ;; ("C-c e r" . #'eros-eval-last-sexp)
-  ;; ("C-c e R" . #'eros-eval-defun)
-  :defer 1
-  :config
-  (eros-mode +1))
+;; (use-package eros
+;;   ;; :bind
+;;   ;; ("C-c e r" . #'eros-eval-last-sexp)
+;;   ;; ("C-c e R" . #'eros-eval-defun)
+;;   :defer 1
+;;   :config
+;;   (eros-mode +1))
 
 ;; (use-package paredit
 ;;   :hook (lisp-data-mode eval-expression-minibuffer-setup)
@@ -4567,6 +4575,8 @@ title or keywords fields."
 ;;   (electric-indent-mode -1)
 ;;   (electric-pair-mode -1))
 
+;; TODO: https://github.com/manateelazycat/fingertip
+
 
 ;;; lang
 
@@ -4600,22 +4610,22 @@ title or keywords fields."
            (message "Installed %s" pkg)
          (message "Failed to install %s: %d" pkg status))))))
 
-(use-package go-mode
-  ;; :bind (:map go-mode-map
-  ;;             ("\C-c \C-c" . compile)
-  ;;             ("\C-c \C-g" . go-goto-imports)
-  ;;             ("\C-c \C-k" . godoc)
-  ;;             ("M-j" . godef-jump))
-  :config
-  ;; goimports updates your Go import lines, adding missing ones and removing unreferenced ones
-  ;; it also formats your code in the same style as gofmt so it can be used as a replacement for your editor's gofmt-on-save hook
-  (unless (executable-find "goimports")
-    (xy/install-go-tool "golang.org/x/tools/cmd/goimports"))
-  (setq gofmt-command "goimports")
-
-  (add-hook 'go-mode-hook (lambda ()
-                            (setq-local tab-width 4)
-                            (add-hook 'before-save-hook #'gofmt-before-save nil t))))
+;; (use-package go-mode
+;;   ;; :bind (:map go-mode-map
+;;   ;;             ("\C-c \C-c" . compile)
+;;   ;;             ("\C-c \C-g" . go-goto-imports)
+;;   ;;             ("\C-c \C-k" . godoc)
+;;   ;;             ("M-j" . godef-jump))
+;;   :config
+;;   ;; goimports updates your Go import lines, adding missing ones and removing unreferenced ones
+;;   ;; it also formats your code in the same style as gofmt so it can be used as a replacement for your editor's gofmt-on-save hook
+;;   (unless (executable-find "goimports")
+;;     (xy/install-go-tool "golang.org/x/tools/cmd/goimports"))
+;;   (setq gofmt-command "goimports")
+;;
+;;   (add-hook 'go-mode-hook (lambda ()
+;;                             (setq-local tab-width 4)
+;;                             (add-hook 'before-save-hook #'gofmt-before-save nil t))))
 
 ;; Edit struct field tag
 (use-package go-tag
@@ -4643,20 +4653,91 @@ title or keywords fields."
   :bind (("C-h o i" . treesit-inspect-mode)
          ("C-h o e" . treesit-explore-mode))
   :config
-  ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
   (setq treesit-font-lock-level 4))
 
+;; TODO: Why not run go-mode-hook when it has (derived-mode-add-parents 'go-ts-mode '(go-mode))
 ;; @see https://magnus.therning.org/2023-11-16-using-the-golang-mode-shipped-with-emacs.html
-(use-core go-ts-mode
-  ;; Remapping major mode: (add-to-list 'major-mode-remap-alist '(XXX-mode . XXX-ts-mode))
-  ;; (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-  ;; (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
-  ;; :mode (("\\.go\\'" . go-ts-mode)
-  ;;        ("/go\\.mod\\'" . go-mod-ts-mode))
+;; (use-core go-ts-mode
+;;   :init
+;;   ;; Remapping major mode
+;;   (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
+;;   ;; (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+;;   ;; (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode))
+;;   ;; :mode (("\\.go\\'" . go-ts-mode)
+;;   ;;        ("/go\\.mod\\'" . go-mod-ts-mode))
+;;   :config
+;;   ;; -- 1.
+;;   (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
+;;   (add-to-list 'treesit-language-source-alist '(gomod "https://github.com/camdencheek/tree-sitter-go-mod"))
+;;   ;; -- 2.
+;;   ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
+;;   ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+;;   )
+
+(use-package treesit-auto
+  :defer 1
+  :init
+  (cl-defstruct xy-treesit-file-info size mtime ready)
+
+  (defun xy/treesit-file-info-alist ()
+    (mapcar (lambda (path)
+              (let* ((attr (file-attributes path))
+                     (size (file-attribute-size attr))
+                     (mtime (file-attribute-modification-time attr))
+                     (idx (string-match "libtree-sitter-\\([^./]+\\)" path))
+                     (lang (match-string 1 path))
+                     (lang (intern lang)))
+                (cons lang
+                      (make-xy-treesit-file-info
+                       :size (file-size-human-readable size 'decimal)
+                       :mtime (format-time-string "%Y-%m-%d %H:%M" mtime)
+                       :ready (treesit-ready-p lang)))))
+            (directory-files (concat user-emacs-directory "tree-sitter") t "^libtree-sitter")))
+
+  (defun xy/update-treesit-grammars (langs)
+    (interactive
+     (list (let* ((langs treesit-auto-langs)
+                  (langs (mapcar #'symbol-name langs))
+                  (buf-recipe (treesit-auto--get-mode-recipe))
+                  (buf-lang (and buf-recipe (symbol-name (treesit-auto-recipe-lang buf-recipe))))
+                  (info-alist (xy/treesit-file-info-alist))
+                  (recipe-alist (mapcar (lambda (k) (cons (treesit-auto-recipe-lang k) k)) treesit-auto-recipe-list))
+                  (completion-extra-properties
+                   `(:annotation-function
+                     ,(lambda (k)
+                        (let* ((k (intern k))
+                               (info (alist-get k info-alist))
+                               (recipe (alist-get k recipe-alist)))
+                          (concat (propertize "-" 'display '(space :align-to 20))
+                                  (propertize (replace-regexp-in-string "\\\\" "" (or (treesit-auto-recipe-ext recipe) ""))
+                                              'face 'completions-annotations)
+                                  (propertize "-" 'display '(space :align-to 40))
+                                  (propertize (symbol-name (treesit-auto-recipe-ts-mode recipe))
+                                              'face 'completions-annotations)
+                                  (propertize "-" 'display '(space :align-to 60))
+                                  (propertize (mapconcat #'symbol-name (ensure-list (treesit-auto-recipe-remap recipe)) "|")
+                                              'face 'completions-annotations)
+                                  (propertize "-" 'display '(space :align-to 80))
+                                  (propertize (treesit-auto-recipe-url recipe)
+                                              'face 'completions-annotations)
+                                  (propertize "-" 'display '(space :align-to 140))
+                                  (when info
+                                    (format "%s %s %s"
+                                            (if (xy-treesit-file-info-ready info) "o" "x")
+                                            (xy-treesit-file-info-mtime info)
+                                            (xy-treesit-file-info-size info)))))))))
+             (completing-read-multiple
+              "Update treesit grammars: " langs nil t nil nil buf-lang))))
+    (when-let ((treesit-language-source-alist (treesit-auto--build-treesit-source-alist)))
+      (mapcar #'treesit-install-language-grammar (mapcar #'intern langs))))
+
+  :bind ("C-c i t" . #'xy/update-treesit-grammars)
   :config
-  ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
-  (add-to-list 'treesit-language-source-alist '(go "https://github.com/tree-sitter/tree-sitter-go"))
-  (add-to-list 'treesit-language-source-alist '(gomod "https://github.com/camdencheek/tree-sitter-go-mod")))
+  (setq treesit-auto-install 'prompt)
+  ;; add ts-modes to `auto-mode-alist'
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  ;; enable for `treesit-auto-langs', with their ts-modes and non-ts-mode
+  (global-treesit-auto-mode +1))
 
 
 ;;; lsp
