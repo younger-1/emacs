@@ -4677,7 +4677,10 @@ title or keywords fields."
 (use-package treesit-auto
   :defer 1
   :init
-  (cl-defstruct xy-treesit-file-info size mtime ready)
+  (cl-defstruct (xy/treesit-file-info
+                 (:type list)           ; 1. 底层用最轻量的普通列表存储
+                 (:conc-name xy/ts-))   ; 2. 生成极短的前缀访问器
+    size mtime ready)
 
   (defun xy/treesit-file-info-alist ()
     (mapcar (lambda (path)
@@ -4687,11 +4690,15 @@ title or keywords fields."
                      (lang (and (string-match "libtree-sitter-\\([^./]+\\)" path)
                                 (intern (match-string 1 path)))))
                 (cons lang
-                      (make-xy-treesit-file-info
+                      (make-xy/treesit-file-info
                        :size (file-size-human-readable size 'decimal)
                        :mtime (format-time-string "%Y-%m-%d %H:%M" mtime)
                        :ready (treesit-ready-p lang)))))
             (directory-files (concat user-emacs-directory "tree-sitter") t "^libtree-sitter")))
+
+  (defun xy/var-to-string (x &optional k)
+    "根据变量的类型（nil/symbol/string/list）统一转化为字符串"
+    (mapconcat (lambda (e) (format "%s" e)) (ensure-list x) (or k "")))
 
   (defun xy/update-treesit-grammars (langs)
     (interactive
@@ -4712,25 +4719,26 @@ title or keywords fields."
                                       (setq column (+ column width))
                                       (concat
                                        (thread-first x
-                                                     (or "")
+                                                     (xy/var-to-string "|")
+                                                     (thread-last (replace-regexp-in-string "\\\\" ""))
                                                      (truncate-string-to-width (- width 1))
                                                      (propertize 'face 'completions-annotations))
                                        (propertize "-" 'display `(space :align-to ,column)))))
                             (concat (f-align 20 nil)
-                                    (f-align 20 (replace-regexp-in-string "\\\\" "" (or (treesit-auto-recipe-ext recipe) "")))
-                                    (f-align 20 (symbol-name (treesit-auto-recipe-ts-mode recipe)))
-                                    (f-align 20 (mapconcat #'symbol-name (ensure-list (treesit-auto-recipe-remap recipe)) "|"))
-                                    (f-align 60 (treesit-auto-recipe-url recipe))
+                                    (f-align 20 (and recipe (treesit-auto-recipe-ext recipe)))
+                                    (f-align 20 (and recipe (treesit-auto-recipe-ts-mode recipe)))
+                                    (f-align 20 (and recipe (treesit-auto-recipe-remap recipe)))
+                                    (f-align 60 (and recipe (treesit-auto-recipe-url recipe)))
                                     (when info
                                       (format "%s %s %s"
-                                              (if (xy-treesit-file-info-ready info) "o" "x")
-                                              (xy-treesit-file-info-mtime info)
-                                              (xy-treesit-file-info-size info))))
+                                              (if (xy/ts-ready info) "o" "x")
+                                              (xy/ts-mtime info)
+                                              (xy/ts-size info))))
                             ))))))
              (completing-read-multiple
               "Update treesit grammars: " all-langs nil t nil nil buf-lang))))
     (when-let ((treesit-language-source-alist (treesit-auto--build-treesit-source-alist)))
-      (mapcar #'treesit-install-language-grammar (mapcar #'intern langs))))
+      (mapc #'treesit-install-language-grammar (mapcar #'intern langs))))
 
   :bind ("C-c u t" . #'xy/update-treesit-grammars)
   :config
