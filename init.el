@@ -4677,9 +4677,7 @@ title or keywords fields."
 (use-package treesit-auto
   :defer 1
   :init
-  (cl-defstruct (xy/treesit-file-info
-                 (:conc-name xy/ts-))   ; 2. 生成极短的前缀访问器
-    size mtime ready)
+  (cl-defstruct xy/treesit-file-info size mtime ready)
 
   (defun xy/treesit-file-info-alist ()
     (mapcar (lambda (path)
@@ -4699,47 +4697,49 @@ title or keywords fields."
     "根据变量的类型（nil/symbol/string/list）统一转化为字符串"
     (mapconcat (lambda (e) (format "%s" e)) (ensure-list x) (or k "")))
 
+  (defun xy/treesit--read-langs-to-update ()
+    (let* ((all-langs (mapcar #'symbol-name treesit-auto-langs))
+           (buf-recipe (treesit-auto--get-mode-recipe))
+           (buf-lang (and buf-recipe (symbol-name (treesit-auto-recipe-lang buf-recipe))))
+           (info-alist (xy/treesit-file-info-alist))
+           (recipe-alist (cl-loop for r in treesit-auto-recipe-list
+                                  collect (cons (treesit-auto-recipe-lang r) r)))
+           (completion-extra-properties
+            `(:annotation-function
+              ,(lambda (k)
+                 (let* ((k (intern k))
+                        (info    (alist-get k info-alist))
+                        (recipe  (alist-get k recipe-alist))
+                        (ext     (and recipe (treesit-auto-recipe-ext recipe)))
+                        (ts-mode (and recipe (treesit-auto-recipe-ts-mode recipe)))
+                        (remap   (and recipe (treesit-auto-recipe-remap recipe)))
+                        (url     (and recipe (treesit-auto-recipe-url recipe)))
+                        (size    (and info   (xy/treesit-file-info-size info)))
+                        (mtime   (and info   (xy/treesit-file-info-mtime info)))
+                        (ready   (and info   (xy/treesit-file-info-ready info)))
+                        (column 0))
+                   (cl-flet ((f-align (width x) ; Using let-over-lambda
+                               (setq column (+ column width))
+                               (concat
+                                (thread-first x
+                                              (xy/var-to-string "|")
+                                              (thread-last (replace-regexp-in-string "\\\\" ""))
+                                              (truncate-string-to-width (- width 1))
+                                              (propertize 'face 'completions-annotations))
+                                (propertize "-" 'display `(space :align-to ,column)))))
+                     (concat (f-align 20 nil)
+                             (f-align 20 ext)
+                             (f-align 20 ts-mode)
+                             (f-align 20 remap)
+                             (f-align 60 url)
+                             (f-align 2  (and info (if ready "o" "x")))
+                             (f-align 18 mtime)
+                             (f-align 8  size))))))))
+      (completing-read-multiple "Update treesit grammars: " all-langs nil t nil nil buf-lang)))
+
   (defun xy/update-treesit-grammars (langs)
     (interactive
-     (list (let* ((all-langs (mapcar #'symbol-name treesit-auto-langs))
-                  (buf-recipe (treesit-auto--get-mode-recipe))
-                  (buf-lang (and buf-recipe (symbol-name (treesit-auto-recipe-lang buf-recipe))))
-                  (info-alist (xy/treesit-file-info-alist))
-                  (recipe-alist (cl-loop for r in treesit-auto-recipe-list
-                                         collect (cons (treesit-auto-recipe-lang r) r)))
-                  (completion-extra-properties
-                   `(:annotation-function
-                     ,(lambda (k)
-                        (let* ((k (intern k))
-                               (info    (alist-get k info-alist))
-                               (recipe  (alist-get k recipe-alist))
-                               (ext     (and recipe (treesit-auto-recipe-ext recipe)))
-                               (ts-mode (and recipe (treesit-auto-recipe-ts-mode recipe)))
-                               (remap   (and recipe (treesit-auto-recipe-remap recipe)))
-                               (url     (and recipe (treesit-auto-recipe-url recipe)))
-                               (size    (and info   (xy/ts-size info)))
-                               (mtime   (and info   (xy/ts-mtime info)))
-                               (ready   (and info   (xy/ts-ready info)))
-                               (column 0))
-                          (cl-flet ((f-align (width x)
-                                      (setq column (+ column width))
-                                      (concat
-                                       (thread-first x
-                                                     (xy/var-to-string "|")
-                                                     (thread-last (replace-regexp-in-string "\\\\" ""))
-                                                     (truncate-string-to-width (- width 1))
-                                                     (propertize 'face 'completions-annotations))
-                                       (propertize "-" 'display `(space :align-to ,column)))))
-                            (concat (f-align 20 nil)
-                                    (f-align 20 ext)
-                                    (f-align 20 ts-mode)
-                                    (f-align 20 remap)
-                                    (f-align 60 url)
-                                    (f-align 2  (and info (if ready "o" "x")))
-                                    (f-align 18 mtime)
-                                    (f-align 8  size))))))))
-             (completing-read-multiple
-              "Update treesit grammars: " all-langs nil t nil nil buf-lang))))
+     (list (xy/treesit--read-langs-to-update)))
     (when-let ((treesit-language-source-alist (treesit-auto--build-treesit-source-alist)))
       (mapc #'treesit-install-language-grammar (mapcar #'intern langs))))
 
