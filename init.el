@@ -4678,7 +4678,6 @@ title or keywords fields."
   :defer 1
   :init
   (cl-defstruct (xy/treesit-file-info
-                 (:type list)           ; 1. 底层用最轻量的普通列表存储
                  (:conc-name xy/ts-))   ; 2. 生成极短的前缀访问器
     size mtime ready)
 
@@ -4712,8 +4711,15 @@ title or keywords fields."
                    `(:annotation-function
                      ,(lambda (k)
                         (let* ((k (intern k))
-                               (info (alist-get k info-alist))
-                               (recipe (alist-get k recipe-alist))
+                               (info    (alist-get k info-alist))
+                               (recipe  (alist-get k recipe-alist))
+                               (ext     (and recipe (treesit-auto-recipe-ext recipe)))
+                               (ts-mode (and recipe (treesit-auto-recipe-ts-mode recipe)))
+                               (remap   (and recipe (treesit-auto-recipe-remap recipe)))
+                               (url     (and recipe (treesit-auto-recipe-url recipe)))
+                               (size    (and info   (xy/ts-size info)))
+                               (mtime   (and info   (xy/ts-mtime info)))
+                               (ready   (and info   (xy/ts-ready info)))
                                (column 0))
                           (cl-flet ((f-align (width x)
                                       (setq column (+ column width))
@@ -4725,16 +4731,13 @@ title or keywords fields."
                                                      (propertize 'face 'completions-annotations))
                                        (propertize "-" 'display `(space :align-to ,column)))))
                             (concat (f-align 20 nil)
-                                    (f-align 20 (and recipe (treesit-auto-recipe-ext recipe)))
-                                    (f-align 20 (and recipe (treesit-auto-recipe-ts-mode recipe)))
-                                    (f-align 20 (and recipe (treesit-auto-recipe-remap recipe)))
-                                    (f-align 60 (and recipe (treesit-auto-recipe-url recipe)))
-                                    (when info
-                                      (format "%s %s %s"
-                                              (if (xy/ts-ready info) "o" "x")
-                                              (xy/ts-mtime info)
-                                              (xy/ts-size info))))
-                            ))))))
+                                    (f-align 20 ext)
+                                    (f-align 20 ts-mode)
+                                    (f-align 20 remap)
+                                    (f-align 60 url)
+                                    (f-align 2  (and info (if ready "o" "x")))
+                                    (f-align 18 mtime)
+                                    (f-align 8  size))))))))
              (completing-read-multiple
               "Update treesit grammars: " all-langs nil t nil nil buf-lang))))
     (when-let ((treesit-language-source-alist (treesit-auto--build-treesit-source-alist)))
