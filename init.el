@@ -3634,7 +3634,9 @@ word.  Fall back to regular `expreg-expand'."
   ;; Diffing on-the-fly (i.e. without saving the buffer first)
   (diff-hl-flydiff-mode +1)
 
+  (setq diff-hl-update-async t)
   (setq diff-hl-show-staged-changes nil)
+
   (defun xy/toggle-diff-hl-show-staged-changes ()
     (interactive)
     (if diff-hl-show-staged-changes
@@ -4739,8 +4741,14 @@ title or keywords fields."
 
   (defun xy/update-treesit-grammars (langs)
     (interactive
-     (list (xy/treesit--read-langs-to-update)))
-    (when-let ((treesit-language-source-alist (treesit-auto--build-treesit-source-alist)))
+     (list (if current-prefix-arg
+               (mapcar #'car (xy/treesit-file-info-alist))
+             (xy/treesit--read-langs-to-update))))
+    (with-output-to-temp-buffer "*Update Treesit Grammars*"
+      (princ (format "The following tree-sitter grammars will be updated:\n%s\n"
+                     (xy/var-to-string langs "\n"))))
+    (when-let ((treesit-language-source-alist (treesit-auto--build-treesit-source-alist))
+               (confirm (y-or-n-p "Update grammars? ")))
       (mapc #'treesit-install-language-grammar (mapcar #'intern langs))))
 
   :bind ("C-c u t" . #'xy/update-treesit-grammars)
