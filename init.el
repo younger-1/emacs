@@ -806,10 +806,15 @@ NOTE: PATH in emacs should always separated by `:'"
 ;;   ;; A global mode that compiles .el files before they are loaded.
 ;;   (compile-angel-on-load-mode))
 
+;; Garbage Collector Magic Hack
+;; To minimize GC interference with user activity
+;; - 1. During normal use a high GC threshold is set.
+;; - 2. When idling GC is triggered and a low threshold is set.
 (use-package gcmh
-  :hook emacs-startup
+  :demand t
   :config
-  (setq gcmh-high-cons-threshold (* 128 1024 1024)))
+  ;; 1 GB -> 800 MB
+  (setq gcmh-high-cons-threshold (* 800 1024 1024)))
 
 ;; Profiling the startup time of Emacs
 (use-package esup
@@ -1151,29 +1156,39 @@ makes it easier to edit it."
 ;;; history
 ;; Pick recently visited files
 (use-core recentf
-  :defer 0.1
+  :hook emacs-startup
   :bind
   ("C-x f r" . recentf-open)
   ("C-x f R" . recentf-open-files)
   :config
-  (recentf-mode +1)
   ;; TODO: https://vincent.demeester.fr/articles/emacs_keep_it_clean.html
-  ;; (setq recentf-auto-cleanup 360)
+  (setq recentf-auto-cleanup 60)
+  ;; 禁止它在后台自动检查文件是否存在，防止 Tramp 远程网络卡死 Emacs
+  ;; (setq recentf-auto-cleanup 'never)
   (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
   ;; (add-to-list 'recentf-exclude (regexp-quote (abbreviate-file-name xy/emacs-lisp-dir)))
   ;; (add-to-list 'recentf-exclude (regexp-quote (abbreviate-file-name xy/elpa-lisp-dir)))
-  (setq recentf-max-saved-items 500
+  (setq recentf-max-saved-items 200
         recentf-max-menu-items 25))
 
 ;; Goto the last location within a file upon reopening
 (use-core saveplace
-  :defer 0.1
+  ;; @perf Loading when open file
+  ;; :hook (find-file . save-place-mode)
+  :init
+  (add-hook 'find-file-hook
+            (defun xy/defer-load-saveplace ()
+              (remove-hook 'find-file-hook #'xy/defer-load-saveplace)
+              (save-place-mode +1)
+              ;; for the first opened file
+              (save-place-find-file-hook)))
   :config
-  (save-place-mode +1))
+  (setopt save-place-abbreviate-file-names t))
 
 ;; Save various kind of history between sessions
 (use-core savehist
-  :defer 0.1
+  ;; @perf Loading when open minibuffer
+  :hook (minibuffer-setup . savehist-mode)
   :config
   ;; `completing-read' and `read-from-minibuffer'
   ;; -- The argument HISTORY specifies which history list variable to use for saving the input and for minibuffer history commands.
@@ -1720,7 +1735,8 @@ makes it easier to edit it."
 ;; in-buffer completion with a child frame popup by setting `completion-in-region-function'
 ;; Command `completion-at-point' -> Function `completion-in-region' -> Variable `completion-in-region-function'
 (use-package corfu
-  :defer 0.2
+  ;; :defer 2
+  :hook (prog-mode text-mode)
   :bind ( :map corfu-map
           ;; ("RET" . nil) ; Free RET for newline etc.
           ;; ("TAB" . corfu-next) ; Use TAB for cycling
@@ -1739,6 +1755,9 @@ makes it easier to edit it."
 
   ;; Sort completions by history
   (corfu-history-mode +1)
+
+  ;; Show documentation in echo area.
+  ;; (corfu-echo-mode +1)
 
   ;; Show documentation in popup.
   ;; @tip M-g:`corfu-info-location', M-h:`corfu-info-documentation'
@@ -1870,23 +1889,23 @@ makes it easier to edit it."
         which-key-sort-uppercase-first nil))
 
 ;; Support :chords keyword for `key-chord-mode'
-(use-package use-package-chords
-  :demand t)
+;; (use-package use-package-chords
+;;   :demand t)
 
 ;; @note Key chord mode uses `input-method-function'. And so do internationalisation packages (mule, quail, etc). Do not expect them to work well together.
-(use-package key-chord
-  :defer 0.3
-  :chords
-  (",." . "<>\C-b")
-  (",," . indent-for-comment)
-  :bind
-  ("C-h w c" . key-chord-describe)
-  :config
-  ;; When detect typing, disable chord detection to help prevent accidental chord triggering
-  (setq key-chord-typing-detection t)
-  (setq key-chord-typing-speed-threshold 0.1) ; Adjust how fast keystrokes need to be to be considered "typing"
-  (setq key-chord-typing-reset-delay 0.5) ; How long to wait after typing stops before re-enabling chord detection
-  (key-chord-mode +1))
+;; (use-package key-chord
+;;   :defer 0.3
+;;   :chords
+;;   (",." . "<>\C-b")
+;;   (",," . indent-for-comment)
+;;   :bind
+;;   ("C-h w c" . key-chord-describe)
+;;   :config
+;;   ;; When detect typing, disable chord detection to help prevent accidental chord triggering
+;;   (setq key-chord-typing-detection t)
+;;   (setq key-chord-typing-speed-threshold 0.1) ; Adjust how fast keystrokes need to be to be considered "typing"
+;;   (setq key-chord-typing-reset-delay 0.5) ; How long to wait after typing stops before re-enabling chord detection
+;;   (key-chord-mode +1))
 
 (use-core ffap
   :defer 1
@@ -2308,47 +2327,47 @@ makes it easier to edit it."
 
 ;; Manage window configurations
 ;; @note `eyebrowse-keymap-prefix' is C-c C-w
-(use-package eyebrowse
-  :defer 1
-  :config
-  (eyebrowse-mode +1))
+;; (use-package eyebrowse
+;;   :defer 1
+;;   :config
+;;   (eyebrowse-mode +1))
 
 ;; Persistent (saving and restoring) window configurations with several frames.
 ;; `desktop' is reliable only for single-frame use. When using multiple Emacs frames, it depends in what order the frames are closed, and only the last one is remembered.
-(use-package eyebrowse-restore
-  :after eyebrowse :demand t
-  :config
-  (eyebrowse-restore-mode +1)
-  ;; For a better experience, I recommend naming your Emacs frames:
-  (set-frame-parameter nil 'name "Main"))
+;; (use-package eyebrowse-restore
+;;   :after eyebrowse :demand t
+;;   :config
+;;   (eyebrowse-restore-mode +1)
+;;   ;; For a better experience, I recommend naming your Emacs frames:
+;;   (set-frame-parameter nil 'name "Main"))
 
-(use-package perspective
-  :defer 1
-  :bind
-  ( :map persp-mode-map
-    ("C-c M-p" . perspective-map)
-    :map perspective-map ; prefix command
-    ("M-b" . persp-switch-to-buffer*)
-    ("M-k" . persp-kill-buffer*)
-    ("M-i" . persp-ibuffer))
-  :config
-  (setq persp-suppress-no-prefix-key-warning t)
-  (persp-mode +1)
-  ;; Let `previous-buffer' skip buffers not in current perspective
-  (setq switch-to-prev-buffer-skip
-        (lambda (_win buff _bury-or-kill)
-          (not (persp-is-current-buffer buff))))
-  ;; Group buffers by persp-name in ibuffer
-  (add-hook 'ibuffer-hook #'persp-ibuffer-set-filter-groups)
-  ;; Use narrow key `s' to list buffers in current perspective
-  (with-eval-after-load 'consult
-    ;; Use narrow key `b' to list all buffers in all perspectives
-    (consult-customize consult--source-buffer :hidden t :default nil)
-    (add-to-list 'consult-buffer-sources persp-consult-source))
-  ;; Save sessions to disk
-  (setq persp-state-default-file (expand-file-name ".perspective-state" user-emacs-directory))
-  ;; (persp-state-load persp-state-default-file)
-  (add-hook 'kill-emacs-hook #'persp-state-save))
+;; (use-package perspective
+;;   :defer 1
+;;   :bind
+;;   ( :map persp-mode-map
+;;     ("C-c M-p" . perspective-map)
+;;     :map perspective-map ; prefix command
+;;     ("M-b" . persp-switch-to-buffer*)
+;;     ("M-k" . persp-kill-buffer*)
+;;     ("M-i" . persp-ibuffer))
+;;   :config
+;;   (setq persp-suppress-no-prefix-key-warning t)
+;;   (persp-mode +1)
+;;   ;; Let `previous-buffer' skip buffers not in current perspective
+;;   (setq switch-to-prev-buffer-skip
+;;         (lambda (_win buff _bury-or-kill)
+;;           (not (persp-is-current-buffer buff))))
+;;   ;; Group buffers by persp-name in ibuffer
+;;   (add-hook 'ibuffer-hook #'persp-ibuffer-set-filter-groups)
+;;   ;; Use narrow key `s' to list buffers in current perspective
+;;   (with-eval-after-load 'consult
+;;     ;; Use narrow key `b' to list all buffers in all perspectives
+;;     (consult-customize consult--source-buffer :hidden t :default nil)
+;;     (add-to-list 'consult-buffer-sources persp-consult-source))
+;;   ;; Save sessions to disk
+;;   (setq persp-state-default-file (expand-file-name ".perspective-state" user-emacs-directory))
+;;   ;; (persp-state-load persp-state-default-file)
+;;   (add-hook 'kill-emacs-hook #'persp-state-save))
 
 ;; Designate any buffer to “popup” status to disimss/summon/cycle them.
 ;; e.g. toggling display of help buffers, REPLs, grep and occur buffers, shell and compilation output, log buffers etc
@@ -2461,12 +2480,12 @@ makes it easier to edit it."
 (use-package disproject
   :bind (("C-x P" . disproject-dispatch)))
 
-(use-package projection
-  :defer 1
-  :hook (compilation-mode . projection-customize-compilation-mode)
-  :bind-keymap ("C-c P" . projection-map)
-  :config
-  (global-projection-hook-mode +1))
+;; (use-package projection
+;;   :defer 1
+;;   :hook (compilation-mode . projection-customize-compilation-mode)
+;;   :bind-keymap ("C-c P" . projection-map)
+;;   :config
+;;   (global-projection-hook-mode +1))
 
 ;; Find file/directory and review Diff/Patch/Commit under any VSC
 (use-package find-file-in-project
@@ -2707,16 +2726,16 @@ makes it easier to edit it."
   (breadcrumb-mode +1)
   (setq breadcrumb-imenu-crumb-separator " "))
 
-(use-package sideline
-  :defer 1
-  :config
-  (global-sideline-mode +1))
+;; (use-package sideline
+;;   :defer 1
+;;   :config
+;;   (global-sideline-mode +1))
 
-(use-package sideline-load-cost
-  :vc ( :url "https://github.com/emacs-sideline/sideline-load-cost"
-        :rev :newest)
-  :init
-  (setq sideline-backends-right '(sideline-load-cost)))
+;; (use-package sideline-load-cost
+;;   :vc ( :url "https://github.com/emacs-sideline/sideline-load-cost"
+;;         :rev :newest)
+;;   :init
+;;   (setq sideline-backends-right '(sideline-load-cost)))
 
 
 ;;; util
@@ -2865,25 +2884,25 @@ makes it easier to edit it."
 ;;   (pyim-isearch-mode +1))
 
 ;; Smart Input Source minimize manual switching input source (input method) in Emacs
-(use-package sis
-  :defer 1
-  :config
-  ;; Debug: (sis-get) (sis-switch)
-  ;; (sis-log-mode +1)
-  ;;
-  (cond ;; see `sis-ism-lazyman-config'
-   (xy/mac-p ;; brew install laishulu/homebrew/macism
-    (unless (sis-get)
-      (setq sis-english-source "com.apple.keylayout.UnicodeHexInput"))
-    (setq sis-other-source "com.apple.inputmethod.SCIM.Shuangpin")))
-  ;; 启用 /光标颜色/ 模式
-  (sis-global-cursor-color-mode +1)
-  ;; 启用 /respect/ 模式
-  (sis-global-respect-mode +1)
-  ;; 为所有缓冲区启用 /context/ 模式
-  (sis-global-context-mode +1)
-  ;; 为所有缓冲区启用 /inline english/ 模式
-  (sis-global-inline-mode +1))
+;; (use-package sis
+;;   :defer 1
+;;   :config
+;;   ;; Debug: (sis-get) (sis-switch)
+;;   ;; (sis-log-mode +1)
+;;   ;;
+;;   (cond ;; see `sis-ism-lazyman-config'
+;;    (xy/mac-p ;; brew install laishulu/homebrew/macism
+;;     (unless (sis-get)
+;;       (setq sis-english-source "com.apple.keylayout.UnicodeHexInput"))
+;;     (setq sis-other-source "com.apple.inputmethod.SCIM.Shuangpin")))
+;;   ;; 启用 /光标颜色/ 模式
+;;   (sis-global-cursor-color-mode +1)
+;;   ;; 启用 /respect/ 模式
+;;   (sis-global-respect-mode +1)
+;;   ;; 为所有缓冲区启用 /context/ 模式
+;;   (sis-global-context-mode +1)
+;;   ;; 为所有缓冲区启用 /inline english/ 模式
+;;   (sis-global-inline-mode +1))
 
 ;; https://unclex.net/projects/launcher/
 ;; Combined with M-x.app to get a system-wide launcher that never leaves your editor
@@ -2987,9 +3006,9 @@ makes it easier to edit it."
 
 ;; Jump to visible text using a char-based decision tree
 (use-package avy
-  :chords
-  ("jk" . avy-goto-char-timer)
-  ("jl" . avy-goto-line)
+  ;; :chords
+  ;; ("jk" . avy-goto-char-timer)
+  ;; ("jl" . avy-goto-line)
   :bind (("M-g ." . avy-resume)
          ("M-g j" . avy-goto-char)
          ("M-g M-j" . avy-goto-word-1)
@@ -3271,7 +3290,11 @@ word.  Fall back to regular `expreg-expand'."
   (setq xref-history-storage 'xref-window-local-history))
 
 (use-core flymake
-  :hook (emacs-lisp-mode)
+  :init
+  ;; TODO as macro or use-package keyword
+  (add-hook 'emacs-lisp-mode-hook
+            (defun xy/defer-enable-flymake ()
+              (run-with-idle-timer 2.0 nil #'flymake-mode)))
   :bind (("C-c j m" . flymake-mode)
          :map flymake-mode-map
          ("C-c j n" . flymake-goto-next-error)
@@ -3438,8 +3461,8 @@ word.  Fall back to regular `expreg-expand'."
 ;;   (global-auto-highlight-symbol-mode +1))
 
 (use-package symbol-overlay
-  ;; :defer 0.6
-  :hook (prog-mode text-mode conf-mode special-mode)
+  :defer 0.6
+  ;; :hook (prog-mode text-mode conf-mode special-mode)
   :bind (;; move within buffer
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
@@ -3460,10 +3483,12 @@ word.  Fall back to regular `expreg-expand'."
   ;;             (lambda (symbol)
   ;;               (regexp-quote symbol)))
   ;;
+  (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook special-mode-hook))
+    (add-hook hook #'symbol-overlay-mode))
   (setq symbol-overlay-idle-time 0.2))
 
 (use-package casual-symbol-overlay
-  :after symbol-overlay :demand t
+  :after symbol-overlay
   :bind ( :map symbol-overlay-map
           ("C-o" . casual-symbol-overlay-tmenu)))
 
@@ -3935,7 +3960,7 @@ word.  Fall back to regular `expreg-expand'."
 
 ;; Tree-sitter-based folding, using `treesit'
 (use-package treesit-fold
-  :after treesit :demand t
+  ;; :defer 1
   :bind ( :map treesit-fold-mode-map
           ("C-<return>" . treesit-fold-toggle)
           ("S-<return>" . treesit-fold-close-all)
@@ -4493,14 +4518,18 @@ title or keywords fields."
 
 ;; Structured editing (soft deletion, expression navigating & manipulating)
 (use-package puni
-  :defer 0.5
+  ;; :defer 0.5
   :init
+  (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook eval-expression-minibuffer-setup-hook))
+    (add-hook hook #'puni-mode))
+
   (defun xy/puni-splice (arg)
     (interactive "p")
     (pcase arg
       (4 (puni-splice-killing-backward))
       (16 (puni-splice-killing-forward))
       (_ (puni-splice))))
+
   (defvar-keymap xy/puni-repeat-map
     :repeat t
     "m" #'puni-expand-region
@@ -4538,8 +4567,6 @@ title or keywords fields."
   ;; NOTE: global enable will override DEL/M-DEL in minibuffer
   ;; (puni-global-mode +1)
   ;; (add-hook 'term-mode-hook #'puni-disable-puni-mode)
-  (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook eval-expression-minibuffer-setup-hook))
-    (add-hook hook #'puni-mode))
   (setq puni-blink-pulse-delay 0.1))
 
 ;; (use-package awesome-pair
@@ -4677,7 +4704,7 @@ title or keywords fields."
 ;;   )
 
 (use-package treesit-auto
-  :defer 1
+  ;; :defer 1
   :init
   (cl-defstruct xy/treesit-file-info size mtime ready)
 
