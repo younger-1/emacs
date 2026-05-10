@@ -833,10 +833,13 @@ NOTE: PATH in emacs should always separated by `:'"
 ;; - 1. During normal use a high GC threshold is set.
 ;; - 2. When idling GC is triggered and a low threshold is set.
 (use-package gcmh
-  :demand t
+  :hook
+  (emacs-startup . gcmh-mode)
+  (focus-out-hook . gcmh-idle-garbage-collect)
   :config
   ;; 1 GB -> 800 MB
-  (setq gcmh-high-cons-threshold (* 800 1024 1024)))
+  (setq gcmh-high-cons-threshold (* 800 1024 1024))
+  (setq gcmh-idle-delay 'auto))
 
 ;; Profiling the startup time of Emacs
 (use-package esup

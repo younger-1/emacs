@@ -26,8 +26,8 @@
             (setq gc-cons-threshold 800000
                   gc-cons-percentage 0.1)))
 
-(add-hook 'focus-out-hook #'garbage-collect)
-(run-with-idle-timer 15 t #'garbage-collect)
+;; (add-hook 'focus-out-hook #'garbage-collect)
+;; (run-with-idle-timer 15 t #'garbage-collect)
 
 (unless (or (daemonp) noninteractive)
   (let ((default-file-name-handler-alist file-name-handler-alist))
