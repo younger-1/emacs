@@ -356,6 +356,15 @@ NOTE: PATH in emacs should always separated by `:'"
 (unless (file-exists-p package-user-dir)
   (package-refresh-contents))
 
+;; `package-activate-all' will not autoload `package', but use-package's :ensure and :vc will require it
+;; @perf Not require `package' by disabling :ensure and :vc at startup
+(advice-add #'use-package-ensure-elpa :around #'ignore)
+(advice-add #'use-package-vc-install :around #'ignore)
+(add-hook 'emacs-startup-hook
+          (defun xy/restore-use-package-ensure ()
+            (advice-remove #'use-package-ensure-elpa #'ignore)
+            (advice-remove #'use-package-vc-install #'ignore)))
+
 (setq use-package-always-ensure t)
 (setq use-package-always-defer t)
 (setq use-package-enable-imenu-support t)
@@ -555,10 +564,10 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; TODO: https://christiantietze.de/posts/2025/05/compilation-window-display-in-emacs-via-display-buffer-alist/
   ;; Do not show warnings when installing packages
   ;; from https://protesilaos.com/codelog/2024-11-28-basic-emacs-configuration/
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-                 (display-buffer-no-window)
-                 (allow-no-window . t)))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+  ;;                (display-buffer-no-window)
+  ;;                (allow-no-window . t)))
   ;; Keep the compilation buffer in the background, except when there's an error
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window)))
@@ -1956,12 +1965,20 @@ makes it easier to edit it."
 ;; A collection of Transient menus for various built-in Emacs modes
 (use-package casual
   :bind (("M-m" . casual-editkit-main-tmenu)
-         :map calc-mode-map
-         ("M-m" . casual-calc-tmenu)
          :map isearch-mode-map
          ("M-m" . casual-isearch-tmenu)
          :map Info-mode-map
-         ("M-m" . casual-info-tmenu))
+         ("M-m" . casual-info-tmenu)
+         :map calc-mode-map
+         ("M-m" . casual-calc-tmenu)
+         :map reb-mode-map
+         ("M-m" . casual-re-builder-tmenu)
+         :map reb-lisp-mode-map
+         ("M-m" . casual-re-builder-tmenu)
+         :map bookmark-bmenu-mode-map
+         ("M-m" . casual-bookmarks-tmenu)
+         :map org-agenda-mode-map
+         ("M-m" . casual-agenda-tmenu))
   :init
   (with-eval-after-load 'dired
     (keymap-set dired-mode-map "M-m" #'casual-dired-tmenu))
@@ -1975,11 +1992,7 @@ makes it easier to edit it."
     (casual-ediff-install) ; run this to enable Casual Ediff
     (add-hook 'ediff-keymap-setup-hook (lambda () (keymap-set ediff-mode-map "M-m" #'casual-ediff-tmenu))))
   :config
-  ;; (setq casual-lib-use-unicode t)
-  (keymap-set reb-mode-map "M-m" #'casual-re-builder-tmenu)
-  (keymap-set reb-lisp-mode-map "M-m" #'casual-re-builder-tmenu)
-  (keymap-set bookmark-bmenu-mode-map "M-m" #'casual-bookmarks-tmenu)
-  (keymap-set org-agenda-mode-map "M-m" #'casual-agenda-tmenu))
+  (setq casual-lib-use-unicode t))
 
 ;; @tip
 ;; `evil-toggle-key' is "C-z"
@@ -2027,7 +2040,7 @@ makes it easier to edit it."
   (setq evil-emacs-state-modes (append evil-emacs-state-modes evil-motion-state-modes))
   (setq evil-motion-state-modes nil)
   (setq evil-insert-state-modes nil)
-  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(minibuffer-mode dired-mode diff-mode difftastic-mode deadgrep-mode deadgrep-edit-mode shell-mode eshell-mode term-mode eat-mode)))
+  (setq evil-emacs-state-modes (append evil-emacs-state-modes '(messages-buffer-mode minibuffer-mode dired-mode diff-mode difftastic-mode deadgrep-mode deadgrep-edit-mode shell-mode eshell-mode term-mode eat-mode)))
 
   ;; Show search match count in echo area. Replace package evil-anzu
   (defun xy/evil-ex-match-counter (&rest _)
