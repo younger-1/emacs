@@ -50,6 +50,9 @@
 ;; (icomplete-vertical-mode)
 (setq completions-detailed t)
 
+;; (require 'init-util)
+;; (require 'init-package)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; emacs compile阶段，和当前运行环境完全隔离，互不影响（除了load-path）
 ;; 相当于新开启了一个子进程，默认加载的feature记录在load-history
@@ -96,6 +99,12 @@
   (xy/message package-quickstart)
   (xy/message package-archives)
 
+  (xy/message package-activated-list)
+  (xy/message (package-installed-p 'embark))
+  (xy/message (package-installed-p 'corfu))
+  (xy/message (package-installed-p 'projtree))
+  (xy/message (package-installed-p 'embark-sidebar))
+
   (xy/message after-init-hook)
   (xy/message inhibit-default-init)
   (xy/message initial-major-mode)
@@ -104,6 +113,9 @@
   (xy/message tab-always-indent)
   (xy/message what-cursor-show-names)
   (xy/message xy/mac-p)
+
+  (xy/message (autoloadp (symbol-function #'dired)))
+  (xy/message (autoloadp (symbol-function #'use-package)))
 
   (xy/message use-package-always-ensure)
   (xy/message use-package-always-defer)

@@ -11,8 +11,8 @@
 ;; (setenv "LANG" "en_US.UTF-8")
 
 ;; Not need `eval-and-compile', as `load-path' got the same value at compile-phase and runtime-phase
-(add-to-list 'load-path (expand-file-name "lisp" xy/init-dir))
-(add-to-list 'load-path (expand-file-name "site-lisp" xy/init-dir))
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "site-lisp" user-emacs-directory))
 
 ;; Prefer `load' to `require', they all can: byte compile, native compile
 ;; Only use `require' which is more friendly to: autoload, 重复加载控制, 依赖关系维护
@@ -22,7 +22,9 @@
 ;; (load "core-prog") ; (load "xy-go")
 ;; (load "core-org")
 
-(setq custom-file (expand-file-name "custom.el" xy/init-dir))
+(require 'init-util)
+
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
   (load-file custom-file))
 
@@ -339,69 +341,7 @@ NOTE: PATH in emacs should always separated by `:'"
 
 
 ;;; builtin package setup
-(setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-                         ("gnu-dev". "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu-devel/")
-                         ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-                         ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
-;; (setq package-archive-priorities '(("gnu"    . 90)
-;;                                    ("nongnu" . 80)
-;;                                    ("melpa"  . 10)))
-;; Enable `package-quickstart-refresh'
-(setq package-quickstart t)
-(setq package-install-upgrade-built-in t)
-;; (setq package-native-compile t)
-
-;; (package-initialize)
-(package-activate-all)
-(unless (file-exists-p package-user-dir)
-  (package-refresh-contents))
-
-;; `package-activate-all' will not autoload `package', but use-package's :ensure and :vc will require it
-;; @perf Not require `package' by disabling :ensure and :vc at startup
-(advice-add #'use-package-ensure-elpa :around #'ignore)
-(advice-add #'use-package-vc-install :around #'ignore)
-(add-hook 'emacs-startup-hook
-          (defun xy/restore-use-package-ensure ()
-            (advice-remove #'use-package-ensure-elpa #'ignore)
-            (advice-remove #'use-package-vc-install #'ignore)))
-
-(setq use-package-always-ensure t)
-(setq use-package-always-defer t)
-(setq use-package-enable-imenu-support t)
-(setq use-package-expand-minimally t)
-;; TODO
-;; (setq use-package-hook-name-suffix nil)
-;; (setq use-package-inject-hooks t)
-
-(when init-file-debug
-  (require 'use-package)
-  (setq use-package-expand-minimally nil)
-  (setq use-package-compute-statistics t) ; for `use-package-report'
-  ;; (setq use-package-minimum-reported-time 0)
-  (setq use-package-verbose t))
-
-;;                         1.直接加载源码   2.编译当前文件   3.加载编译后文件
-;; normal top-level code     yes              no               yes
-;; `eval-and-compile'        yes              yes              yes
-;; `eval-when-compile'       yes              yes              no
-;;
-;; Load `use-package' macro definition when compiling
-;; @see (info "(elisp) Compiling Macros")
-(eval-when-compile
-  (require 'use-package))
-
-(defmacro use-core (name &rest args)
-  (declare (indent 1))
-  `(use-package ,name
-     :ensure nil
-     ,@args))
-
-;; Use this instead of (use-package <feature> :ensure <package>)
-(defmacro use-feature (name &rest args)
-  (declare (indent 1))
-  `(use-package ,name
-     :ensure nil
-     ,@args))
+(require 'init-package)
 
 
 ;;; startup frame and screen

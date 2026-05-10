@@ -47,17 +47,9 @@
 (setq load-prefer-newer t)
 (setq byte-compile-warnings '(not obsolete))
 (when (featurep 'native-compile)
+  (setq native-comp-jit-compilation t)
+  (setq native-comp-async-query-on-exit t)
   (setq native-comp-async-report-warnings-errors (or init-file-debug 'silent))
-  (setq native-comp-jit-compilation t))
-
-(defconst xy/config-dir
-  (file-name-directory (or load-file-name buffer-file-name))
-  "The root directory Emacs configuration.")
-
-;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/
-(defconst xy/init-dir user-emacs-directory)
-(setq user-emacs-directory (concat user-emacs-directory "var/"))
+  (setq native-comp-async-jobs-number (- (num-processors) 2)))
 
 (setq package-enable-at-startup nil)
-(setq package-quickstart-file (concat user-emacs-directory "package-quickstart.el"))
-(setq package-user-dir (concat user-emacs-directory "elpa"))
