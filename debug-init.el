@@ -51,66 +51,70 @@
 (setq completions-detailed t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; emacs compile阶段，和当前运行环境完全隔离，互不影响（除了load-path）
+;; 相当于新开启了一个子进程，默认加载的feature记录在load-history
+;; 因此compile阶段看到的变量，除了来自 dump/C层/预加载，大部分来自loaddefs
 (eval-and-compile
-  (defsubst xy/symbol-value (sym)
-    (cond
-     ((not (symbolp sym)) sym)
-     ((boundp sym) (symbol-value sym))
-     ((fboundp sym) (funcall sym))
-     (t :unbound)))
+  (defmacro xy/message (form)
+    "如果form是单一变量/表达式，直接求值；如果抛出 void-variable 未定义错误，就接住它并返回 :unbound
 
-  (defsubst xy/message (sym)
-    (message "[xy] %s -> %s" sym (xy/symbol-value sym)))
+原生的异常捕获 (condition-case) 支持词法闭包，比如: (let ((x 10)) (xy/message x))
+而boundp 和 symbol-value 只能看到全局动态变量，看不到 let 绑定的局部词法变量"
+    `(message "[xy] %s -> %S" ',form
+              (condition-case nil
+                  ,form
+                (void-variable :unbound))))
 
-  (xy/message 'after-init-time)
-  (xy/message #'current-time)
-  (xy/message #'emacs-init-time)
-  (xy/message #'emacs-uptime)
+  (xy/message after-init-time)
+  (xy/message (current-time))
+  (xy/message (emacs-init-time))
+  (xy/message (emacs-uptime))
 
-  ;; (xy/message 'load-path)
-  ;; (xy/message 'exec-path)
-  ;; (xy/message 'features)
-  ;; (xy/message 'load-history)
-  (xy/message 'path-separator)
-  (xy/message 'message-log-max)
+  ;; (xy/message load-path) ; special, reflect as runtime-phase value
+  ;; (xy/message exec-path)
+  ;; (xy/message features)
+  ;; (xy/message load-history)
+
+  (xy/message path-separator)
+  (xy/message message-log-max)
+  (xy/message (symbol-file 'message-log-max 'defvar))
+  (xy/message (find-lisp-object-file-name 'message-log-max 'defvar))
 
   ;; (setq user-emacs-directory (concat user-emacs-directory "var/"))
-  (xy/message 'user-emacs-directory)
+  (xy/message user-emacs-directory)
+  (xy/message (symbol-file 'user-emacs-directory 'defvar))
+  (xy/message (find-lisp-object-file-name 'user-emacs-directory 'defvar))
 
   ;; (require 'package)
-  (xy/message 'package-enable-at-startup)
-  (xy/message 'package-user-dir)
-  (xy/message 'package-quickstart-file)
+  (xy/message package-enable-at-startup)
+  (xy/message (symbol-file 'package-enable-at-startup 'defvar))
+  (xy/message (find-lisp-object-file-name 'package-enable-at-startup 'defvar))
 
-  (xy/message 'package-quickstart)
-  (xy/message 'package-archives)
+  (xy/message package-user-dir)
+  (xy/message package-quickstart-file)
 
-  (xy/message 'after-init-hook)
-  (xy/message 'inhibit-default-init)
-  (xy/message 'initial-major-mode)
+  (xy/message package-quickstart)
+  (xy/message package-archives)
 
-  (xy/message 'create-lockfiles)
-  (xy/message 'tab-always-indent)
-  (xy/message 'what-cursor-show-names)
-  (xy/message 'xy/mac-p)
+  (xy/message after-init-hook)
+  (xy/message inhibit-default-init)
+  (xy/message initial-major-mode)
 
-  (xy/message 'use-package-always-ensure)
-  (xy/message 'use-package-always-defer)
-  (xy/message 'use-package-enable-imenu-support)
-  (xy/message 'use-package-expand-minimally)
-  (xy/message 'dired-mark-region)
+  (xy/message create-lockfiles)
+  (xy/message tab-always-indent)
+  (xy/message what-cursor-show-names)
+  (xy/message xy/mac-p)
 
-  (xy/message 'magit-define-global-key-bindings)
-  (xy/message 'difftastic-bindings-alist)
-  (xy/message 'flymake-collection-hook-config)
-  (xy/message 'expand-region-preferred-python-mode)
-  (xy/message 'rg-keymap-prefix)
+  (xy/message use-package-always-ensure)
+  (xy/message use-package-always-defer)
+  (xy/message use-package-enable-imenu-support)
+  (xy/message use-package-expand-minimally)
+  (xy/message dired-mark-region)
 
-  (xy/message
-   (symbol-file 'user-emacs-directory 'defvar))
-  (xy/message
-   (symbol-file 'package-enable-at-startup 'defvar))
-  (xy/message
-   (find-lisp-object-file-name 'user-emacs-directory 'defvar))
-  (xy/message
-   (find-lisp-object-file-name 'package-enable-at-startup 'defvar)))
+  (xy/message magit-define-global-key-bindings)
+  (xy/message difftastic-bindings-alist)
+  (xy/message flymake-collection-hook-config)
+  (xy/message expand-region-preferred-python-mode)
+  (xy/message rg-keymap-prefix)
+
+  )
