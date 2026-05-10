@@ -8,6 +8,9 @@
 ;; -- disable native comp jit for some or all files (helpful to prevent recompile of some loaddefs.el.gz files at Emacs start)
 ;; -- change the garbage collector threshold very early to speed up Emacs startup even more
 
+;; (message "** [xy] boot early-init.el")
+;; (message "** [xy] load-path: %s" load-path)
+
 (when (< emacs-major-version 30)
   (user-error "[xy] emacs version is %s, require emacs-30." emacs-major-version))
 
@@ -36,6 +39,8 @@
 
 (add-hook 'emacs-startup-hook
           (defun xy/-print-init-time ()
+            (message "%s" (format-seconds "Emacs is %y years, %d days, %h hours, %m minutes, %s seconds old"
+                                          (time-to-seconds (time-subtract nil (date-to-time "1985-03-20T00:00:00Z")))))
             (message "** [xy] Emacs ready in %s seconds with %d garbage collections."
                      (emacs-init-time "%.2f") gcs-done)))
 
@@ -45,9 +50,8 @@
   (setq native-comp-async-report-warnings-errors (or init-file-debug 'silent))
   (setq native-comp-jit-compilation t))
 
-(defconst xy/emacs-dir
-  (file-name-directory (or load-file-name
-                           buffer-file-name))
+(defconst xy/config-dir
+  (file-name-directory (or load-file-name buffer-file-name))
   "The root directory Emacs configuration.")
 
 ;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/

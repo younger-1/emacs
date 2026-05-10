@@ -1,7 +1,8 @@
 ;;; -*- lexical-binding: t; mode: emacs-lisp; coding:utf-8 -*-
 
 ;;; preface
-(message "** [xy] boot init.el")
+;; (message "** [xy] boot init.el")
+;; (message "** [xy] load-path: %s" load-path)
 
 ;; (set-default-coding-systems 'utf-8)
 (prefer-coding-system 'utf-8)
@@ -9,9 +10,17 @@
 ;; (setenv "LC_ALL" "en_US.UTF-8")
 ;; (setenv "LANG" "en_US.UTF-8")
 
-(eval-and-compile
-  (add-to-list 'load-path (expand-file-name "lisp" xy/init-dir))
-  (add-to-list 'load-path (expand-file-name "site-lisp" xy/init-dir)))
+;; Not need `eval-and-compile', as `load-path' got the same value at compile-phase and runtime-phase
+(add-to-list 'load-path (expand-file-name "lisp" xy/init-dir))
+(add-to-list 'load-path (expand-file-name "site-lisp" xy/init-dir))
+
+;; Prefer `load' to `require', they all can: byte compile, native compile
+;; Only use `require' which is more friendly to: autoload, 重复加载控制, 依赖关系维护
+;; (load "core-lib") ; common/util/helper, var, macro
+;; (load "core-ui")
+;; (load "core-edit")
+;; (load "core-prog") ; (load "xy-go")
+;; (load "core-org")
 
 (setq custom-file (expand-file-name "custom.el" xy/init-dir))
 (when (file-exists-p custom-file)
@@ -362,11 +371,15 @@ NOTE: PATH in emacs should always separated by `:'"
   ;; (setq use-package-minimum-reported-time 0)
   (setq use-package-verbose t))
 
-;; Load `use-package' macro definition. Should only use in compiled init.el
+;;                         1.直接加载源码   2.编译当前文件   3.加载编译后文件
+;; normal top-level code     yes              no               yes
+;; `eval-and-compile'        yes              yes              yes
+;; `eval-when-compile'       yes              yes              no
+;;
+;; Load `use-package' macro definition when compiling
 ;; @see (info "(elisp) Compiling Macros")
-;; To avoid loading the macro definition files when someone _runs_ the compiled program, write ‘eval-when-compile’ around the ‘require’ calls
-;; (eval-when-compile
-;;   (require 'use-package))
+(eval-when-compile
+  (require 'use-package))
 
 (defmacro use-core (name &rest args)
   (declare (indent 1))

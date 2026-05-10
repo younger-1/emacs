@@ -4,9 +4,8 @@
 (defconst xy/init-dir user-emacs-directory)
 (setq user-emacs-directory (concat user-emacs-directory "var/"))
 
-(eval-and-compile
-  (add-to-list 'load-path (expand-file-name "lisp" xy/init-dir))
-  (add-to-list 'load-path (expand-file-name "site-lisp" xy/init-dir)))
+(add-to-list 'load-path (expand-file-name "lisp" xy/init-dir))
+(add-to-list 'load-path (expand-file-name "site-lisp" xy/init-dir))
 
 (setq custom-file (expand-file-name "custom.el" xy/init-dir))
 (when (file-exists-p custom-file)
@@ -56,6 +55,7 @@
 (keymap-global-set "s-<return>" #'toggle-frame-maximized) ; M-<f10>
 (keymap-global-set "S-s-<return>" #'toggle-frame-fullscreen) ; <f11>
 
+;; Set `native-comp-eln-load-path'
 (startup-redirect-eln-cache (expand-file-name "eln-cache" user-emacs-directory))
 
 (setq package-quickstart-file (concat user-emacs-directory "package-quickstart.el"))
