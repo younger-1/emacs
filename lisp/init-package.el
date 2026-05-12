@@ -21,11 +21,16 @@
 (unless (file-exists-p package-user-dir)
   (package-refresh-contents))
 
+;; load time (or interpreted run) vs compile time
 ;;                         1.直接加载源码   2.编译当前文件   3.加载编译后文件
 ;; normal top-level code     yes              no               yes
 ;; `eval-and-compile'        yes              yes              yes
 ;; `eval-when-compile'       yes              yes              no
 ;;
+;; `eval-when-compile' 最常见用法是 “给编译器准备编译期依赖”。 实践里最常见的两类是：
+;; 1. 编译期引入宏定义： require 宏库
+;; 2. 编译期算好结果，运行时直接用：预计算常量
+
 ;; Load `use-package' macro definition when compiling
 ;; @see (info "(elisp) Compiling Macros")
 (eval-when-compile

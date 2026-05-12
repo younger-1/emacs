@@ -24,24 +24,6 @@
 
 (require 'init-util)
 
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-(when (file-exists-p custom-file)
-  (load-file custom-file))
-
-;; For finer granularity, use `system-type' or `system-configuration' directly.
-(defconst xy/linux-p
-  (eq system-type 'gnu/linux) ; 'berkeley-unix 'gnu 'gnu/kfreebsd
-  ;; (memq window-system '(x))
-  "Are we running on a GNU/Linux system?")
-(defconst xy/win-p
-  (eq system-type 'windows-nt) ; 'cygwin 'ms-dos
-  ;; (memq window-system '(win32 pc))
-  "Are we running on a MS-Window system?")
-(defconst xy/mac-p
-  (eq system-type 'darwin)
-  ;; (memq window-system '(mac ns))
-  "Are we running on a Mac system?")
-
 
 ;;; theme
 ;; (load-theme 'deeper-blue)
@@ -1023,17 +1005,20 @@ makes it easier to edit it."
          ("C-h C-o" . nil) ; `describe-distribution'
          ("C-h C-t" . nil) ; `view-emacs-todo'
          ("C-h C-w" . nil) ; `describe-no-warranty'
-         :map help-mode-map
-         ;; @tip
-         ;; ("i" . #'help-goto-info)
-         ;; ("I" . #'help-goto-lispref-info)
-         ;; ("s" . #'help-view-source)
-         ;; ("c" . #'help-customize)
-         ("C" . #'xy/set-variable)
-         ("P" . #'xy/help-show-plist)
-         ("S-SPC" . nil) ; `scroll-down-command', available as M-v/DEL(<backspace>)
-         ("b" . #'beginning-of-buffer)
-         ("e" . #'end-of-buffer)))
+         ))
+
+(use-core help-mode
+  :bind ( :map help-mode-map
+          ;; @tip
+          ;; ("i" . #'help-goto-info)
+          ;; ("I" . #'help-goto-lispref-info)
+          ;; ("s" . #'help-view-source)
+          ;; ("c" . #'help-customize)
+          ("C" . #'xy/set-variable)
+          ("P" . #'xy/help-show-plist)
+          ("S-SPC" . nil) ; `scroll-down-command', available as M-v/DEL(<backspace>)
+          ("b" . #'beginning-of-buffer)
+          ("e" . #'end-of-buffer)))
 
 (use-core info
   :init
@@ -1154,7 +1139,7 @@ makes it easier to edit it."
 (use-core savehist
   ;; @perf Loading when open minibuffer
   :hook (minibuffer-setup . savehist-mode)
-  :config
+  :init
   ;; `completing-read' and `read-from-minibuffer'
   ;; -- The argument HISTORY specifies which history list variable to use for saving the input and for minibuffer history commands.
   ;; -- It defaults to ‘minibuffer-history’
@@ -1175,6 +1160,7 @@ makes it easier to edit it."
   (setq search-ring-max (* 16 2)
         regexp-search-ring-max (* 16 2))
   (setq comint-input-ring-size (* 500 1))
+  :config
   ;; Strip all text properties (fonts, overlays, etc.) in kill ring before saving, not to bloat the savehist file.
   (add-hook 'savehist-save-hook
             (lambda ()
@@ -1908,16 +1894,6 @@ makes it easier to edit it."
 ;; A collection of Transient menus for various built-in Emacs modes
 (use-package casual
   :bind (("M-m" . casual-editkit-main-tmenu)
-         :map isearch-mode-map
-         ("M-m" . casual-isearch-tmenu)
-         :map Info-mode-map
-         ("M-m" . casual-info-tmenu)
-         :map calc-mode-map
-         ("M-m" . casual-calc-tmenu)
-         :map reb-mode-map
-         ("M-m" . casual-re-builder-tmenu)
-         :map reb-lisp-mode-map
-         ("M-m" . casual-re-builder-tmenu)
          :map bookmark-bmenu-mode-map
          ("M-m" . casual-bookmarks-tmenu)
          :map org-agenda-mode-map
@@ -1925,10 +1901,23 @@ makes it easier to edit it."
   :init
   (with-eval-after-load 'dired
     (keymap-set dired-mode-map "M-m" #'casual-dired-tmenu))
+  (with-eval-after-load 'isearch
+    (keymap-set isearch-mode-map "M-m" #'casual-isearch-tmenu))
   (with-eval-after-load 'ibuffer
     (keymap-set ibuffer-mode-map "M-m" #'casual-ibuffer-tmenu)
     (keymap-set ibuffer-mode-map "F" #'casual-ibuffer-filter-tmenu)
     (keymap-set ibuffer-mode-map "s" #'casual-ibuffer-sortby-tmenu))
+  (with-eval-after-load 'info
+    (keymap-set Info-mode-map "M-m" #'casual-info-tmenu))
+  (with-eval-after-load 'calc
+    (keymap-set calc-mode-map "M-m" #'casual-calc-tmenu))
+  (with-eval-after-load 're-builder
+    (keymap-set reb-mode-map "M-m" #'casual-re-builder-tmenu)
+    (keymap-set reb-lisp-mode-map "M-m" #'casual-re-builder-tmenu)
+  (with-eval-after-load 'bookmark
+    (keymap-set bookmark-bmenu-mode-map "M-m" #'casual-bookmarks-tmenu))
+  (with-eval-after-load 'org-agenda
+    (keymap-set org-agenda-mode-map "M-m" #'casual-agenda-tmenu)))
   ;; Ediff
   (keymap-global-set "C-c d d" #'casual-ediff-revision)
   (with-eval-after-load 'ediff
@@ -1936,6 +1925,14 @@ makes it easier to edit it."
     (add-hook 'ediff-keymap-setup-hook (lambda () (keymap-set ediff-mode-map "M-m" #'casual-ediff-tmenu))))
   :config
   (setq casual-lib-use-unicode t))
+
+(use-package casual-avy
+  :bind ("M-g SPC" . casual-avy-tmenu))
+
+(use-package casual-symbol-overlay
+  :after symbol-overlay
+  :bind ( :map symbol-overlay-map
+          ("RET" . casual-symbol-overlay-tmenu)))
 
 ;; @tip
 ;; `evil-toggle-key' is "C-z"
@@ -2992,9 +2989,6 @@ makes it easier to edit it."
   :config
   (ace-pinyin-global-mode +1))
 
-(use-package casual-avy
-  :bind ("M-g SPC" . casual-avy-tmenu))
-
 (use-package binky
   :init
   (defvar-keymap xy/binky-repeat-map
@@ -3455,11 +3449,6 @@ word.  Fall back to regular `expreg-expand'."
   (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook special-mode-hook))
     (add-hook hook #'symbol-overlay-mode))
   (setq symbol-overlay-idle-time 0.2))
-
-(use-package casual-symbol-overlay
-  :after symbol-overlay
-  :bind ( :map symbol-overlay-map
-          ("C-o" . casual-symbol-overlay-tmenu)))
 
 ;; @problem Can't exclude current highlight when only one match
 ;; (use-package idle-highlight-mode

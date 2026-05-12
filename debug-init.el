@@ -54,9 +54,8 @@
 ;; (require 'init-package)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; emacs compile阶段，和当前运行环境完全隔离，互不影响（除了load-path）
-;; 相当于新开启了一个子进程，默认加载的feature记录在load-history
-;; 因此compile阶段看到的变量，除了来自 dump/C层/预加载，大部分来自loaddefs
+;; emacs async native compile阶段，新开启了一个子进程，和当前运行环境完全隔离，互不影响（除了load-path）
+;; 相当于默认加载的feature记录在load-history，此时看到的变量都是默认值，来自 预加载变量(dump/C层) 或 loaddefs(autoload提前导出)
 (eval-and-compile
   (defmacro xy/message (form)
     "如果form是单一变量/表达式，直接求值；如果抛出 void-variable 未定义错误，就接住它并返回 :unbound
@@ -68,6 +67,10 @@
                   ,form
                 (void-variable :unbound))))
 
+  (xy/message (symbol-file 'xy/init-dir 'defvar))
+  (xy/message (symbol-file 'use-core 'defun))
+  (xy/message (symbol-file 'xy/initial-mode-map 'defvar))
+
   (xy/message after-init-time)
   (xy/message (current-time))
   (xy/message (emacs-init-time))
@@ -77,6 +80,7 @@
   ;; (xy/message exec-path)
   ;; (xy/message features)
   ;; (xy/message load-history)
+  ;; (xy/message native-comp-eln-load-path) ; special, reflect as runtime-phase value
 
   (xy/message path-separator)
   (xy/message message-log-max)
