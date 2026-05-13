@@ -1,4 +1,4 @@
-;;; -*- lexical-binding: t -*-
+;; -*- lexical-binding: t -*-
 
 ;; (defconst xy/init-dir
 ;;   (file-name-directory (or load-file-name buffer-file-name))

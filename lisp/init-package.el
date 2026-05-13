@@ -1,4 +1,6 @@
-;;; -*- lexical-binding: t -*-
+;; -*- lexical-binding: t -*-
+
+;;; package
 (setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
                          ("gnu-dev". "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu-devel/")
                          ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
@@ -21,6 +23,8 @@
 (unless (file-exists-p package-user-dir)
   (package-refresh-contents))
 
+
+;;; use-package
 ;; load time (or interpreted run) vs compile time
 ;;                         1.直接加载源码   2.编译当前文件   3.加载编译后文件
 ;; normal top-level code     yes              no               yes
