@@ -43,7 +43,10 @@
   ;; (menu-bar-mode +1)
   ;; (tool-bar-mode -1)
   ;; (scroll-bar-mode -1)
-  )
+
+  ;; https://dolzhenko.me/blog/2025/02/emacs-frames-are-not-coming-into-the-foreground-on-mac-os/
+  ;; -- Bringing the Emacs frame up front
+  (select-frame-set-input-focus (selected-frame)))
 
 
 ;;; basic
@@ -325,6 +328,7 @@
   :bind
   ;; free keys
   ("C-x c" . nil)
+  ("C-x d" . nil)
   ("C-x g" . nil)
   ("C-x j" . nil)
   ("C-x y" . nil)

@@ -16,8 +16,6 @@
             (message "** [xy] Emacs ready in %s seconds with %d garbage collections."
                      (emacs-init-time "%.2f") gcs-done)))
 
-;; https://dolzhenko.me/blog/2025/02/emacs-frames-are-not-coming-into-the-foreground-on-mac-os/
-;; -- Bringing the Emacs frame up front
 (select-frame-set-input-focus (selected-frame))
 
 ;; (add-to-list 'default-frame-alist '(fullscreen . maximized))

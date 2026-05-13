@@ -359,8 +359,8 @@ makes it easier to edit it."
          ("C-h p v U" . package-vc-upgrade-all)
          ("C-h p v r" . package-vc-rebuild)
          ;;
-         ("C-h p q" . #'xy/open-package-quickstart)
          ("C-h p a" . #'xy/open-elpa-d)
+         ("C-h p Q" . #'xy/open-package-quickstart)
          ("C-h p j" . #'use-package-jump-to-package-form)
          ("C-h p k" . #'use-package-report)))
 

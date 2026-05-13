@@ -618,14 +618,16 @@
   :bind (("C-`"   . popper-toggle)
          ("M-`"   . popper-cycle)
          ("C-M-`" . popper-toggle-type)) ; Turn any buffer into a popup (or vice-versa)
-  :init
+  :config
   (setq popper-reference-buffers
         '("\\*Messages\\*"
           "Output\\*$"
           "\\*Async Shell Command\\*"
           "\\*Warnings\\*"
           help-mode
-          emacs-lisp-compilation-mode ; byte/native compile log
+          ;; emacs-lisp-compilation-mode ; byte/native compile log
+          "\\*Compile-Log\\*"
+          "\\*Async-native-compile-log\\*"
           compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))
@@ -633,8 +635,7 @@
 
 ;;; dired
 (use-core dired
-  :bind (("C-x d" . nil)
-         ("C-x d d" . dired)
+  :bind (("C-x d d" . dired)
          ("C-x d j" . dired-jump)
          :map dired-mode-map
          ("v" . dired-view-file))

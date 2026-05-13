@@ -44,6 +44,7 @@
 (setq use-package-always-defer t)
 (setq use-package-enable-imenu-support t)
 (setq use-package-expand-minimally t)
+(setq use-package-vc-prefer-newest t)
 ;; TODO
 ;; (setq use-package-hook-name-suffix nil)
 ;; (setq use-package-inject-hooks t)
