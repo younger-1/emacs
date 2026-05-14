@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+(require 'init-util)
+(require 'init-package)
 ;;; imenu
 (use-core imenu
   :init

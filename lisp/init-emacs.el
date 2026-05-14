@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+(require 'init-util)
+(require 'init-package)
 ;;; startup frame and screen
 (use-core emacs
   :custom

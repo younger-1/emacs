@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+(require 'init-util)
+(require 'init-package)
 ;;; vc
 (use-core vc
   :config

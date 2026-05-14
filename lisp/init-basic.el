@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+(require 'init-util)
+(require 'init-package)
 ;;; perf
 (use-core server
   ;; :if (dispay-graphic-p)

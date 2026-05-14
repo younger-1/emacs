@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+(require 'init-util)
+(require 'init-package)
 ;;; ui
 (use-core frame
   :hook

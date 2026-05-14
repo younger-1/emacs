@@ -1,5 +1,8 @@
 ;; -*- lexical-binding: t -*-
 
+(require 'init-util)
+(require 'init-package)
+
 (use-core repeat
   :defer 0.3
   :config

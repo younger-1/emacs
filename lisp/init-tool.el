@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
+(require 'init-util)
+(require 'init-package)
 ;;; tool
 
 (use-package wakatime-mode
@@ -142,7 +144,6 @@
   :bind
   (("C-c o o" . #'xy/open-org-notes)
    ("C-c o d" . #'xy/open-org-dir)
-   ("C-c o o" . #'xy/open-org-notes)
    ("C-c o a" . #'org-agenda)
    ("C-c o c" . #'org-capture)
    ("C-c o l" . #'org-store-link)
