@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
-(require 'init-util)
 (require 'init-package)
+
 ;;; tool
 
 (use-package wakatime-mode

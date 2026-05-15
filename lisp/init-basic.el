@@ -1,15 +1,21 @@
 ;; -*- lexical-binding: t -*-
 
-(require 'init-util)
 (require 'init-package)
+
 ;;; perf
 (use-package async
   :bind ( :map emacs-lisp-mode-map
-          ("C-c C-b" . #'xy/async-byte-compile-file))
+          ("C-c C-b" . #'xy/async-byte-compile-file)
+          ("C-c C-l" . #'xy/load-byte-compile-file))
   :init
   (defun xy/async-byte-compile-file ()
     (interactive)
     (async-byte-compile-file buffer-file-name))
+  (defun xy/load-byte-compile-file ()
+    "Load elc file manually after `async-byte-compile-file' to make native-compile happen automatically."
+    (interactive)
+    ;; No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name))
+    (load (file-name-base buffer-file-name)))
 
   ;; 问题：在 Lisp 和 Emacs 社区的工程规范中，“在 Hook 里套 Hook，里面还带个匿名函数 (lambda)” 被称为反模式（Anti-pattern），主要有三大罪状：
   ;; - 1. 无法被轻易移除：因为 lambda 没有名字，你事后想用 remove-hook 把它干掉几乎不可能。
