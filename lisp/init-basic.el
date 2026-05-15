@@ -4,14 +4,7 @@
 (require 'init-package)
 ;;; perf
 (use-package async
-  :init
-  (defun xy/load-byte-comp-file ()
-    "Load elc file manually after `async-byte-compile-file' to make native-compile happen automatically."
-    (interactive)
-    ;; No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name))
-    (load (file-name-base buffer-file-name)))
   :bind ( :map emacs-lisp-mode-map
-          ("C-c C-l" . #'xy/load-byte-comp-file)
           ("C-c C-d" . #'async-byte-recompile-directory))
   :config
   ;; Copy, rename, and symlink operations in Dired now run in the background
@@ -298,7 +291,8 @@ makes it easier to edit it."
          ("C-h j s" . #'xy/open-scratch-buffer)
          ;; user
          ("C-h u" . nil) ; `apropos-user-option`
-         ("C-h u f" . #'add-file-local-variable)
+         ("C-h u f" . #'add-file-local-variable-prop-line)
+         ("C-h u F" . #'add-file-local-variable)
          ("C-h u d" . #'add-dir-local-variable)
          ("C-h u c" . #'xy/set-variable)
          ("C-h u p" . #'xy/help-show-plist)

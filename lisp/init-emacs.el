@@ -263,7 +263,6 @@
   ;; Resolve symlinks so that operations are conducted from the real file's directory
   (setq find-file-visit-truename t
         vc-follow-symlinks t)
-  (setq view-read-only t)
 
   ;; `paren.el'
   (setq show-paren-context-when-offscreen 'overlay
@@ -375,17 +374,6 @@
   (put 'set-goal-column 'disabled nil)
   (put 'erase-buffer 'disabled nil)
   (put 'dired-find-alternate-file 'disabled nil)
-  (put 'list-timers 'disabled nil)
-
-  (defconst xy/elpa-lisp-dir (expand-file-name package-user-dir))
-  (defconst xy/emacs-lisp-dir (file-name-directory (directory-file-name doc-directory)))
-
-  (dir-locals-set-class-variables
-   :read-only
-   '((nil . (;; (eval . (view-mode-enter nil #'kill-buffer))
-             (buffer-read-only . t)
-             (tab-width . 8)))))
-  (dolist (dir (list xy/elpa-lisp-dir xy/emacs-lisp-dir))
-    (dir-locals-set-directory-class (file-truename dir) :read-only)))
+  (put 'list-timers 'disabled nil))
 
 (provide 'init-emacs)

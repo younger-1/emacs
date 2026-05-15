@@ -417,9 +417,27 @@ word.  Fall back to regular `expreg-expand'."
   (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 (use-core view
+  :init
+  (setq view-read-only t)
+
+  (defconst xy/elpa-lisp-dir (expand-file-name package-user-dir))
+  (defconst xy/emacs-lisp-dir (file-name-directory (directory-file-name doc-directory)))
+
+  ;; (info "(emacs) Directory Variables")
+  ;; https://www.emacswiki.org/emacs/DirectoryVariables
+  ;; https://www.reddit.com/r/emacs/comments/cr91vw/tip_use_dirlocalsel_to_make_entire_projects_on/
+  (dir-locals-set-class-variables
+   :read-only
+   '((nil . ((buffer-read-only . t)
+             ;; (tab-width . 8)
+             ;; (eval . (view-mode-enter nil #'kill-buffer))
+             ))))
+  (dolist (dir (list xy/elpa-lisp-dir xy/emacs-lisp-dir))
+    (dir-locals-set-directory-class (file-truename dir) :read-only))
   :bind
   (("C-x x v" . #'view-mode)
    :map view-mode-map
+   ;; No exit view-mode or kill buffer
    ("q" . #'switch-to-prev-buffer))
   :config
   (keymap-set ctl-x-4-map "V" #'view-file-other-window)
