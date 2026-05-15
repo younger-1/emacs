@@ -11,12 +11,32 @@
     (interactive)
     (async-byte-compile-file buffer-file-name))
 
+  ;; 问题：在 Lisp 和 Emacs 社区的工程规范中，“在 Hook 里套 Hook，里面还带个匿名函数 (lambda)” 被称为反模式（Anti-pattern），主要有三大罪状：
+  ;; - 1. 无法被轻易移除：因为 lambda 没有名字，你事后想用 remove-hook 把它干掉几乎不可能。
+  ;; - 2. 调试极其恶心：当你用 C-h v after-save-hook 查看当前有哪些钩子时，你会看到一坨 (closure ...)，根本不知道它是干嘛的。
+  ;; - 3. 滥用 eval：破坏了局部变量声明式（Declarative）的纯粹性。
+  ;; 解法：要把它 “拍平”，最符合 Emacs 官方架构哲学的方法是：状态与行为分离（数据控制逻辑）。
+  ;;       我们通过 “定义一个局部开关变量 + 一个全局具名函数”，就能把原来丑陋的嵌套彻底消灭。
+  ;; 1. 定义一个开关变量
+  (defvar-local xy/async-compile-on-save-p nil)
+  ;; 2. 告诉 Emacs 这个变量是安全的布尔值，防止在 dir-locals 触发安全弹窗警告
+  ;; (info "(elisp) File Local Variables")
+  (put 'xy/async-compile-on-save-p 'safe-local-variable #'booleanp)
+  ;; 3. 定义一个全局动作
+  (defun xy/async-compile-if-enabled ()
+    "当开关打开时，执行异步编译。"
+    (and xy/async-compile-on-save-p
+         (eq major-mode 'emacs-lisp-mode)
+         buffer-file-name
+         (async-byte-compile-file buffer-file-name)))
+  ;; 4. 挂载到全局保存钩子
+  (add-hook 'after-save-hook #'xy/async-compile-if-enabled)
+  ;; 5. 将 dir-locals 变成纯粹的数据声明
   (defconst xy/lisp-dir (concat xy/init-dir "lisp/"))
   (defconst xy/site-lisp-dir (concat xy/init-dir "site-lisp/"))
-
   (dir-locals-set-class-variables
    :byte-compile
-   '((emacs-lisp-mode . ((eval . (add-hook 'after-save-hook xy/async-byte-compile-file nil t))))))
+   '((emacs-lisp-mode . ((xy/async-compile-on-save-p . t)))))
   (dir-locals-set-directory-class xy/lisp-dir :byte-compile)
   (dir-locals-set-directory-class xy/site-lisp-dir :byte-compile)
 
