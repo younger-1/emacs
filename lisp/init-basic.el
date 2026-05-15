@@ -3,6 +3,24 @@
 (require 'init-util)
 (require 'init-package)
 ;;; perf
+(use-package async
+  :init
+  (defun xy/load-byte-comp-file ()
+    "Load elc file manually after `async-byte-compile-file' to make native-compile happen automatically."
+    (interactive)
+    ;; No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name))
+    (load (file-name-base buffer-file-name)))
+  :bind ( :map emacs-lisp-mode-map
+          ("C-c C-l" . #'xy/load-byte-comp-file)
+          ("C-c C-d" . #'async-byte-recompile-directory))
+  :config
+  ;; Copy, rename, and symlink operations in Dired now run in the background
+  (dired-async-mode +1)
+  ;; Compiles packages in a clean Emacs subprocess
+  (async-bytecomp-package-mode +1)
+  ;; Async email
+  (setq message-send-mail-function 'async-smtpmail-send-it))
+
 (use-core server
   ;; :if (dispay-graphic-p)
   ;; :after-call doom-first-input-hook doom-first-file-hook focus-out-hook
