@@ -10,13 +10,13 @@
 ;;                                    ("nongnu" . 80)
 ;;                                    ("melpa"  . 10)))
 
-(setq package-user-dir (concat user-emacs-directory "elpa"))
-(setq package-quickstart-file (concat user-emacs-directory "package-quickstart.el"))
-
 ;; Enable `package-quickstart-refresh'
 (setq package-quickstart t)
 (setq package-install-upgrade-built-in t)
 ;; (setq package-native-compile t)
+
+(setq package-user-dir (concat xy/var-dir "elpa"))
+(setq package-quickstart-file (concat xy/var-dir "package-quickstart.el"))
 
 ;; (package-initialize)
 (package-activate-all)

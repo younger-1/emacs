@@ -5,7 +5,21 @@
 ;;; perf
 (use-package async
   :bind ( :map emacs-lisp-mode-map
-          ("C-c C-d" . #'async-byte-recompile-directory))
+          ("C-c C-b" . #'xy/async-byte-compile-file))
+  :init
+  (defun xy/async-byte-compile-file ()
+    (interactive)
+    (async-byte-compile-file buffer-file-name))
+
+  (defconst xy/lisp-dir (concat xy/init-dir "lisp/"))
+  (defconst xy/site-lisp-dir (concat xy/init-dir "site-lisp/"))
+
+  (dir-locals-set-class-variables
+   :byte-compile
+   '((emacs-lisp-mode . ((eval . (add-hook 'after-save-hook xy/async-byte-compile-file nil t))))))
+  (dir-locals-set-directory-class xy/lisp-dir :byte-compile)
+  (dir-locals-set-directory-class xy/site-lisp-dir :byte-compile)
+
   :config
   ;; Copy, rename, and symlink operations in Dired now run in the background
   (dired-async-mode +1)

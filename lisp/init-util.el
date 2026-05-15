@@ -5,14 +5,15 @@
 ;;   "The root directory Emacs configuration.")
 
 (defconst xy/init-dir user-emacs-directory)
+(defconst xy/var-dir (concat user-emacs-directory "var/"))
 
 ;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/
-(setq user-emacs-directory (concat user-emacs-directory "var/"))
+(setq user-emacs-directory xy/var-dir)
 
 ;; Set `native-comp-eln-load-path'
-(startup-redirect-eln-cache (expand-file-name "eln-cache" user-emacs-directory))
+(startup-redirect-eln-cache (expand-file-name "eln-cache" xy/var-dir))
 
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(setq custom-file (expand-file-name "custom.el" xy/var-dir))
 (when (file-exists-p custom-file)
   (load-file custom-file))
 

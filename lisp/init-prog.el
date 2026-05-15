@@ -408,6 +408,10 @@
   (add-to-list 'lisp-prettify-symbols-alist '("use-feature" . ?))
   (add-to-list 'lisp-prettify-symbols-alist '("use-package" . ?)))
 
+(use-core elisp-mode
+  :bind ( :map emacs-lisp-mode-map
+          ("C-c C-d" . #'byte-recompile-directory)))
+
 (use-package macrostep
   :bind ( :map lisp-mode-shared-map
           ("C-c e m" . macrostep-expand)))

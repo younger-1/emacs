@@ -16,8 +16,8 @@
 ;; Prefer `load' to `require', they all can: byte compile, native compile
 ;; Only use `require' which is more friendly to: autoload, 重复加载控制, 依赖关系维护
 (load "init-util") ; common/lib/util/helper: var, macro
-(load "init-core") ; settings: theme, font, env, keybinding, options, hooks
 (load "init-package") ; package and use-package
+(load "init-core") ; settings: theme, font, env, keybinding, options, hooks
 (load "init-emacs") ; TODO move to init-core
 (load "init-basic") ; perf, help, history, search, minibuffer, completion
 (load "init-keymap") ; repeat, transient, casual, evil

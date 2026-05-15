@@ -46,6 +46,7 @@
 
 (setq load-prefer-newer t)
 (setq byte-compile-warnings '(not obsolete))
+(setq warning-minimum-level :error)
 (when (featurep 'native-compile)
   (setq native-comp-jit-compilation t)
   (setq native-comp-async-query-on-exit t)
