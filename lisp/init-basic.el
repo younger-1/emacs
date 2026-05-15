@@ -21,8 +21,12 @@
   ;; - 1. 无法被轻易移除：因为 lambda 没有名字，你事后想用 remove-hook 把它干掉几乎不可能。
   ;; - 2. 调试极其恶心：当你用 C-h v after-save-hook 查看当前有哪些钩子时，你会看到一坨 (closure ...)，根本不知道它是干嘛的。
   ;; - 3. 滥用 eval：破坏了局部变量声明式（Declarative）的纯粹性。
-  ;; 解法：要把它 “拍平”，最符合 Emacs 官方架构哲学的方法是：状态与行为分离（数据控制逻辑）。
+  ;; 解法：要把它 “拍平”，最符合 Emacs 官方架构哲学的方法是：状态与行为分离（Separation of State and Behavior / Data-Driven Design）。
+  ;;       也即：全局函数读取局部状态变量。其本质上是在做 控制流的数据化（Datafication of Control Flow）
   ;;       我们通过 “定义一个局部开关变量 + 一个全局具名函数”，就能把原来丑陋的嵌套彻底消灭。
+  ;; 拓展：无论是 Emacs 的全局 Hook 读取局部变量、React 的 State 驱动视图、K8s 的 YAML 控制器，还是游戏引擎的 ECS，它们的核心思想如出一辙：
+  ;;       把脆弱、复杂、容易抛出异常的 “行为代码（Code/Action）” 集中关进坚固的全局底座中；
+  ;;       而暴露给业务层、目录层、用户层的，永远只有安全、透明、可复验的 “状态数据（Data/State）”
   ;; 1. 定义一个开关变量
   (defvar-local xy/async-compile-on-save-p nil)
   ;; 2. 告诉 Emacs 这个变量是安全的布尔值，防止在 dir-locals 触发安全弹窗警告
@@ -35,8 +39,8 @@
          (eq major-mode 'emacs-lisp-mode)
          buffer-file-name
          (async-byte-compile-file buffer-file-name)))
-  ;; 4. 挂载到全局保存钩子
-  (add-hook 'after-save-hook #'xy/async-compile-if-enabled)
+  ;; 4. 挂载到全局保存钩子，放到最后面执行
+  (add-hook 'after-save-hook #'xy/async-compile-if-enabled :last)
   ;; 5. 将 dir-locals 变成纯粹的数据声明
   (defconst xy/lisp-dir (concat xy/init-dir "lisp/"))
   (defconst xy/site-lisp-dir (concat xy/init-dir "site-lisp/"))

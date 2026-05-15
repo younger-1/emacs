@@ -284,6 +284,8 @@
       (kbd "[d") #'diff-hl-show-hunk-previous))
 
   (with-eval-after-load 'goggles
+    (eval-when-compile
+      (require 'goggles))
     (goggles-define undo primitive-undo evil-undo)
     (goggles-define yank yank yank-pop evil-yank evil-yank-line)
     (goggles-define delete delete-region evil-delete evil-delete-line)))
