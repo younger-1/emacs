@@ -418,7 +418,7 @@ word.  Fall back to regular `expreg-expand'."
 
 (use-core view
   :init
-  (setq view-read-only t)
+  ;; (setq view-read-only t)
 
   (defconst xy/elpa-lisp-dir (expand-file-name package-user-dir))
   (defconst xy/emacs-lisp-dir (file-name-directory (directory-file-name doc-directory)))
@@ -429,11 +429,9 @@ word.  Fall back to regular `expreg-expand'."
   (dir-locals-set-class-variables
    :read-only
    '((nil . ((buffer-read-only . t)
-             ;; (tab-width . 8)
-             ;; (eval . (view-mode-enter nil #'kill-buffer))
-             ))))
-  (dolist (dir (list xy/elpa-lisp-dir xy/emacs-lisp-dir))
-    (dir-locals-set-directory-class (file-truename dir) :read-only))
+             (mode . view)))))
+  (dir-locals-set-directory-class xy/elpa-lisp-dir :read-only)
+  (dir-locals-set-directory-class xy/emacs-lisp-dir :read-only)
   :bind
   (("C-x x v" . #'view-mode)
    :map view-mode-map
