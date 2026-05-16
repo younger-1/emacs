@@ -220,6 +220,12 @@
 
 
 ;;; highlight
+(use-core hi-lock
+  :init
+  ;; Deprecated "C-x w" bindings, in favor of the global "M-s h"
+  ;; see (info "(emacs) Highlight Interactively")
+  (setq hi-lock-map (make-sparse-keymap)))
+
 (use-core hl-line
   :bind ("C-c t l" . hl-line-mode)
   :hook

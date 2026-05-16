@@ -343,6 +343,13 @@
   ;; ("C-x ;" . nil) ; `comment-set-column'
   ;; ("C-x C-n" . nil) ; `set-goal-column'
   ;;
+  ;; bookmark
+  ("C-c b" . #'bookmark-map)
+  ("C-x r b" . nil)
+  ("C-x r m" . nil)
+  ("C-x r M" . nil)
+  ("C-x r l" . nil)
+  ;;
   ("C-z" . nil) ; `suspend-frame', use C-x C-z
   ;;
   ;; @tip s-k is `kill-current-buffer'
@@ -350,11 +357,14 @@
   ("C-x K" . #'bury-buffer)
   ("C-x O" . #'switch-to-minibuffer)
   ;;
-  ("C-x x d" . #'display-fill-column-indicator-mode)
   ("C-x x f" . #'follow-mode)
   ("C-x x G" . #'redraw-display)
   ("C-x x b" . #'clone-indirect-buffer)
   ("C-x x B" . #'clone-indirect-buffer-other-window)
+  ;;
+  ("C-x y d" . #'display-fill-column-indicator-mode)
+  ("C-x y t" . #'toggle-truncate-lines)
+  ("C-x y l" . #'visual-line-mode)
   ;;
   ("C-x j u" . #'browse-url)
   ("C-x j U" . #'browse-web))

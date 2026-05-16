@@ -509,9 +509,8 @@ word.  Fall back to regular `expreg-expand'."
 
 ;; Wrapping visual-line-mode buffers at fill-column
 (use-package visual-fill-column
-  :bind (("C-x x l" . visual-line-mode)
-         ("C-x x c" . visual-fill-column-mode)
-         ("C-x x C" . visual-fill-column-toggle-center-text))
+  :bind (("C-x y c" . visual-fill-column-mode)
+         ("C-x y C" . visual-fill-column-toggle-center-text))
   :hook markdown-mode
   :init
   (add-hook 'visual-line-mode-hook #'visual-fill-column-for-vline)
