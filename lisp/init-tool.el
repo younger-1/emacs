@@ -4,6 +4,45 @@
 
 ;;; tool
 
+(use-package elfeed
+  :bind ("C-c j f" . elfeed)
+  :config
+  (setq elfeed-feeds
+        '("https://nullprogram.com/feed" ; Chris Wellons 大量高质量的 Emacs Lisp 深度文章
+          "https://coolshell.cn/feed" ; 左耳朵耗子
+          "https://www.ruanyifeng.com/blog/atom.xml" ; 阮一峰 科技爱好者周刊
+          "https://matklad.github.io/feed.xml" ; rust zig
+          "https://manateelazycat.github.io/feed.xml" ; 懒猫
+          "https://jvns.ca/atom.xml" ; Julia Evans（漫画式讲系统）
+          "https://blog.codingnow.com/" ; 云风
+          "https://rsshub.app/paulgraham/articles" ; Paul Graham（YC 创始人，创业 / 思维随笔）
+          "https://drewdevault.com/blog/index.xml" ; sr.ht 创建者，开源治理、系统编程、Wayland
+          "https://eli.thegreenplace.net/feeds/all.atom.xml" ; 编译器、Go、Python 内部机制，和 Chris Wellons 类似的 "从底层讲" 风格
+          "https://tech.meituan.com/feed" ; 美团技术团队
+          "https://hellogithub.com/rss"
+          "https://tw93.fun/feed.xml" ; Kaku · Pake · MiaoYan · Waza · Kami · Mole
+          "https://weekly.tw93.fun/rss.xml" ; https://github.com/tw93
+          "https://newzone.top/atom.xml" ; LearnData 开源笔记
+          "https://rss.aishort.top/?type=guokr" ; 果壳网
+          "https://rss.aishort.top/?type=sspai" ; 少数派
+          "https://rss.aishort.top/?type=zhihu" ; 知乎想法
+          "https://rsshub.app/3dmgame/news"
+          "https://rsshub.app/bilibili/weekly"
+          "https://rsshub.app/infoq/recommend"
+          "https://zed.dev/blog.rss"
+          "https://neovim.io/news.xml"
+          "https://ziglang.cc/learn/index.xml" "https://ziglang.cc/monthly/index.xml" "https://ziglang.cc/post/index.xml"
+          "https://emacs.liujiacai.net/index.xml" "https://rusttalk.github.io/index.xml" ; "https://liujiacai.net/index.xml" "https://en.liujiacai.net/index.xml"
+          "https://redguardtoo.github.io/categories/emacs.xml"
+          "https://xenodium.com/feed"
+          "https://karthinks.com/tags/emacs/index.xml"
+          "https://emacsredux.com/atom.xml"
+          "https://sachachua.com/blog/category/emacs-news/feed/"
+          "https://planet.emacslife.com/atom.xml")))
+
+;; (use-package elfeed-org)
+;; (use-package elfeed-autotag)
+
 (use-package wakatime-mode
   :defer 1
   :config
@@ -163,6 +202,8 @@
     (interactive)
     (find-file org-default-notes-file))
   :config
+  ;; @perf https://emacs-china.org/t/org/31278
+  (setq org-modules nil)
   ;; (setq org-startup-folded 'content)
   ;; (setq org-startup-indented t)
   ;; (setq org-startup-numerated t)
