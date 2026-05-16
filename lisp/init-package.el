@@ -21,7 +21,7 @@
 (setq package-user-dir (concat xy/var-dir "elpa"))
 (setq package-quickstart-file (concat xy/var-dir "package-quickstart.el"))
 
-;; (package-initialize)
+;; @perf Avoid `package-initialize' autoload `package'
 (package-activate-all)
 (unless (file-exists-p package-user-dir)
   (package-refresh-contents))
@@ -39,9 +39,13 @@
 ;; 1. 编译期引入宏定义： require 宏库
 ;; 2. 编译期算好结果，运行时直接用：预计算常量
 
-;; Load `use-package' macro definition when compiling
+;; Load `use-package' macro definition when compiling THIS file
 ;; @see (info "(elisp) Compiling Macros")
 (eval-when-compile
+  (require 'use-package))
+
+;; Load `use-package-ensure' to install missing packages when compiling OTHER files which require THIS file
+(when (bound-and-true-p byte-compile-current-file)
   (require 'use-package))
 
 (setq use-package-always-ensure t)
@@ -73,13 +77,14 @@
      :ensure nil
      ,@args))
 
-;; `package-activate-all' will not autoload `package', but use-package's :ensure and :vc will require it
-;; @perf Not require `package' by disabling :ensure and :vc at startup
-(advice-add #'use-package-ensure-elpa :around #'ignore)
-(advice-add #'use-package-vc-install :around #'ignore)
-(add-hook 'emacs-startup-hook
-          (defun xy/restore-use-package-ensure ()
-            (advice-remove #'use-package-ensure-elpa #'ignore)
-            (advice-remove #'use-package-vc-install #'ignore)))
+;; @perf Disable :ensure and :vc at startup
+;; Only in interpreted run, :ensure and :vc may autoload `package', while in compiled run expanded code is clean. @see `use-package-handler/:ensure'
+;; (unless after-init-time
+;;   (advice-add #'use-package-ensure-elpa :around #'ignore)
+;;   (advice-add #'use-package-vc-install :around #'ignore))
+;; (add-hook 'emacs-startup-hook
+;;           (defun xy/restore-use-package-ensure ()
+;;             (advice-remove #'use-package-ensure-elpa #'ignore)
+;;             (advice-remove #'use-package-vc-install #'ignore)))
 
 (provide 'init-package)
