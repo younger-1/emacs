@@ -105,7 +105,8 @@ word.  Fall back to regular `expreg-expand'."
 ;;   (emacs-lisp-mode . embrace-emacs-lisp-mode-hook)
 ;;   (markdown-mode . embrace-markdown-mode-hook))
 
-;; https://www.reddit.com/r/emacs/comments/6zgt0c/persistent_scratch_buffer/
+;; Preserve the scratch buffer across Emacs sessions
+;; also save and restore the major mode, see `persistent-scratch-what-to-save'
 (use-package persistent-scratch
   ;; :defer 2
   :bind ( :map persistent-scratch-mode-map

@@ -22,6 +22,26 @@
       (setq-local indent-line-function 'indent-relative))
     (setq initial-major-mode 'xy/initial-mode))
 
+  ;; You don't need scratch buffer - Adding a “new-buffer” command to fix it
+  ;; http://xahlee.info/emacs/emacs/modernization_scratch_buffer.html
+  (defun xy/new-buffer ()
+    "Create a new empty buffer. New buffer is named untitled, untitled<2>, etc."
+    (interactive)
+    (let ((buf (generate-new-buffer "untitled")))
+      (switch-to-buffer buf)
+      (xy/initial-mode)))
+
+  (add-hook 'kill-emacs-query-functions
+            (defun xy/prompt-save-untitled ()
+              (dolist (buf (buffer-list))
+                (when (and (string-prefix-p "untitled" (buffer-name buf))
+                           (buffer-modified-p buf)
+                           (> (buffer-size buf) 0)
+                           (y-or-n-p (format "Save [%s] to file? " (buffer-name buf))))
+                  (with-current-buffer buf
+                    (call-interactively #'write-file))))
+              t))  ;; 返回 t 允许退出
+
   ;; Font compacting can be very resource-intensive, especially when rendering icon fonts on Windows. This will increase memory usage.
   (setq inhibit-compacting-font-caches t)
 

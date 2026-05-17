@@ -132,8 +132,8 @@
 (use-package bug-hunter
   :bind ("C-c x b" . bug-hunter-init-file))
 
-(use-package restart-emacs
-  :bind ("C-c x r" . restart-emacs))
+;; (use-package restart-emacs
+;;   :bind ("C-c x r" . restart-emacs))
 
 
 ;;; help
