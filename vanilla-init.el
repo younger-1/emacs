@@ -194,7 +194,7 @@
   (put 'dired-find-alternate-file 'disabled nil)
   (put 'list-timers 'disabled nil)
 
-  (defconst xy/elpa-lisp-d (expand-file-name package-user-dir))
+  (defconst xy/elpa-lisp-d package-user-dir)
   (defconst xy/emacs-lisp-d (file-name-directory (directory-file-name doc-directory)))
 
   (dir-locals-set-class-variables
@@ -202,7 +202,7 @@
    '((nil . ((eval . (view-mode-enter nil #'kill-buffer))
              (tab-width . 8)))))
   (dolist (dir (list xy/elpa-lisp-d xy/emacs-lisp-d))
-    (dir-locals-set-directory-class (file-truename dir) :read-only)))
+    (dir-locals-set-directory-class dir :read-only)))
 
 (use-package server
   :defer 1

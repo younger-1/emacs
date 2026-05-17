@@ -634,10 +634,14 @@ makes it easier to edit it."
   :bind-keymap
   ("M-s S" . rg-global-map)
   :config
-  (setq rg-buffer-name
-        (defun xy/rg-buffer-name ()
-          (let ((p (project-current)))
-            (if p (format "rg %s" (abbreviate-file-name (cdr p))) "rg")))))
+  (defun xy/project-root (&optional buffer)
+    "Return project root of BUFFER, or its `default-directory'."
+    (abbreviate-file-name
+     (with-current-buffer (or buffer (current-buffer))
+       (if-let* ((p (project-current)))
+           (project-root p)
+         default-directory))))
+  (setq rg-buffer-name (lambda () (format "rg %s" (xy/project-root)))))
 
 (use-package deadgrep
   :init
@@ -649,7 +653,11 @@ makes it easier to edit it."
          :map isearch-mode-map
          ("M-s d" . #'xy/deadgrep-isearch)
          :map deadgrep-mode-map
-         ("e" . deadgrep-edit-mode)))
+         ("e" . deadgrep-edit-mode))
+  :config
+  ;; TODO: use `project-find-functions', simple fix for now
+  (setq deadgrep-project-root-overrides
+        `(("/opt/homebrew/" . ,xy/emacs-lisp-dir))))
 
 
 ;;; minibuffer

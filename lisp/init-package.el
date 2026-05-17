@@ -29,7 +29,8 @@
 
 ;;; use-package
 ;; 编译期（Compile-time） 和 加载期 / 运行期（Load-time/Run-time）
-;; Load/Run: 执行字节码 or 解释执行
+;; - 编译后执行 (byte code) 和 解释执行 (source code)
+;; - Compiled files load and run faster
 ;;                         1.直接加载源码   2.编译当前文件   3.加载编译后文件
 ;; normal top-level code     yes              no               yes
 ;; `eval-and-compile'        yes              yes              yes
