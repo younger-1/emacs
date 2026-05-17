@@ -105,6 +105,7 @@ word.  Fall back to regular `expreg-expand'."
 ;;   (emacs-lisp-mode . embrace-emacs-lisp-mode-hook)
 ;;   (markdown-mode . embrace-markdown-mode-hook))
 
+;; https://www.reddit.com/r/emacs/comments/6zgt0c/persistent_scratch_buffer/
 (use-package persistent-scratch
   ;; :defer 2
   :bind ( :map persistent-scratch-mode-map
@@ -115,7 +116,14 @@ word.  Fall back to regular `expreg-expand'."
           ([remap revert-buffer] . persistent-scratch-restore)
           ([remap revert-this-buffer] . persistent-scratch-restore))
   :hook (lisp-interaction-mode)
-  :config (persistent-scratch-autosave-mode +1))
+  :config
+  ;; To protect the scratch buffer against accidental kill
+  ;; https://www.emacswiki.org/emacs/ProtectingBuffers
+  (with-current-buffer "*scratch*"
+    (emacs-lock-mode 'kill))
+
+  (setq persistent-scratch-backup-directory (concat xy/var-dir "scratch-backup/"))
+  (persistent-scratch-autosave-mode +1))
 
 ;; Edit regions in separate buffers, like `org-edit-special'
 (use-package edit-indirect
