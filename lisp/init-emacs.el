@@ -157,18 +157,18 @@
 
   ;; buffer
   ;; (setq uniquify-buffer-name-style 'forward)
-  (setq switch-to-buffer-obey-display-actions t)
+  ;; (setq switch-to-buffer-obey-display-actions t)
   (setq switch-to-buffer-in-dedicated-window 'pop)
   ;; (setq display-buffer-base-action '((display-buffer-reuse-window display-buffer-same-window)
   ;;                                    (reusable-frames . t)))
   ;;
   ;; TODO: https://christiantietze.de/posts/2025/05/compilation-window-display-in-emacs-via-display-buffer-alist/
-  ;; Do not show warnings when installing packages
+  ;; Not show warnings when installing/compiling packages
   ;; from https://protesilaos.com/codelog/2024-11-28-basic-emacs-configuration/
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-  ;;                (display-buffer-no-window)
-  ;;                (allow-no-window . t)))
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+                 (display-buffer-no-window)
+                 (allow-no-window . t)))
   ;; Keep the compilation buffer in the background, except when there's an error
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window)))
