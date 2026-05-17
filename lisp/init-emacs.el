@@ -200,6 +200,7 @@
               (re-search-forward ": Error: " nil t)))
       (display-buffer-pop-up-window buf alist)))
 
+  ;; @tip 为了避免旧的error导致一直弹，按g手动清空log
   (add-to-list 'display-buffer-alist
                '("\\*Compile-Log\\*"
                  (xy/display-compile-log-on-error display-buffer-no-window)

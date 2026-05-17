@@ -113,8 +113,12 @@ word.  Fall back to regular `expreg-expand'."
           ;; ([remap kill-buffer] . (lambda (&rest _)
           ;;                          (interactive)
           ;;                          (user-error "[xy] scratch buffer cannot be killed")))
-          ([remap revert-buffer] . persistent-scratch-restore)
-          ([remap revert-this-buffer] . persistent-scratch-restore))
+          ([remap save-buffer] . persistent-scratch-save) ; C-x C-s
+          ([remap write-file] . #'xy/persistent-scratch-save-to-backup) ; C-x C-w
+          ("C-x M-s" . #'xy/persistent-scratch-save) ; to make multiple backup under current session
+          ([remap revert-buffer] . persistent-scratch-restore) ; s-u
+          ([remap revert-buffer-quick] . persistent-scratch-restore) ; C-x x g
+          ([remap find-alternate-file] . #'xy/persistent-scratch-restore-from-backup)) ; C-x C-v
   :hook (lisp-interaction-mode)
   :config
   ;; To protect the scratch buffer against accidental kill
@@ -122,7 +126,23 @@ word.  Fall back to regular `expreg-expand'."
   (with-current-buffer "*scratch*"
     (emacs-lock-mode 'kill))
 
+  (defun xy/persistent-scratch-save ()
+    (interactive)
+    (persistent-scratch-new-backup)
+    (persistent-scratch-save))
+
+  (defun xy/persistent-scratch-save-to-backup ()
+    (interactive)
+    (let ((default-directory persistent-scratch-backup-directory))
+      (call-interactively #'persistent-scratch-save-to-file)))
+
+  (defun xy/persistent-scratch-restore-from-backup ()
+    (interactive)
+    (let ((default-directory persistent-scratch-backup-directory))
+      (call-interactively #'persistent-scratch-restore-from-file)))
+
   (setq persistent-scratch-backup-directory (concat xy/var-dir "scratch-backup/"))
+
   (persistent-scratch-autosave-mode +1))
 
 ;; Edit regions in separate buffers, like `org-edit-special'
