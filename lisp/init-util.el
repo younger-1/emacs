@@ -17,6 +17,9 @@
 (when (file-exists-p custom-file)
   (load-file custom-file))
 
+(defconst xy/lisp-dir (concat xy/init-dir "lisp/"))
+(defconst xy/site-lisp-dir (concat xy/init-dir "site-lisp/"))
+
 ;; For finer granularity, use `system-type' or `system-configuration' directly.
 (defconst xy/linux-p
   (eq system-type 'gnu/linux) ; 'berkeley-unix 'gnu 'gnu/kfreebsd

@@ -119,6 +119,16 @@
 (keymap-global-set "C-h j I" (defun xy/open-init-dir ()
                                (interactive)
                                (dired xy/init-dir)))
+(keymap-global-set "C-h j l" (defun xy/open-lisp-dir ()
+                               (interactive)
+                               (dired xy/lisp-dir)))
+(keymap-global-set "C-h j L" (defun xy/open-site-lisp-dir ()
+                               (interactive)
+                               (dired xy/site-lisp-dir)))
+(keymap-global-set "C-h j ," (defun xy/open-site-lisp-dir ()
+                               (interactive)
+                               (find-file custom-file)))
+
 ;; (keymap-global-set "C-S-v" #'scroll-other-window)
 ;; (keymap-global-set "M-S-v" #'scroll-other-window-down) ; FIXME: M-S-v is not M-V
 

@@ -42,8 +42,6 @@
   ;; 4. 挂载到全局保存钩子，放到最后面执行
   (add-hook 'after-save-hook #'xy/async-compile-if-enabled :last)
   ;; 5. 将 dir-locals 变成纯粹的数据声明
-  (defconst xy/lisp-dir (concat xy/init-dir "lisp/"))
-  (defconst xy/site-lisp-dir (concat xy/init-dir "site-lisp/"))
   (dir-locals-set-class-variables
    :byte-compile
    '((emacs-lisp-mode . ((xy/async-compile-on-save-p . t)))))
@@ -233,7 +231,7 @@ makes it easier to edit it."
     (interactive)
     (switch-to-buffer "*scratch*"))
 
-  (defun xy/open-compile-log-buffer ()
+  (defun xy/open-byte-compile-log-buffer ()
     (interactive)
     (switch-to-buffer "*Compile-Log*"))
 
@@ -339,10 +337,9 @@ makes it easier to edit it."
          ;; NOTE: safe keys: j u y z
          ;;
          ;; jump
-         ("C-h j t" . #'help-with-tutorial)
          ("C-h j s" . #'xy/open-scratch-buffer)
-         ("C-h j c" . #'xy/open-compile-log-buffer)
-         ("C-h j a" . #'xy/open-native-compile-log-buffer)
+         ("C-h j c" . #'xy/open-byte-compile-log-buffer)
+         ("C-h j C" . #'xy/open-native-compile-log-buffer)
          ;; user
          ("C-h u" . nil) ; `apropos-user-option`
          ("C-h u f" . #'add-file-local-variable-prop-line)
@@ -352,6 +349,8 @@ makes it easier to edit it."
          ("C-h u p" . #'xy/help-show-plist)
          ;;
          ("C-h t" . nil) ; `help-with-tutorial'
+         ("C-h t t" . #'help-with-tutorial)
+         ;;
          ("C-h g" . nil) ; `describe-gnu-project'
          ("C-h q" . nil) ; `help-quit'
          ;;
