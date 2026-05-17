@@ -161,17 +161,49 @@
   (setq switch-to-buffer-in-dedicated-window 'pop)
   ;; (setq display-buffer-base-action '((display-buffer-reuse-window display-buffer-same-window)
   ;;                                    (reusable-frames . t)))
-  ;;
+
+  ;; 简化的 display-buffer 逻辑
+  ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; (let* ((matched-entry (找到 display-buffer-alist 中第一个匹配的条目)) ;;
+  ;;        (all-actions (合并                                             ;;
+  ;;                       display-buffer-overriding-action                ;;
+  ;;                       ;; 调用方传入的 action                          ;;
+  ;;                       user-action                                     ;;
+  ;;                       ;; alist 中匹配到的（只有一条）                 ;;
+  ;;                       matched-entry                                   ;;
+  ;;                       ;; 全局 base                                    ;;
+  ;;                       display-buffer-base-action                      ;;
+  ;;                       ;; 兜底                                         ;;
+  ;;                       display-buffer-fallback-action)))               ;;
+  ;;   ;; 依次尝试所有 action functions                                    ;;
+  ;;   (cl-some (lambda (fn) (funcall fn buffer alist))                    ;;
+  ;;            all-actions))                                              ;;
+  ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
   ;; TODO: https://christiantietze.de/posts/2025/05/compilation-window-display-in-emacs-via-display-buffer-alist/
   ;; Not show warnings when installing/compiling packages
-  ;; from https://protesilaos.com/codelog/2024-11-28-basic-emacs-configuration/
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-                 (display-buffer-no-window)
-                 (allow-no-window . t)))
+  ;; https://protesilaos.com/codelog/2024-11-28-basic-emacs-configuration/
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+  ;;                (display-buffer-no-window)
+  ;;                (allow-no-window . t)))
+
   ;; Keep the compilation buffer in the background, except when there's an error
   (add-to-list 'display-buffer-alist
                '("\\*.*compilation\\*" (display-buffer-no-window)))
+
+  (defun xy/display-compile-log-on-error (buf alist)
+    "Display *Compile-Log* only when it contains errors."
+    (when (with-current-buffer buf
+            (save-excursion
+              (goto-char (point-min))
+              (re-search-forward ": Error: " nil t)))
+      (display-buffer-pop-up-window buf alist)))
+
+  (add-to-list 'display-buffer-alist
+               '("\\*Compile-Log\\*"
+                 (xy/display-compile-log-on-error display-buffer-no-window)
+                 (allow-no-window . t)))
 
   ;; window
   ;; (setq split-height-threshold nil

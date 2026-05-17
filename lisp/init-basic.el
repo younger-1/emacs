@@ -233,6 +233,14 @@ makes it easier to edit it."
     (interactive)
     (switch-to-buffer "*scratch*"))
 
+  (defun xy/open-compile-log-buffer ()
+    (interactive)
+    (switch-to-buffer "*Compile-Log*"))
+
+  (defun xy/open-native-compile-log-buffer ()
+    (interactive)
+    (switch-to-buffer "*Async-native-compile-log*"))
+
   (defun xy/count-lines-pages ()
     "Combine `what-line', `what-page' and `count-lines-page'"
     (interactive)
@@ -333,6 +341,8 @@ makes it easier to edit it."
          ;; jump
          ("C-h j t" . #'help-with-tutorial)
          ("C-h j s" . #'xy/open-scratch-buffer)
+         ("C-h j c" . #'xy/open-compile-log-buffer)
+         ("C-h j a" . #'xy/open-native-compile-log-buffer)
          ;; user
          ("C-h u" . nil) ; `apropos-user-option`
          ("C-h u f" . #'add-file-local-variable-prop-line)
