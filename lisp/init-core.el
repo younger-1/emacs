@@ -113,6 +113,9 @@
 ;;; keymap
 ;; @see http://xahlee.info/emacs/emacs/emacs_keybinding_functions.html
 ;; @see (info "(elisp) Key Binding Conventions") to know which keys are safe for users
+(keymap-global-set "C-x C-a" #'rename-visited-file)
+(keymap-global-set "C-x C-j" #'find-sibling-file)
+
 (keymap-global-set "C-h j i" (defun xy/open-init-file ()
                                (interactive)
                                (find-file user-init-file)))

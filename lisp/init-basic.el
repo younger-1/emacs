@@ -671,8 +671,9 @@ makes it easier to edit it."
 
 ;;; minibuffer
 (use-core minibuffer
-  ;; @see `minibuffer-local-map' or (info "(emacs) Minibuffer History")
-  ;; @see `minibuffer-local-completion-map'
+  ;; (info "(emacs) Minibuffer History")
+  ;; `minibuffer-local-map'  所有 minibuffer 输入。`'read-string' M-:
+  ;; `minibuffer-local-completion-map'有补全的 minibuffer。`completing-read' `read-file-name'
   :config
   ;; completion
   (setq completions-detailed t)
@@ -935,6 +936,12 @@ makes it easier to edit it."
 
   (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring))
   (add-to-list 'consult-mode-histories '(text-mode . log-edit-comment-ring)))
+
+(use-package consult-dir
+  :bind (("C-x C-d" . consult-dir)
+         :map minibuffer-local-completion-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file)))
 
 ;; Emacs completion style that matches multiple regexps in any order
 ;; -- `orderless-matching-styles'
