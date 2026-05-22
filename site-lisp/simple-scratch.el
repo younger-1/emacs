@@ -5,49 +5,32 @@
 ;; Package-Version: 0.1.0
 ;; Package-Requires: ((emacs "28"))
 
-(defcustom simple-scratch-buffer-name "*JoJo*"
+(defcustom simple-scratch-dir (file-name-as-directory (expand-file-name "simple-scratch" user-emacs-directory))
   ""
-  :type 'string)
+  :type 'directory)
 
-(defcustom simple-scratch-file (expand-file-name "simple-scratch" user-emacs-directory)
-  ""
-  :type 'file)
-
-(defun simple-scratch-load ()
-  "Load the scratch buffer"
-  (interactive)
-  (with-current-buffer (get-buffer-create simple-scratch-buffer-name)
-    (when (file-exists-p simple-scratch-file)
-      (insert-file-contents simple-scratch-file))))
-
-(defun simple-scratch-save ()
-  "Save the scratch buffer"
-  (interactive)
-  (with-current-buffer (get-buffer-create simple-scratch-buffer-name)
-    ;; not use `write-file' as it will change buffer name
-    (write-region (point-min) (point-max) simple-scratch-file)))
-
-(defvar-keymap simple-scratch-mode-map
-  "<remap> <revert-buffer>"       #'simple-scratch-load
-  "<remap> <revert-buffer-quick>" #'simple-scratch-load
-  "<remap> <save-buffer>"         #'simple-scratch-save)
+(defvar simple-scratch-buffer-name nil)
 
 ;;;###autoload
-(define-minor-mode simple-scratch-mode
-  "Simple Scratch."
-  :group 'simple-scratch
-  (if simple-scratch-mode
-      (progn
-        ;; (run-with-idle-timer 300 t #'simple-scratch-save)
-        (add-hook 'kill-emacs-hook #'simple-scratch-save))
-      (remove-hook 'kill-emacs-hook #'simple-scratch-save)))
+(defun simple-scratch-open ()
+  "Open a new scratch buffer"
+  (interactive)
+  (make-directory simple-scratch-dir t)
+  (let* ((default-directory simple-scratch-dir)
+         (buffer (call-interactively #'find-file)))
+    (setq simple-scratch-buffer-name (buffer-name buffer))))
+
 
 ;;;###autoload
-(defun simple-scratch-active ()
-  "Active the scratch buffer"
+(defun simple-scratch-dwim ()
+  "Open a new scratch buffer if `simple-scratch-buffer-name' is not set or is current buffer, else switch to it"
   (interactive)
-  (simple-scratch-load)
-  (switch-to-buffer simple-scratch-buffer-name :no-record)
-  (simple-scratch-mode +1))
+  (if-let* ((buf (and simple-scratch-buffer-name
+                      (get-buffer simple-scratch-buffer-name)))
+            ((not (eq buf (current-buffer)))))
+      (switch-to-buffer buf)
+    (simple-scratch-open)))
+
+(keymap-global-set "C-h j j" #'simple-scratch-dwim)
 
 (provide 'simple-scratch)
