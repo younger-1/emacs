@@ -645,7 +645,7 @@
 (use-package consult-eglot
   ;; `consult-eglot-narrow'
   :bind ( :map eglot-mode-map
-          ("C-c c s" . consult-eglot-symbols)))
+          ("C-c s s" . consult-eglot-symbols)))
 
 (use-package consult-eglot-embark
   :after (embark consult-eglot) :demand t

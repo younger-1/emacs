@@ -849,6 +849,7 @@ makes it easier to edit it."
          ("M-g k" . consult-global-mark)
          ("M-g i" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
+         ("M-g M-i" . #'xy/consult-imenu-lisp)
          ;; M-s bindings in `search-map'
          ("M-s l" . consult-line)
          ("M-s L" . consult-line-multi)
@@ -927,6 +928,14 @@ makes it easier to edit it."
                                            (?p "Packages"  font-lock-constant-face)
                                            (?t "Types"     font-lock-type-face)
                                            (?v "Variables" font-lock-variable-name-face)))))
+  (defun xy/consult-imenu-lisp ()
+    "Imenu across all Elisp files in `xy/lisp-dir'"
+    (interactive)
+    (let ((dir xy/lisp-dir))
+      (mapc #'find-file-noselect (directory-files dir t "\\.el\\'"))
+      (consult-imenu-multi (list :sort 'alpha
+                                 :mode 'emacs-lisp-mode
+                                 :directory dir))))
 
   (consult-info-define "emacs" "efaq" "elisp" "eintr" "cl")
   (consult-info-define 'all "widget" "ediff" "eglot" "flymake" "eshell" "tramp" "org" "gnus" "calc" "eww")
