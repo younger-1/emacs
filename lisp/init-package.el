@@ -65,13 +65,14 @@
   ;; (setq use-package-minimum-reported-time 0)
   (setq use-package-verbose t))
 
+;; For builtin packages
 (defmacro use-core (name &rest args)
   (declare (indent 1))
   `(use-package ,name
      :ensure nil
      ,@args))
 
-;; Use this instead of (use-package <feature> :ensure <package>)
+;; For installed packages, refer to their features
 (defmacro use-feature (name &rest args)
   (declare (indent 1))
   `(use-package ,name

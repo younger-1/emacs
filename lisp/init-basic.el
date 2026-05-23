@@ -920,7 +920,7 @@ makes it easier to edit it."
                  '(emacs-lisp-mode :toplevel "Functions"
                                    :types ((?o "Options"   font-lock-doc-face)
                                            (?b "Builtin Packages" font-lock-builtin-face)
-                                           (?l "Features"  font-lock-string-face)
+                                           (?l "Libraries" font-lock-string-face)
                                            (?s "Sections"  font-lock-comment-face)
                                            (?f "Functions" font-lock-function-name-face)
                                            (?m "Macros"    font-lock-keyword-face)

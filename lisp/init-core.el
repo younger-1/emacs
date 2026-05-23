@@ -287,6 +287,8 @@
 This is particularly useful under macOS, where GUI apps are not started from a shell.
 NOTE: PATH in emacs should always separated by `:'"
     (interactive)
+    ;; TODO: printenv 会强制 Fish 以 POSIX 标准（冒号分隔）导出并打印环境变量。
+    ;; (shell-command-to-string "$SHELL -ic 'printenv PATH'")
     (let* ((path-str (if (string-suffix-p "fish" (getenv "SHELL"))
                          (shell-command-to-string "$SHELL --login -c 'string join : $PATH'")
                        (shell-command-to-string "$SHELL --login -c 'echo -n $PATH'")))

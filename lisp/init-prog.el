@@ -8,8 +8,9 @@
   ;; imenu support for `use-core', `use-feature', `with-eval-after-load'
   (with-eval-after-load 'lisp-mode
     (dolist (pattern '(("Options" "^\\s-*(defcustom\\s-+\\(.+\\)" 1)
+                       ("Packages" "^\\s-*(\\(?:use-package\\|use-feature\\)\\s-+\\(.+\\)" 1)
                        ("Builtin Packages" "^(use-core \\(.+\\)$" 1)
-                       ("Features" "^\\s-*(\\(?:use-feature\\|eval-after-load\\|with-eval-after-load\\)\\s-+\\(.+\\)" 1)
+                       ("Libraries" "^\\s-*(\\(?:require\\|load\\|\\(?:with-\\)?eval-after-load\\)\\s-+\\([^() ]+\\)" 1)
                        ("Sections" "^;;; \\(.+\\)$" 1)))
       (add-to-list 'lisp-imenu-generic-expression pattern)))
   :config
