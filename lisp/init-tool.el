@@ -165,7 +165,7 @@
   )
 
 ;; https://www.reddit.com/r/emacs/comments/1su4ips/getting_emacs_procedel_to_show_cpu_and_memory_on/
-(use-package proced
+(use-core proced
   :config
   (setq-default proced-auto-update-flag 'visible)
   (setq proced-auto-update-interval 1)
