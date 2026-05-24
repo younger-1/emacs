@@ -5,7 +5,7 @@
 
 ;;; package
 (setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-                         ("gnu-dev". "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu-devel/")
+                         ;; ("gnu-dev". "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu-devel/")
                          ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
                          ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
 
@@ -15,7 +15,7 @@
 
 ;; Enable `package-quickstart-refresh'
 (setq package-quickstart t)
-(setq package-install-upgrade-built-in t)
+;; (setq package-install-upgrade-built-in t)
 ;; (setq package-native-compile t)
 
 (setq package-user-dir (concat xy/var-dir "elpa"))

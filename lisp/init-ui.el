@@ -814,30 +814,30 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
-(use-package ef-themes
-  :bind (("C-c y e l" . ef-themes-select-light)
-         ("C-c y e d" . ef-themes-select-dark)
-         ("C-c y e s" . ef-themes-select)
-         ("C-c y e t" . ef-themes-toggle)
-         ("C-c y e r" . ef-themes-rotate)
-         ("C-c y e e" . ef-themes-load-random))
-  :config
-  ;; EF themes: `ef-themes-collection', `ef-themes-dark-themes', `ef-themes-light-themes'
-  (setq ef-themes-to-toggle '(ef-summer ef-spring))
-  (setq ef-themes-mixed-fonts t
-        ef-themes-variable-pitch-ui t)
-  (setq ef-themes-headings
-        '((0 variable-pitch light 1.9)
-          (1 variable-pitch light 1.8)
-          (2 variable-pitch regular 1.7)
-          (3 variable-pitch regular 1.6)
-          (4 variable-pitch regular 1.5)
-          (5 variable-pitch 1.4)        ; absence of weight means `bold'
-          (6 variable-pitch 1.3)
-          (7 variable-pitch 1.2)
-          (t variable-pitch 1.1)))
-  ;; (load-theme 'ef-summer :no-confirm)
-  )
+;; (use-package ef-themes
+;;   :bind (("C-c y e l" . ef-themes-select-light)
+;;          ("C-c y e d" . ef-themes-select-dark)
+;;          ("C-c y e s" . ef-themes-select)
+;;          ("C-c y e t" . ef-themes-toggle)
+;;          ("C-c y e r" . ef-themes-rotate)
+;;          ("C-c y e e" . ef-themes-load-random))
+;;   :config
+;;   ;; EF themes: `ef-themes-collection', `ef-themes-dark-themes', `ef-themes-light-themes'
+;;   (setq ef-themes-to-toggle '(ef-summer ef-spring))
+;;   (setq ef-themes-mixed-fonts t
+;;         ef-themes-variable-pitch-ui t)
+;;   (setq ef-themes-headings
+;;         '((0 variable-pitch light 1.9)
+;;           (1 variable-pitch light 1.8)
+;;           (2 variable-pitch regular 1.7)
+;;           (3 variable-pitch regular 1.6)
+;;           (4 variable-pitch regular 1.5)
+;;           (5 variable-pitch 1.4)        ; absence of weight means `bold'
+;;           (6 variable-pitch 1.3)
+;;           (7 variable-pitch 1.2)
+;;           (t variable-pitch 1.1)))
+;;   ;; (load-theme 'ef-summer :no-confirm)
+;;   )
 
 ;; https://protesilaos.com/codelog/2025-05-13-emacs-doric-themes/
 (use-package doric-themes
