@@ -850,6 +850,7 @@ makes it easier to edit it."
          ("M-g i" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
          ("M-g M-i" . #'xy/consult-imenu-lisp)
+         ("M-g M-s" . #'xy/consult-rg-lisp)
          ;; M-s bindings in `search-map'
          ("M-s l" . consult-line)
          ("M-s L" . consult-line-multi)
@@ -936,6 +937,15 @@ makes it easier to edit it."
       (consult-imenu-multi (list :sort 'alpha
                                  :mode 'emacs-lisp-mode
                                  :directory dir))))
+
+  (defun xy/consult-rg-lisp ()
+    "Grep-based imenu for Elisp files in `xy/lisp-dir'"
+    (interactive)
+    ;; "^\\s-*(\\(?:use-package\\|use-feature\\|use-core\\|require\\)\\s-+\\([^()]+\\)"
+    (consult-ripgrep xy/lisp-dir
+                     (rx bol (0+ space) "("
+                         (or "use-package" "use-feature" "use-core" "require" "with-eval-after-load" "defun" "defvar" "defconst")
+                         (1+ space) (group (1+ (not (any "(" ")" space)))))))
 
   (consult-info-define "emacs" "efaq" "elisp" "eintr" "cl")
   (consult-info-define 'all "widget" "ediff" "eglot" "flymake" "eshell" "tramp" "org" "gnus" "calc" "eww")
