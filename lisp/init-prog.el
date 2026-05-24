@@ -20,7 +20,8 @@
 
   ;; Add an Imenu "Index" entry on the menu bar
   (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook magit-status-mode-hook))
-    (add-hook hook #'imenu-add-menubar-index)))
+    (add-hook hook (defun xy/imenu-add-menubar-index ()
+                     (ignore-errors (imenu-add-menubar-index))))))
 
 (use-package imenu-list
   :bind
@@ -96,7 +97,7 @@
   :init
   ;; TODO as macro or use-package keyword
   (add-hook 'emacs-lisp-mode-hook
-            (defun xy/defer-enable-flymake ()
+            (defun xy/defer-flymake-mode ()
               (run-with-idle-timer 2.0 nil #'flymake-mode)))
   :bind (("C-c j m" . flymake-mode)
          :map flymake-mode-map
@@ -237,7 +238,7 @@
 ;; Syntax-aware folding, for C-style languages and others that use braces {}
 (use-core hideshow
   :init (defalias 'hideshow-mode 'hs-minor-mode)
-  :hook (prog-mode) ; TODO remove ts-based major mode
+  ;; :hook (prog-mode) ; TODO remove ts-based major mode
   :bind (("C-c t h" . hs-minor-mode)
          :map hs-minor-mode-map
          ("C-<return>" . hs-toggle-hiding)
@@ -457,22 +458,22 @@
            (message "Installed %s" pkg)
          (message "Failed to install %s: %d" pkg status))))))
 
-;; (use-package go-mode
-;;   ;; :bind (:map go-mode-map
-;;   ;;             ("\C-c \C-c" . compile)
-;;   ;;             ("\C-c \C-g" . go-goto-imports)
-;;   ;;             ("\C-c \C-k" . godoc)
-;;   ;;             ("M-j" . godef-jump))
-;;   :config
-;;   ;; goimports updates your Go import lines, adding missing ones and removing unreferenced ones
-;;   ;; it also formats your code in the same style as gofmt so it can be used as a replacement for your editor's gofmt-on-save hook
-;;   (unless (executable-find "goimports")
-;;     (xy/install-go-tool "golang.org/x/tools/cmd/goimports"))
-;;   (setq gofmt-command "goimports")
-;;
-;;   (add-hook 'go-mode-hook (lambda ()
-;;                             (setq-local tab-width 4)
-;;                             (add-hook 'before-save-hook #'gofmt-before-save nil t))))
+(use-package go-mode
+  :bind (:map go-mode-map
+              ("\C-c \C-c" . compile)
+              ("\C-c \C-g" . go-goto-imports)
+              ("\C-c \C-k" . godoc)
+              ("M-j" . godef-jump))
+  :config
+  ;; goimports updates your Go import lines, adding missing ones and removing unreferenced ones
+  ;; it also formats your code in the same style as gofmt so it can be used as a replacement for your editor's gofmt-on-save hook
+  (unless (executable-find "goimports")
+    (xy/install-go-tool "golang.org/x/tools/cmd/goimports"))
+  (setq gofmt-command "goimports")
+
+  (add-hook 'go-mode-hook (lambda ()
+                            (setq-local tab-width 4)
+                            (add-hook 'before-save-hook #'gofmt-before-save nil t))))
 
 ;; Edit struct field tag
 (use-package go-tag
@@ -522,7 +523,8 @@
 ;;   )
 
 (use-package treesit-auto
-  ;; :defer 1
+  ;; @perf `treesit-auto-mode' do nothing but require the library
+  :hook find-file
   :init
   (cl-defstruct xy/treesit-file-info size mtime ready)
 
@@ -538,7 +540,9 @@
                        :size (file-size-human-readable size 'decimal)
                        :mtime (format-time-string "%Y-%m-%d %H:%M" mtime)
                        :ready (treesit-ready-p lang)))))
-            (directory-files (concat user-emacs-directory "tree-sitter") t "^libtree-sitter")))
+            (let ((ts-dir (concat user-emacs-directory "tree-sitter")))
+              (make-directory ts-dir)
+              (directory-files ts-dir t "^libtree-sitter"))))
 
   (defun xy/var-to-string (x &optional k)
     "根据变量的类型（nil/symbol/string/list）统一转化为字符串"

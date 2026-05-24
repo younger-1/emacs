@@ -275,11 +275,13 @@
 (xy/set-env-simple "XDG_RUNTIME_DIR")
 
 ;; For fish shell
-(when (string-suffix-p "fish" (getenv "SHELL"))
-  (setq path-separator " "))
+;; (when (string-suffix-p "fish" (getenv "SHELL"))
+;;   (setq path-separator " "))
 
-;; For mac gui
-(when (and xy/mac-p (display-graphic-p) (not (getenv "EMACS_PLUS_PATH")))
+;; For mac gui (startup from Dock)
+(when (and xy/mac-p (display-graphic-p)
+           (not (getenv "TERM_PROGRAM")) ; startup from Term/Shell
+           (not (getenv "EMACS_PLUS_PATH")))
   ;; @see https://www.emacswiki.org/emacs/ExecPath
   (defun xy/set-exec-path-from-shell-PATH ()
     "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell.
