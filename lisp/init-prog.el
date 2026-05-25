@@ -412,8 +412,10 @@
 
 (use-core elisp-mode
   :bind ( :map emacs-lisp-mode-map
+          ("C-c C-f" . #'emacs-lisp-byte-compile-and-load)
           ;; @tip nonzero prefix to ask for each file/directory
-          ("C-c C-d" . #'byte-recompile-directory)))
+          ("C-c C-d" . #'byte-recompile-directory)
+          ("C-c C-r" . #'byte-force-recompile)))
 
 (use-package macrostep
   :bind ( :map lisp-mode-shared-map

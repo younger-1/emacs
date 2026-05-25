@@ -5,18 +5,8 @@
 ;;; perf
 (use-package async
   :bind ( :map emacs-lisp-mode-map
-          ("C-c C-b" . #'xy/async-byte-compile-file)
-          ("C-c C-l" . #'xy/load-byte-compile-file))
+          ("C-c C-b" . xy/async-byte-compile-and-load))
   :init
-  (defun xy/async-byte-compile-file ()
-    (interactive)
-    (async-byte-compile-file buffer-file-name))
-  (defun xy/load-byte-compile-file ()
-    "Load elc file manually after `async-byte-compile-file' to make native-compile happen automatically."
-    (interactive)
-    ;; No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name))
-    (load (file-name-base buffer-file-name)))
-
   ;; 问题：在 Lisp 和 Emacs 社区的工程规范中，“在 Hook 里套 Hook，里面还带个匿名函数 (lambda)” 被称为反模式（Anti-pattern），主要有三大罪状：
   ;; - 1. 无法被轻易移除：因为 lambda 没有名字，你事后想用 remove-hook 把它干掉几乎不可能。
   ;; - 2. 调试极其恶心：当你用 C-h v after-save-hook 查看当前有哪些钩子时，你会看到一坨 (closure ...)，根本不知道它是干嘛的。
@@ -36,9 +26,7 @@
   (defun xy/async-compile-if-enabled ()
     "当开关打开时，执行异步编译。"
     (and xy/async-compile-on-save-p
-         (eq major-mode 'emacs-lisp-mode)
-         buffer-file-name
-         (async-byte-compile-file buffer-file-name)))
+         (xy/async-byte-compile-and-load)))
   ;; 4. 挂载到全局保存钩子，放到最后面执行
   (add-hook 'after-save-hook #'xy/async-compile-if-enabled :last)
   ;; 5. 将 dir-locals 变成纯粹的数据声明
@@ -49,6 +37,28 @@
   (dir-locals-set-directory-class xy/site-lisp-dir :byte-compile)
 
   :config
+  (defun xy/async-byte-compile-and-load (&optional file)
+    "Async byte-compile current file, then load elc when finished.
+To make native-compile and load eln happen automatically, load elc with base name.
+No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name))"
+    (interactive)
+    (when-let* ((file (or file buffer-file-name))
+                (base (file-name-base file)))
+      (async-start
+       `(lambda ()
+          (require 'bytecomp)
+          ,(async-inject-variables async-bytecomp-load-variable-regexp)
+          (let ((default-directory ,(file-name-directory file)))
+            (add-to-list 'load-path default-directory)
+            (byte-compile-file ,file)
+            ,(macroexpand '(async-bytecomp--comp-buffer-to-file))))
+       (lambda (&optional log-file)
+         ;; 原 async-bytecomp 的日志写入逻辑
+         (async-bytecomp--file-to-comp-buffer file nil 'file log-file)
+         ;; 加上加载
+         (load base)
+         (message "[xy] %s async compiled & loaded" base)))))
+
   ;; Copy, rename, and symlink operations in Dired now run in the background
   (dired-async-mode +1)
   ;; Compiles packages in a clean Emacs subprocess
