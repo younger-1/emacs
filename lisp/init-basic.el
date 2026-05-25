@@ -139,7 +139,7 @@
 ;;; help
 (use-core help
   :init
-  ;; (setq help-window-select t)
+  (setq help-window-select t)
   ;; (setq help-window-keep-selected t)
   ;; (add-to-list 'display-buffer-alist
   ;;              '("*Help*" display-buffer-same-window))
@@ -225,6 +225,28 @@ makes it easier to edit it."
             (make-local-variable var)
             (set var val))
         (eval `(setopt ,var ,val)))))
+
+  (defun xy/open-help-buffer ()
+    "Jump to the *Help* buffer. If it does not exist, create it."
+    (interactive)
+    (switch-to-buffer "*Help*"))
+
+  (defun xy/open-help-buffer-pop ()
+    (interactive)
+    (pop-to-buffer "*Help*"))
+
+  (defun xy/open-help-buffer-display ()
+    (interactive)
+    (display-buffer "*Help*"))
+
+  (defun xy/open-msg-buffer ()
+    "Jump to the *Messages* buffer. If it does not exist, create it."
+    (interactive)
+    (switch-to-buffer "*Messages*"))
+
+  (defun xy/open-msg-buffer-pop ()
+    (interactive)
+    (pop-to-buffer "*Messages*"))
 
   (defun xy/open-scratch-buffer ()
     "Jump to the *scratch* buffer. If it does not exist, create it."
@@ -320,6 +342,10 @@ makes it easier to edit it."
          ;; doc
          ("C-h o" . nil) ; `describe-symbol'
          ("C-h o s" . #'shortdoc)
+         ("C-h o t" . #'help-with-tutorial)
+         ("C-h o h" . #'xy/open-help-buffer-pop)
+         ("C-h o H" . #'xy/open-help-buffer-display)
+         ("C-h o e" . #'xy/open-msg-buffer-pop)
          ;; echo
          ("C-h e" . nil) ; `view-echo-area-messages' or click echo area
          ("C-h e e" . #'view-echo-area-messages)
@@ -337,6 +363,8 @@ makes it easier to edit it."
          ;; NOTE: safe keys: j u y z
          ;;
          ;; jump
+         ("C-h j h" . #'xy/open-help-buffer)
+         ("C-h j e" . #'xy/open-msg-buffer)
          ("C-h j s" . #'xy/open-scratch-buffer)
          ("C-h j c" . #'xy/open-byte-compile-log-buffer)
          ("C-h j C" . #'xy/open-native-compile-log-buffer)
@@ -349,7 +377,6 @@ makes it easier to edit it."
          ("C-h u p" . #'xy/help-show-plist)
          ;;
          ("C-h t" . nil) ; `help-with-tutorial'
-         ("C-h t t" . #'help-with-tutorial)
          ;;
          ("C-h g" . nil) ; `describe-gnu-project'
          ("C-h q" . nil) ; `help-quit'
