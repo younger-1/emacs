@@ -405,15 +405,20 @@ makes it easier to edit it."
     (interactive)
     (let ((default-directory (file-name-as-directory package-user-dir)))
       (call-interactively 'find-file)))
+  (defun xy/package-clean ()
+    (interactive)
+    (require 'package)
+    ;; Populating `package-alist'
+    (package-load-all-descriptors)
+    (package-autoremove))
   :bind (("C-h p" . nil) ; `finder-by-keyword'
          ("C-h p p" . #'describe-package)
-         ("C-h p R" . package-refresh-contents)
+         ("C-h p r" . package-refresh-contents)
          ("C-h p q" . package-quickstart-refresh)
          ("C-h p l" . package-list-packages-no-fetch)
          ("C-h p L" . package-list-packages)
-         ("C-h p r" . package-reinstall)
+         ("C-h p R" . package-reinstall)
          ("C-h p d" . package-delete)
-         ("C-h p D" . package-autoremove)
          ;;
          ("C-h p i" . package-install)
          ("C-h p I" . package-install-selected-packages)
@@ -427,7 +432,8 @@ makes it easier to edit it."
          ("C-h p v r" . package-vc-rebuild)
          ;;
          ("C-h p a" . #'xy/open-elpa-d)
-         ("C-h p Q" . #'xy/open-package-quickstart)
+         ("C-h p b" . #'xy/open-package-quickstart)
+         ("C-h p c" . #'xy/package-clean)
          ("C-h p j" . #'use-package-jump-to-package-form)
          ("C-h p k" . #'use-package-report)))
 
@@ -941,9 +947,9 @@ makes it easier to edit it."
   (defun xy/consult-rg-lisp ()
     "Grep-based imenu for Elisp files in `xy/lisp-dir'"
     (interactive)
-    ;; "^\\s-*(\\(?:use-package\\|use-feature\\|use-core\\|require\\)\\s-+\\([^()]+\\)"
+    ;; "(\\(?:use-package\\|use-feature\\|use-core\\|require\\)\\s-+\\([^()]+\\)"
     (consult-ripgrep xy/lisp-dir
-                     (rx bol (0+ space) "("
+                     (rx "("
                          (or "use-package" "use-feature" "use-core" "require" "with-eval-after-load" "defun" "defvar" "defconst")
                          (1+ space) (group (1+ (not (any "(" ")" space)))))))
 
