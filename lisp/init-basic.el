@@ -909,11 +909,6 @@ makes it easier to edit it."
          :map minibuffer-local-map
          ("M-s" . consult-history)                 ;; @orig next-matching-history-element
          ("M-r" . consult-history))                ;; @orig previous-matching-history-element
-
-  ;; Enable automatic preview at point in the *Completions* buffer. This is
-  ;; relevant when you use the default completion UI.
-  :hook (completion-list-mode . consult-preview-at-point-mode)
-
   :init
   ;; Tweak the register preview for `consult-register-load',
   ;; `consult-register-store' and the built-in commands.  This improves the
@@ -932,8 +927,8 @@ makes it easier to edit it."
    consult-theme :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep consult-man
    consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
+   consult-source-bookmark consult-source-file-register
+   consult-source-recent-file consult-source-project-recent-file
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
 
@@ -1096,10 +1091,11 @@ makes it easier to edit it."
 ;; 1. `embark-export' exporters:
 ;; -- `occur-mode' for `consult-line' `consult-outline' `consult-mark'
 ;; -- `grep-mode' for `consult-grep' `consult-git-grep' `consult-ripgrep'
+;; -- @tip pressing g will rerun the Consult command you had exported from and re-enter the input you had typed
 ;; 2. `embark-live' collectors: add to `embark-candidate-collectors' for `outline-minor-mode' and `imenu'
 (use-package embark-consult
   :after embark :demand t ;; load consult after embark to provide `consult-imenu' for `embark-export'
-  :hook (embark-collect-mode . consult-preview-at-point-mode))
+  )
 
 (use-package embark-sidebar
   :after embark

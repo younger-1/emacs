@@ -7,3 +7,4 @@
 - add-to-list: add existing element, not added at the beginning of the list
 - In addition to consult-fd/consult-find, search for files with ripgrep
 - M-n for future history https://irreal.org/blog/?p=7987
+- imenu: select current item (thing at point)

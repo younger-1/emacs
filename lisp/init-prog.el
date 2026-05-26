@@ -87,8 +87,8 @@
   (when (executable-find "rg")
     (setq xref-search-program 'ripgrep))
   ;; Use completion system instead of popup window.
-  (setq xref-show-definitions-function 'xref-show-definitions-completing-read
-        xref-show-xrefs-function 'xref-show-definitions-completing-read)
+  ;; (setq xref-show-definitions-function 'xref-show-definitions-completing-read
+  ;;       xref-show-xrefs-function 'xref-show-definitions-completing-read)
   (setq xref-history-storage 'xref-window-local-history))
 
 
@@ -143,7 +143,7 @@
 (use-package dumb-jump
   :defer 1
   :config
-  ;; @see `dumb-jump-find-rules'
+  ;; @see `dumb-jump-find-rules' `dumb-jump-language-file-exts'
   (setq dumb-jump-prefer-searcher 'rg)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
