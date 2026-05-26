@@ -130,9 +130,10 @@
             (let ((declared xy/ensured-pkgs)
                   (installed (eval (car (get 'package-selected-packages 'saved-value)))))
               (unless (seq-set-equal-p declared installed)
-                (message "[xy] check pkgs\n\t:may install (only declared): %s\n\n\t:may delete (not declared): %s"
-                         (seq-difference declared installed)
-                         (seq-difference installed declared))
+                (with-output-to-temp-buffer "*xy/ensured-pkgs*"
+                  (princ (format "Maybe install (only declared): %s\n\nMaybe delete (not declared): %s"
+                                 (seq-difference declared installed)
+                                 (seq-difference installed declared))))
                 (customize-set-variable 'package-selected-packages xy/ensured-pkgs)))))
 
 (provide 'init-package)

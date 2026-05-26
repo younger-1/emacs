@@ -5,8 +5,22 @@
 ;;; perf
 (use-package async
   :bind ( :map emacs-lisp-mode-map
-          ("C-c C-b" . xy/async-byte-compile-and-load))
+          ("C-c C-f" . async-byte-compile-file)
+          ("C-c C-b" . xy/async-byte-compile-and-load)
+          ("C-c C-d" . xy/async-byte-compile-and-load-directory))
   :init
+  ;; Copy, rename, and symlink operations in Dired now run in the background
+  (with-eval-after-load 'dired
+    (dired-async-mode +1))
+  ;; Compiles packages in a clean Emacs subprocess
+  (with-eval-after-load 'package
+    (async-bytecomp-package-mode +1))
+  ;; Async email
+  (with-eval-after-load 'smtpmail
+    (require 'smtpmail-async)
+    (setq send-mail-function 'async-smtpmail-send-it
+          message-send-mail-function 'async-smtpmail-send-it))
+
   ;; 问题：在 Lisp 和 Emacs 社区的工程规范中，“在 Hook 里套 Hook，里面还带个匿名函数 (lambda)” 被称为反模式（Anti-pattern），主要有三大罪状：
   ;; - 1. 无法被轻易移除：因为 lambda 没有名字，你事后想用 remove-hook 把它干掉几乎不可能。
   ;; - 2. 调试极其恶心：当你用 C-h v after-save-hook 查看当前有哪些钩子时，你会看到一坨 (closure ...)，根本不知道它是干嘛的。
@@ -42,6 +56,7 @@
 To make native-compile and load eln happen automatically, load elc with base name.
 No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name))"
     (interactive)
+    (require 'async-bytecomp)
     (when-let* ((file (or file buffer-file-name))
                 (base (file-name-base file)))
       (async-start
@@ -52,19 +67,17 @@ No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name
             (add-to-list 'load-path default-directory)
             (byte-compile-file ,file)
             ,(macroexpand '(async-bytecomp--comp-buffer-to-file))))
+       ;; callback
        (lambda (&optional log-file)
-         ;; 原 async-bytecomp 的日志写入逻辑
+         ;; 原 `async-byte-compile-file' 的日志写入逻辑
          (async-bytecomp--file-to-comp-buffer file nil 'file log-file)
-         ;; 加上加载
+         ;; 加载 byte-compile 后的文件，完成后自动 naitve-compile
          (load base)
          (message "[xy] %s async compiled & loaded" base)))))
-
-  ;; Copy, rename, and symlink operations in Dired now run in the background
-  (dired-async-mode +1)
-  ;; Compiles packages in a clean Emacs subprocess
-  (async-bytecomp-package-mode +1)
-  ;; Async email
-  (setq message-send-mail-function 'async-smtpmail-send-it))
+  (defun xy/async-byte-compile-and-load-directory ()
+    (interactive)
+    (mapc #'xy/async-byte-compile-and-load
+          (directory-files xy/lisp-dir t "\\.el\\'"))))
 
 (use-core server
   ;; :if (dispay-graphic-p)
