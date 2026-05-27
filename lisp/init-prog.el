@@ -39,7 +39,7 @@
   ;; (global-eldoc-mode +1) ;; @default
   ;; :hook
   ;; (prog-mode . eldoc-mode)
-  :bind ("C-h ." . #'eldoc-doc-buffer)
+  :bind ("C-h h ." . #'eldoc-doc-buffer)
   :config
   (setq eldoc-idle-delay 0.3)
   ;; (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
@@ -502,8 +502,8 @@
 ;;; treesit
 ;; @see doc of `treesit-major-mode-setup'
 (use-core treesit
-  :bind (("C-h o i" . treesit-inspect-mode)
-         ("C-h o e" . treesit-explore-mode))
+  :bind (("C-h t i" . treesit-inspect-mode)
+         ("C-h t e" . treesit-explore-mode))
   :config
   (setq treesit-font-lock-level 4))
 
@@ -635,7 +635,7 @@
          ("C-c c ?" . #'eglot-show-workspace-configuration)
          ("C-c c !" . #'eglot-signal-didChangeConfiguration)
          ;; ("M-." . #'xref-find-definitions)
-         ;; ("C-h ." . #'eldoc-doc-buffer)
+         ;; ("C-h h ." . #'eldoc-doc-buffer)
          ("C-c c t" . #'eglot-show-type-hierarchy)
          ("C-c c h" . #'eglot-show-call-hierarchy)
          :map eglot-diagnostics-map)

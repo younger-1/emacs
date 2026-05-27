@@ -125,7 +125,7 @@
 (use-package transient-showcase
   :vc ( :url "https://github.com/positron-solutions/transient-showcase"
         :rev :newest)
-  :bind ("C-h t s" . tsc-showcase))
+  :bind ("C-h t c" . tsc-showcase))
 
 ;; A collection of Transient menus for various built-in Emacs modes
 (use-package casual

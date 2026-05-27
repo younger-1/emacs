@@ -653,8 +653,8 @@
 
 ;;; treesit
 (use-package treesit
-  :bind (("C-h o i" . treesit-inspect-mode)
-         ("C-h o e" . treesit-explore-mode))
+  :bind (("C-h t i" . treesit-inspect-mode)
+         ("C-h t e" . treesit-explore-mode))
   :config
   ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
   (setq treesit-font-lock-level 4))

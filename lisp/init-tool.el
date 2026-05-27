@@ -131,7 +131,7 @@
 ;; - RET or "C-c C-o" -> lookup for the word at the cursor (lets you “drill” into definition further)
 ;; - q -> kill mw-thesaurus buffer and close the window
 (use-package mw-thesaurus
-  :bind (("C-h o m" . mw-thesaurus-lookup-dwim)
+  :bind (("C-h y m" . mw-thesaurus-lookup-dwim)
          :map mw-thesaurus-mode-map
          ([remap evil-ret] . mw-thesaurus-lookup-at-point)
          ([remap evil-record-macro] . mw-thesaurus--quit))
@@ -152,7 +152,7 @@
 ;; - C-c C-l -> to change the language and re-render the entry
 ;; @dep @cli Pronunciation gets played via ffplay (typically bundled in ffmpeg)
 (use-package wiktionary-bro
-  :bind ("C-h o w" . wiktionary-bro-dwim)
+  :bind ("C-h y w" . wiktionary-bro-dwim)
   :config
   (add-hook 'wiktionary-bro-mode-hook
             (defun xy/wiktionary-use-system-browser ()

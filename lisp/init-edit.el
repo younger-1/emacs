@@ -283,7 +283,7 @@ word.  Fall back to regular `expreg-expand'."
 ;;   :defer 0.5
 ;;   :bind (("C-c t s" . smartparens-mode)
 ;;          ("C-c t S" . smartparens-strict-mode)
-;;          ("C-h o S" . sp-cheat-sheet)
+;;          ("C-h t S" . sp-cheat-sheet)
 ;;          :map smartparens-mode-map
 ;;          ;; NOTE: from `sp-paredit-bindings'
 ;;          ("C-M-f" . sp-forward-sexp) ;; navigation

@@ -312,7 +312,6 @@ makes it easier to edit it."
          ("C-h n" . #'describe-minor-mode) ; `view-emacs-news'
          ("C-h x" . #'command-history) ; `describe-command'.  @tip Use x to repeat the command on the current line.
          ;;
-         ("C-h i" . #'info)
          ("C-h R" . #'info-display-manual)
          ("C-h S" . #'info-lookup-symbol)
          ("C-h F" . #'Info-goto-emacs-command-node)
@@ -362,13 +361,6 @@ makes it easier to edit it."
          ("C-h w" . nil) ; `where-is'
          ("C-h w c" . #'where-is)
          ("C-h w k" . #'describe-key-briefly)
-         ;; doc
-         ("C-h o" . nil) ; `describe-symbol'
-         ("C-h o s" . #'shortdoc)
-         ("C-h o t" . #'help-with-tutorial)
-         ("C-h o h" . #'xy/open-help-buffer-pop)
-         ("C-h o H" . #'xy/open-help-buffer-display)
-         ("C-h o e" . #'xy/open-msg-buffer-pop)
          ;; echo
          ("C-h e" . nil) ; `view-echo-area-messages' or click echo area
          ("C-h e e" . #'view-echo-area-messages)
@@ -388,18 +380,29 @@ makes it easier to edit it."
          ;; jump
          ("C-h j h" . #'xy/open-help-buffer)
          ("C-h j e" . #'xy/open-msg-buffer)
+         ("C-h j i" . #'info)
          ("C-h j s" . #'xy/open-scratch-buffer)
          ("C-h j c" . #'xy/open-byte-compile-log-buffer)
          ("C-h j C" . #'xy/open-native-compile-log-buffer)
+         ;; inspect
+         ("C-h i" . nil) ; `info'
+         ("C-h i h" . #'xy/open-help-buffer-pop)
+         ("C-h i e" . #'xy/open-msg-buffer-pop)
+         ;; display
+         ("C-h o" . nil) ; `describe-symbol'
+         ("C-h o h" . #'xy/open-help-buffer-display)
+         ("C-h o e" . #'view-echo-area-messages)
          ;; user
-         ("C-h u" . nil) ; `apropos-user-option`
+         ("C-h u" . nil) ; `apropos-user-option'
          ("C-h u f" . #'add-file-local-variable-prop-line)
          ("C-h u F" . #'add-file-local-variable)
          ("C-h u d" . #'add-dir-local-variable)
          ("C-h u c" . #'xy/set-variable)
          ("C-h u p" . #'xy/help-show-plist)
-         ;;
+         ;; tutorial
          ("C-h t" . nil) ; `help-with-tutorial'
+         ("C-h t t" . #'help-with-tutorial)
+         ("C-h t s" . #'shortdoc)
          ;;
          ("C-h g" . nil) ; `describe-gnu-project'
          ("C-h q" . nil) ; `help-quit'
@@ -407,15 +410,21 @@ makes it easier to edit it."
          ("C-h C-a" . #'about-emacs)
          ("C-h C-q" . #'help-quick-toggle)
          ("C-h C-s" . #'search-forward-help-for-help)
+         ("C-h C-j" . #'xy/open-help-buffer)
+         ("C-h C-i" . #'xy/open-help-buffer-pop)
+         ("C-h C-o" . #'xy/open-help-buffer-display) ; `describe-distribution'
          ("C-h C-c" . nil) ; `describe-copying'
          ("C-h C-d" . nil) ; `view-emacs-debugging'
          ("C-h C-e" . nil) ; `view-external-packages'
          ("C-h C-m" . nil) ; `view-order-manuals'
          ("C-h C-n" . nil) ; `view-emacs-news'
-         ("C-h C-o" . nil) ; `describe-distribution'
          ("C-h C-t" . nil) ; `view-emacs-todo'
          ("C-h C-w" . nil) ; `describe-no-warranty'
-         ))
+         ("C-h C-r" . nil)
+         ("C-h C-u" . nil)
+         ("C-h C-x" . nil)
+         ("C-h C-y" . nil)
+         ("C-h C-z" . nil)))
 
 (use-core help-mode
   :bind ( :map help-mode-map
