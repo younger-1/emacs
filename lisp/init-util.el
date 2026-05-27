@@ -4,8 +4,9 @@
 ;;   (file-name-directory (or load-file-name buffer-file-name))
 ;;   "The root directory Emacs configuration.")
 
-(defconst xy/init-dir user-emacs-directory)
-(defconst xy/var-dir (concat user-emacs-directory "var/"))
+;; Use `defvar' instead of `defconst' to keep `xy/init-dir' the same value after multiple load
+(defvar xy/init-dir user-emacs-directory)
+(defconst xy/var-dir (concat xy/init-dir "var/"))
 
 ;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/
 (setq user-emacs-directory xy/var-dir)

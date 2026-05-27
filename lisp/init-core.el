@@ -129,7 +129,7 @@
 (keymap-global-set "C-h j L" (defun xy/open-site-lisp-dir ()
                                (interactive)
                                (dired xy/site-lisp-dir)))
-(keymap-global-set "C-h j ," (defun xy/open-site-lisp-dir ()
+(keymap-global-set "C-h j ," (defun xy/open-custom-file ()
                                (interactive)
                                (find-file custom-file)))
 

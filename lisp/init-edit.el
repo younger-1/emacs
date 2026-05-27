@@ -450,6 +450,7 @@ word.  Fall back to regular `expreg-expand'."
   ;; (setq view-read-only t)
 
   (defconst xy/elpa-lisp-dir package-user-dir)
+  ;; `data-directory', `lisp-directory'
   (defconst xy/emacs-lisp-dir (file-name-directory (directory-file-name doc-directory)))
 
   ;; (info "(emacs) Directory Variables")
