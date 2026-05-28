@@ -127,6 +127,7 @@
 
 (add-hook 'emacs-startup-hook
           (defun xy/ensured-pkgs ()
+            "Get all the ensured/declared pkgs and set the `package-selected-packages', so `package-autoremove' can do what I want"
             (let ((declared xy/ensured-pkgs)
                   (installed (eval (car (get 'package-selected-packages 'saved-value)))))
               (unless (seq-set-equal-p declared installed)

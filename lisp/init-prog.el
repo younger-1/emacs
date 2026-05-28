@@ -545,10 +545,10 @@
                        :mtime (format-time-string "%Y-%m-%d %H:%M" mtime)
                        :ready (treesit-ready-p lang)))))
             (let ((ts-dir (concat user-emacs-directory "tree-sitter")))
-              (make-directory ts-dir)
+              (make-directory ts-dir t)
               (directory-files ts-dir t "^libtree-sitter"))))
 
-  (defun xy/var-to-string (x &optional k)
+  (defun xy/to-string (x &optional k)
     "根据变量的类型（nil/symbol/string/list）统一转化为字符串"
     (mapconcat (lambda (e) (format "%s" e)) (ensure-list x) (or k "")))
 
@@ -577,7 +577,7 @@
                                (setq column (+ column width))
                                (concat
                                 (thread-first x
-                                              (xy/var-to-string "|")
+                                              (xy/to-string "|")
                                               (thread-last (replace-regexp-in-string "\\\\" ""))
                                               (truncate-string-to-width (- width 1))
                                               (propertize 'face 'completions-annotations))
@@ -593,16 +593,17 @@
       (completing-read-multiple "Update treesit grammars: " all-langs nil t nil nil buf-lang)))
 
   (defun xy/update-treesit-grammars (langs)
+    "Select grammars from `treesit-auto-recipe-list' and update them (install if missing). With prefix argument, update all installed grammers"
     (interactive
      (list (if current-prefix-arg
                (mapcar #'car (xy/treesit-file-info-alist))
-             (xy/treesit--read-langs-to-update))))
+             (mapcar #'intern (xy/treesit--read-langs-to-update)))))
     (with-output-to-temp-buffer "*Update Treesit Grammars*"
       (princ (format "The following tree-sitter grammars will be updated:\n%s\n"
-                     (xy/var-to-string langs "\n"))))
+                     (xy/to-string langs "\n"))))
     (when-let ((treesit-language-source-alist (treesit-auto--build-treesit-source-alist))
                (confirm (y-or-n-p "Update grammars? ")))
-      (mapc #'treesit-install-language-grammar (mapcar #'intern langs))))
+      (mapc #'treesit-install-language-grammar langs)))
 
   :bind ("C-c u t" . #'xy/update-treesit-grammars)
   :config
