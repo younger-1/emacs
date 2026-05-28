@@ -183,6 +183,11 @@ No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name
   (defun xy/open-info-buffer-pop (&optional file buffer)
     (interactive (xy/info--read-file-buffer))
     (info-pop-to-buffer file buffer t))
+  (defun xy/open-info-buffer-display (&optional file buffer)
+    (interactive (xy/info--read-file-buffer))
+    (info-pop-to-buffer file buffer t)
+    ;; Or (previous-window-any-frame)
+    (other-window -1))
 
   :bind (("C-h r" . nil)                ; `info-emacs-manual'
          ("C-h r r" . #'info-emacs-manual)
@@ -428,6 +433,7 @@ makes it easier to edit it."
          ("C-h o" . nil) ; `describe-symbol'
          ("C-h o h" . #'xy/open-help-buffer-display)
          ("C-h o e" . #'view-echo-area-messages)
+         ("C-h o i" . #'xy/open-info-buffer-display) ; @prefix C-u read a file name, 1~9 select *info*<N>
          ;; user
          ("C-h u" . nil) ; `apropos-user-option'
          ("C-h u f" . #'add-file-local-variable-prop-line)

@@ -363,6 +363,11 @@
 
   (add-to-list 'global-display-fill-column-indicator-modes '(not calc-mode calc-trail-mode))
 
+  (defun xy/prev-window ()
+    (interactive)
+    (setq repeat-map 'other-window-repeat-map)
+    (other-window -1))
+
   (when xy/linux-p
     (defun xy/wsl-kill (start end)
       "Copy/Kill text from an Emacs buffer for pasting it into a Windows app"
@@ -408,7 +413,8 @@
   ;; @tip s-k is `kill-current-buffer'
   ;; ("C-x k" . #'kill-current-buffer)
   ("C-x K" . #'bury-buffer)
-  ("C-x O" . #'switch-to-minibuffer)
+  ("C-x O" . #'xy/prev-window)
+  ;; ("C-x O" . #'switch-to-minibuffer)
   ;;
   ("C-x x f" . #'follow-mode)
   ("C-x x G" . #'redraw-display)
