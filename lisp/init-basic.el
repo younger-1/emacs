@@ -160,6 +160,41 @@ No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name
 
 
 ;;; help
+(use-core info
+  :init
+  (defun xy/info-elisp () (interactive) (info "elisp"))
+  (defun xy/info-eintr () (interactive) (info "eintr"))
+  (defun xy/info-org () (interactive) (info "org"))
+
+  (defvar xy/default-infos '("emacs" "elisp" "eintr"
+                        "org" "tramp" "eww" "erc" "gnus" "calc"
+                        "use-package" "url" "cl"))
+  (defun xy/info--read-file-buffer ()
+    (list
+     (if (and current-prefix-arg (not (numberp current-prefix-arg)))
+	 (read-file-name "Info file name: "
+                         (file-name-as-directory configure-info-directory)
+                         xy/default-infos t))
+     (if (numberp current-prefix-arg)
+	 (format "*info*<%s>" current-prefix-arg))))
+  (defun xy/open-info-buffer (&optional file buffer)
+    (interactive (xy/info--read-file-buffer))
+    (info-pop-to-buffer file buffer))
+  (defun xy/open-info-buffer-pop (&optional file buffer)
+    (interactive (xy/info--read-file-buffer))
+    (info-pop-to-buffer file buffer t))
+
+  :bind (("C-h r" . nil)                ; `info-emacs-manual'
+         ("C-h r r" . #'info-emacs-manual)
+         ("C-h r e" . #'xy/info-elisp)
+         ("C-h r i" . #'xy/info-eintr)
+         ("C-h r o" . #'xy/info-org)
+         :map Info-mode-map
+         ;; ("M-n" . nil) ; `clone-buffer'
+         ("S-SPC" . nil)     ; `Info-scroll-down', available as DEL(<backspace>)
+         ("." . #'Info-search-next)
+         ("a" . #'info-apropos)))
+
 (use-core help
   :init
   (setq help-window-select t)
@@ -380,15 +415,16 @@ makes it easier to edit it."
          ;; jump
          ("C-h j h" . #'xy/open-help-buffer)
          ("C-h j e" . #'xy/open-msg-buffer)
-         ("C-h j i" . #'info)
+         ("C-h j i" . #'xy/open-info-buffer) ; @prefix C-u read a file name, 1~9 select *info*<N>
          ("C-h j s" . #'xy/open-scratch-buffer)
          ("C-h j c" . #'xy/open-byte-compile-log-buffer)
          ("C-h j C" . #'xy/open-native-compile-log-buffer)
-         ;; inspect
+         ;; in
          ("C-h i" . nil) ; `info'
          ("C-h i h" . #'xy/open-help-buffer-pop)
          ("C-h i e" . #'xy/open-msg-buffer-pop)
-         ;; display
+         ("C-h i i" . #'xy/open-info-buffer-pop) ; @prefix C-u read a file name, 1~9 select *info*<N>
+         ;; out
          ("C-h o" . nil) ; `describe-symbol'
          ("C-h o h" . #'xy/open-help-buffer-display)
          ("C-h o e" . #'view-echo-area-messages)
@@ -438,22 +474,6 @@ makes it easier to edit it."
           ("S-SPC" . nil) ; `scroll-down-command', available as M-v/DEL(<backspace>)
           ("b" . #'beginning-of-buffer)
           ("e" . #'end-of-buffer)))
-
-(use-core info
-  :init
-  (defun xy/info-elisp () (interactive) (info "elisp"))
-  (defun xy/info-eintr () (interactive) (info "eintr"))
-  (defun xy/info-org () (interactive) (info "org"))
-  :bind (("C-h r" . nil) ; `info-emacs-manual'
-         ("C-h r r" . #'info-emacs-manual)
-         ("C-h r e" . #'xy/info-elisp)
-         ("C-h r i" . #'xy/info-eintr)
-         ("C-h r o" . #'xy/info-org)
-         :map Info-mode-map
-         ;; ("M-n" . nil) ; `clone-buffer'
-         ("S-SPC" . nil) ; `Info-scroll-down', available as DEL(<backspace>)
-         ("." . #'Info-search-next)
-         ("a" . #'info-apropos)))
 
 (use-core package
   :init
@@ -1084,7 +1104,7 @@ makes it easier to edit it."
    ("M-S-<return>" . embark-collect) ; 1.embark keymap; 2.follow target in original buf.
    ("C-M-<return>" . embark-live)
    ;;
-   ("C-h TAB" . embark-bindings)  ; as `execute-extended-command-for-buffer'
+   ("C-h <tab>" . embark-bindings)  ; as `execute-extended-command-for-buffer'
    :map minibuffer-local-map
    ("M-," . embark-become)) ; @see `embark-become-keymaps'
   :init

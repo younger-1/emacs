@@ -117,10 +117,10 @@
 (keymap-global-set "C-x C-a" #'rename-visited-file)
 (keymap-global-set "C-x C-j" #'find-sibling-file)
 
-(keymap-global-set "C-h j i" (defun xy/open-init-file ()
+(keymap-global-set "C-h j j" (defun xy/open-init-file ()
                                (interactive)
                                (find-file user-init-file)))
-(keymap-global-set "C-h j I" (defun xy/open-init-dir ()
+(keymap-global-set "C-h j J" (defun xy/open-init-dir ()
                                (interactive)
                                (dired xy/init-dir)))
 (keymap-global-set "C-h j l" (defun xy/open-lisp-dir ()
@@ -195,7 +195,7 @@
 
 ;; M-( -> `insert-parentheses'
 ;; M-) -> `move-past-close-and-reindent'
-;; @tip use prefix arguments to insert pairs without mark activating
+;; @prefix Insert pairs without mark activating
 ;; To insert pairs of (), [], {} and ""
 ;; (define-key esc-map "("  #'insert-pair)
 ;; (define-key esc-map "["  #'insert-pair)
