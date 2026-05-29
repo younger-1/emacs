@@ -74,6 +74,7 @@ No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name
          ;; 加载 byte-compile 后的文件，完成后自动 naitve-compile
          (load base)
          (message "[xy] %s async compiled & loaded" base)))))
+
   (defun xy/async-byte-compile-and-load-directory ()
     (interactive)
     (mapc #'xy/async-byte-compile-and-load
@@ -490,12 +491,6 @@ makes it easier to edit it."
     (interactive)
     (let ((default-directory (file-name-as-directory package-user-dir)))
       (call-interactively 'find-file)))
-  (defun xy/package-clean ()
-    (interactive)
-    (require 'package)
-    ;; Populating `package-alist'
-    (package-load-all-descriptors)
-    (package-autoremove))
   :bind (("C-h p" . nil) ; `finder-by-keyword'
          ("C-h p p" . #'describe-package)
          ("C-h p r" . package-refresh-contents)
@@ -509,6 +504,7 @@ makes it easier to edit it."
          ("C-h p I" . package-install-selected-packages)
          ("C-h p u" . package-upgrade)
          ("C-h p U" . package-upgrade-all)
+         ("C-h p y" . xy/async-package-upgrade)
          ;;
          ("C-h p v i" . package-vc-install)
          ("C-h p v I" . package-vc-install-selected-packages)
@@ -518,9 +514,47 @@ makes it easier to edit it."
          ;;
          ("C-h p a" . #'xy/open-elpa-d)
          ("C-h p b" . #'xy/open-package-quickstart)
-         ("C-h p c" . #'xy/package-clean)
-         ("C-h p j" . #'use-package-jump-to-package-form)
-         ("C-h p k" . #'use-package-report)))
+         ("C-h p c" . xy/package-clean)
+         ("C-h p j" . use-package-jump-to-package-form)
+         ("C-h p k" . use-package-report))
+  :config
+  (defun xy/package-clean ()
+    (interactive)
+    ;; Populating `package-alist'
+    (package-load-all-descriptors)
+    (package-autoremove))
+
+  (defun xy/async-package-upgrade (pkgs)
+    (interactive
+     (list (completing-read-multiple
+            "Upgrade package: "
+            (append (package--upgradeable-packages) '(:all :elpa :vc))
+            nil t)))
+    (let ((all (package--upgradeable-packages))
+          (f (lambda (p) (package-vc-p
+                     (cadr (assq p package-alist))))))
+      (when (member ":all" pkgs)
+        (setq pkgs all))
+      (when (member ":elpa" pkgs)
+        (setq pkgs (delete ":elpa" pkgs))
+        (setq pkgs (append pkgs (seq-remove f all))))
+      (when (member ":vc" pkgs)
+        (setq pkgs (delete ":vc" pkgs))
+        (setq pkgs (append pkgs (seq-filter f all)))))
+
+    (unless (y-or-n-p (format "[xy] %s pkgs to upgrade. Do it? \n%s"
+                              (length pkgs) pkgs))
+      (user-error "Upgrade aborted"))
+
+    (require 'async)
+    (async-start
+     `(lambda ()
+        ,(async-inject-variables async-bytecomp-load-variable-regexp)
+        (require 'init-package)
+        (require 'package)
+        (mapc #'package-upgrade ',pkgs))
+     (lambda (&optional result)
+       (message "[xy] async upgraded packages %s" result)))))
 
 (use-core cus-edit
   :bind
