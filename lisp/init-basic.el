@@ -524,37 +524,51 @@ makes it easier to edit it."
     (package-load-all-descriptors)
     (package-autoremove))
 
+  (defun xy/package--vc-p (pkg)
+    "Return non-nil if PKG is installed via package-vc."
+    (package-vc-p (cadr (assq pkg package-alist))))
+
+  (defun xy/package--expand-selection (selection)
+    "Expand SELECTION (list of string) to a deduplicated list of package symbols."
+    (let* ((all (package--upgradeable-packages))
+           (elpa (seq-remove #'xy/package--vc-p all))
+           (vc   (seq-filter #'xy/package--vc-p all)))
+      (seq-uniq
+       (mapcan (lambda (s)
+                 (pcase (intern s)
+                   (:all  (copy-sequence all))
+                   (:elpa (copy-sequence elpa))
+                   (:vc   (copy-sequence vc))
+                   (_     (list s))))
+               selection))))
+
+  (defun xy/async-eval (form &optional callback)
+    "Run FORM in a child Emacs, call CALLBACK with its result."
+    (require 'async)
+    (async-start
+     `(lambda ()
+        ,(async-inject-variables async-bytecomp-load-variable-regexp)
+        ,form)
+     (or callback
+         (lambda (r) (message "[xy] async done: %S" r)))))
+
   (defun xy/async-package-upgrade (pkgs)
+    "Asynchronously upgrade PKGS.
+PKGS can include the tokens :all :elpa :vc to expand into groups."
     (interactive
      (list (completing-read-multiple
             "Upgrade package: "
             (append (package--upgradeable-packages) '(:all :elpa :vc))
             nil t)))
-    (let ((all (package--upgradeable-packages))
-          (f (lambda (p) (package-vc-p
-                     (cadr (assq p package-alist))))))
-      (when (member ":all" pkgs)
-        (setq pkgs all))
-      (when (member ":elpa" pkgs)
-        (setq pkgs (delete ":elpa" pkgs))
-        (setq pkgs (append pkgs (seq-remove f all))))
-      (when (member ":vc" pkgs)
-        (setq pkgs (delete ":vc" pkgs))
-        (setq pkgs (append pkgs (seq-filter f all)))))
-
-    (unless (y-or-n-p (format "[xy] %s pkgs to upgrade. Do it? \n%s"
-                              (length pkgs) pkgs))
-      (user-error "Upgrade aborted"))
-
-    (require 'async)
-    (async-start
-     `(lambda ()
-        ,(async-inject-variables async-bytecomp-load-variable-regexp)
-        (require 'init-package)
-        (require 'package)
-        (mapc #'package-upgrade ',pkgs))
-     (lambda (&optional result)
-       (message "[xy] async upgraded packages %s" result)))))
+    (when-let* ((pkgs (xy/package--expand-selection pkgs))
+                ((y-or-n-p (format "[xy] %d package(s) to upgrade. Do it?\n%s" (length pkgs) pkgs))))
+      (xy/async-eval
+       `(progn
+          (require 'init-package)
+          (require 'package)
+          (mapc #'package-upgrade ',pkgs))
+       (lambda (result)
+         (message "[xy] async upgraded packages %s" result))))))
 
 (use-core cus-edit
   :bind
