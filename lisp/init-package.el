@@ -38,19 +38,24 @@
 (unless (file-exists-p package-user-dir)
   (package-refresh-contents))
 
-(defun xy/package-upgrade-info (pkg &optional refresh)
-  "Return upgrade info string for PKG: \"pkg: CUR -> NEW\".
-Return nil if PKG is not installed or has no upgrade available.
-With REFRESH non-nil, refresh archives first."
-  (when refresh (package-refresh-contents))
-  (when-let* ((cur-desc (cadr (assq pkg package-alist)))
-              (new-desc (cadr (assq pkg package-archive-contents)))
-              (cur (package-desc-version cur-desc))
-              (new (package-desc-version new-desc))
-              ((version-list-< cur new)))
-    (format "%s: %s -> %s" pkg
-            (package-version-join cur)
-            (package-version-join new))))
+;; alist结构 ((pkg desc1 desc2...) ...)
+;; `package-archive-contents' archive 中可用的包 alist
+;; `package-alist' 已安装的包 alist
+;; `package--builtins' 内置包 alist
+;; `package--builtin-versions'
+(defun xy/package-upgrade-info (pkg)
+  "Return \"pkg: CUR -> NEW\" if archive has a newer version of PKG, else nil.
+Works uniformly for installed and built-in packages."
+  (package--archives-initialize)
+  (let* ((new-desc (cadr (assq pkg package-archive-contents)))
+         (cur-desc (cadr (assq pkg package-alist)))
+         (new (package-desc-version new-desc))
+         (cur (or (and cur-desc (package-desc-version cur-desc))
+                  (alist-get pkg package--builtin-versions))))
+    (when (version-list-< cur new)
+      (format "%s: %s -> %s" pkg
+              (package-version-join cur)
+              (package-version-join new)))))
 
 ;; Delete upgraded builtin pakcages
 ;; (mapc #'package-delete

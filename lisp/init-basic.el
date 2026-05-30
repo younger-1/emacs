@@ -566,8 +566,8 @@ PKGS can include the tokens :all :elpa :vc to expand into groups."
           (require 'package)
           (require 'init-package)
           (mapconcat (lambda (p)
-                       (package-upgrade p)
-                       (xy/package-upgrade-info p))
+                       (prog1 (xy/package-upgrade-info p)
+                         (package-upgrade p)))
                      ',pkgs "\n"))
        (lambda (result)
          (message "[xy] async running %.2f, upgraded packages:\n%s"
