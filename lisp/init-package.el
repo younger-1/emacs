@@ -46,12 +46,15 @@
 (defun xy/package-upgrade-info (pkg)
   "Return \"pkg: CUR -> NEW\" if archive has a newer version of PKG, else nil.
 Works uniformly for installed and built-in packages."
+  (require 'package)
   (package--archives-initialize)
   (let* ((new-desc (cadr (assq pkg package-archive-contents)))
-         (cur-desc (cadr (assq pkg package-alist)))
-         (new (package-desc-version new-desc))
-         (cur (or (and cur-desc (package-desc-version cur-desc))
-                  (alist-get pkg package--builtin-versions))))
+         (cur-desc (cadr (assq pkg (append package-alist
+                                           (mapcar
+                                            (lambda (elt) (list (car elt) (package--from-builtin elt)))
+                                            package--builtins)))))
+         (new (and new-desc (package-desc-version new-desc)))
+         (cur (and cur-desc (package-desc-version cur-desc))))
     (when (version-list-< cur new)
       (format "%s: %s -> %s" pkg
               (package-version-join cur)
