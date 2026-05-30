@@ -38,6 +38,31 @@
 (unless (file-exists-p package-user-dir)
   (package-refresh-contents))
 
+(defun xy/package-upgrade-info (pkg &optional refresh)
+  "Return upgrade info string for PKG: \"pkg: CUR -> NEW\".
+Return nil if PKG is not installed or has no upgrade available.
+With REFRESH non-nil, refresh archives first."
+  (when refresh (package-refresh-contents))
+  (when-let* ((cur-desc (cadr (assq pkg package-alist)))
+              (new-desc (cadr (assq pkg package-archive-contents)))
+              (cur (package-desc-version cur-desc))
+              (new (package-desc-version new-desc))
+              ((version-list-< cur new)))
+    (format "%s: %s -> %s" pkg
+            (package-version-join cur)
+            (package-version-join new))))
+
+;; Delete upgraded builtin pakcages
+;; (mapc #'package-delete
+;;       (mapcar (lambda (p) (cadr (assoc p package-alist)))
+;;               (seq-remove #'package--active-built-in-p
+;;                           (mapcar #'car package--builtins))))
+;; (compat jsonrpc let-alist project seq transient xref)
+
+;; Delete all old versions of each installed package
+;; (mapc #'package-delete
+;;       (mapcan #'cddr (seq-filter #'cddr package-alist)))
+
 
 ;;; use-package
 ;; 编译期（Compile-time） 和 加载期 / 运行期（Load-time/Run-time）
@@ -59,6 +84,10 @@
 
 ;; Load `use-package-ensure' to install missing packages when compiling OTHER files which require THIS file
 (when (bound-and-true-p byte-compile-current-file)
+  (require 'use-package-ensure))
+
+;; Load `use-package-ensure' to install missing packages when eval `use-package' macro manually at runtime
+(with-eval-after-load 'use-package-core
   (require 'use-package-ensure))
 
 (setq use-package-always-ensure t)

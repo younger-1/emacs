@@ -40,7 +40,7 @@
 (add-hook 'emacs-startup-hook
           (defun xy/-print-init-time ()
             (message "%s" (format-seconds "Emacs is %y years, %d days, %h hours, %m minutes, %s seconds old"
-                                          (time-to-seconds (time-subtract nil (date-to-time "1985-03-20T00:00:00Z")))))
+                                          (time-to-seconds (time-since (date-to-time "1985-03-20T00:00:00Z")))))
             (message "** [xy] Emacs ready in %s seconds with %d garbage collections."
                      (emacs-init-time "%.2f") gcs-done)))
 

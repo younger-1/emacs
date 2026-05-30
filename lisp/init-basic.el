@@ -51,6 +51,15 @@
   (dir-locals-set-directory-class xy/site-lisp-dir :byte-compile)
 
   :config
+  (defun xy/async-eval (form &optional callback)
+    "Run FORM in a child Emacs, call CALLBACK with its result."
+    (async-start
+     `(lambda ()
+        ,(async-inject-variables async-bytecomp-load-variable-regexp)
+        ,form)
+     (or callback
+         (lambda (r) (message "[xy] async done: %S" r)))))
+
   (defun xy/async-byte-compile-and-load (&optional file)
     "Async byte-compile current file, then load elc when finished.
 To make native-compile and load eln happen automatically, load elc with base name.
@@ -59,15 +68,13 @@ No use absolute file name to elc: (load (byte-compile-dest-file buffer-file-name
     (require 'async-bytecomp)
     (when-let* ((file (or file buffer-file-name))
                 (base (file-name-base file)))
-      (async-start
-       `(lambda ()
+      (xy/async-eval
+       `(progn
           (require 'bytecomp)
-          ,(async-inject-variables async-bytecomp-load-variable-regexp)
           (let ((default-directory ,(file-name-directory file)))
             (add-to-list 'load-path default-directory)
             (byte-compile-file ,file)
             ,(macroexpand '(async-bytecomp--comp-buffer-to-file))))
-       ;; callback
        (lambda (&optional log-file)
          ;; 原 `async-byte-compile-file' 的日志写入逻辑
          (async-bytecomp--file-to-comp-buffer file nil 'file log-file)
@@ -524,15 +531,12 @@ makes it easier to edit it."
     (package-load-all-descriptors)
     (package-autoremove))
 
-  (defun xy/package--vc-p (pkg)
-    "Return non-nil if PKG is installed via package-vc."
-    (package-vc-p (cadr (assq pkg package-alist))))
-
   (defun xy/package--expand-selection (selection)
     "Expand SELECTION (list of string) to a deduplicated list of package symbols."
     (let* ((all (package--upgradeable-packages))
-           (elpa (seq-remove #'xy/package--vc-p all))
-           (vc   (seq-filter #'xy/package--vc-p all)))
+           (pkg-vc-p (lambda (pkg) (package-vc-p (cadr (assq pkg package-alist)))))
+           (elpa (seq-remove pkg-vc-p all))
+           (vc   (seq-filter pkg-vc-p all)))
       (seq-uniq
        (mapcan (lambda (s)
                  (pcase (intern s)
@@ -542,33 +546,33 @@ makes it easier to edit it."
                    (_     (list s))))
                selection))))
 
-  (defun xy/async-eval (form &optional callback)
-    "Run FORM in a child Emacs, call CALLBACK with its result."
-    (require 'async)
-    (async-start
-     `(lambda ()
-        ,(async-inject-variables async-bytecomp-load-variable-regexp)
-        ,form)
-     (or callback
-         (lambda (r) (message "[xy] async done: %S" r)))))
-
   (defun xy/async-package-upgrade (pkgs)
     "Asynchronously upgrade PKGS.
 PKGS can include the tokens :all :elpa :vc to expand into groups."
     (interactive
      (list (completing-read-multiple
             "Upgrade package: "
-            (append (package--upgradeable-packages) '(:all :elpa :vc))
+            (mapcar #'symbol-name
+                    (append (package--upgradeable-packages) '(:all :elpa :vc)))
             nil t)))
     (when-let* ((pkgs (xy/package--expand-selection pkgs))
-                ((y-or-n-p (format "[xy] %d package(s) to upgrade. Do it?\n%s" (length pkgs) pkgs))))
+                ((y-or-n-p (format "[xy] %d package(s) to upgrade. Do it?\n%s" (length pkgs) pkgs)))
+                (start (current-time)))
+      (message "[xy] start upgrade packages:\n%s"
+               (mapconcat #'xy/package-upgrade-info pkgs "\n"))
+      (require 'async)
       (xy/async-eval
        `(progn
-          (require 'init-package)
           (require 'package)
-          (mapc #'package-upgrade ',pkgs))
+          (require 'init-package)
+          (mapconcat (lambda (p)
+                       (package-upgrade p)
+                       (xy/package-upgrade-info p))
+                     ',pkgs "\n"))
        (lambda (result)
-         (message "[xy] async upgraded packages %s" result))))))
+         (message "[xy] async running %.2f, upgraded packages:\n%s"
+                  (float-time (time-since start))
+                  result))))))
 
 (use-core cus-edit
   :bind
