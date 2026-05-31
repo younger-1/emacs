@@ -4,10 +4,9 @@
 (require 'init-util)
 
 ;;; package
-(setq package-archives '(("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-                         ;; ("gnu-dev". "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu-devel/")
-                         ("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-                         ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")))
+(setq package-archives '(("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+                         ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")
+                         ("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 ;; 没有出现在此列表中的 archive 默认优先级为 0
 ;; - 默认行为，按版本号比较
@@ -25,6 +24,11 @@
 ;;                                    ("nongnu" . 80)
 ;;                                    ("melpa"  . 10)))
 
+;; Only pin builtin packages to gnu
+(with-eval-after-load 'package
+  (require 'finder-inf)
+  (setq package-pinned-packages (mapcar (lambda (p) (cons (car p) "gnu")) package--builtins)))
+
 ;; Enable `package-quickstart-refresh'
 (setq package-quickstart t)
 ;; (setq package-install-upgrade-built-in t)
@@ -39,9 +43,9 @@
   (package-refresh-contents))
 
 ;; alist结构 ((pkg desc1 desc2...) ...)
-;; `package-archive-contents' archive 中可用的包 alist
-;; `package-alist' 已安装的包 alist
-;; `package--builtins' 内置包 alist
+;; `package-archive-contents' archive 中可用的包 alist, valid after `package-read-all-archive-contents'
+;; `package-alist' 已安装的包 alist, valid after `package-load-all-descriptors'
+;; `package--builtins' 内置包 alist, valid after `finder-inf'
 ;; `package--builtin-versions'
 (defun xy/package-upgrade-info (pkg)
   "Return \"pkg: CUR -> NEW\" if archive has a newer version of PKG, else nil.
@@ -49,10 +53,9 @@ Works uniformly for installed and built-in packages."
   (require 'package)
   (package--archives-initialize)
   (let* ((new-desc (cadr (assq pkg package-archive-contents)))
-         (cur-desc (cadr (assq pkg (append package-alist
-                                           (mapcar
-                                            (lambda (elt) (list (car elt) (package--from-builtin elt)))
-                                            package--builtins)))))
+         (cur-desc (or (cadr (assq pkg package-alist))
+                       (when-let* ((bi (assq pkg package--builtins)))
+                         (package--from-builtin bi))))
          (new (and new-desc (package-desc-version new-desc)))
          (cur (and cur-desc (package-desc-version cur-desc))))
     (when (version-list-< cur new)

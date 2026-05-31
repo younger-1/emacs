@@ -533,17 +533,21 @@ makes it easier to edit it."
 
   (defun xy/package--expand-selection (selection)
     "Expand SELECTION (list of string) to a deduplicated list of package symbols."
-    (let* ((all (package--upgradeable-packages))
+    (let* ((all (package--upgradeable-packages t))
            (pkg-vc-p (lambda (pkg) (package-vc-p (cadr (assq pkg package-alist)))))
-           (elpa (seq-remove pkg-vc-p all))
-           (vc   (seq-filter pkg-vc-p all)))
+           (pkg-bi-p (lambda (pkg) (assq pkg package--builtins)))
+           (bi   (seq-filter pkg-bi-p all))
+           (nobi (seq-remove pkg-bi-p all))
+           (vc   (seq-filter pkg-vc-p nobi))
+           (elpa (seq-remove pkg-vc-p nobi)))
       (seq-uniq
        (mapcan (lambda (s)
                  (pcase (intern s)
-                   (:all  (copy-sequence all))
-                   (:elpa (copy-sequence elpa))
-                   (:vc   (copy-sequence vc))
-                   (_     (list s))))
+                   (:all all)
+                   (:elpa elpa)
+                   (:builtin bi)
+                   (:vc vc)
+                   (_ (list s))))
                selection))))
 
   (defun xy/async-package-upgrade (pkgs)
@@ -553,7 +557,7 @@ PKGS can include the tokens :all :elpa :vc to expand into groups."
      (list (completing-read-multiple
             "Upgrade package: "
             (mapcar #'symbol-name
-                    (append (package--upgradeable-packages) '(:all :elpa :vc)))
+                    (append (package--upgradeable-packages t) '(:all :elpa :vc :builtin)))
             nil t)))
     (when-let* ((pkgs (xy/package--expand-selection pkgs))
                 ((y-or-n-p (format "[xy] %d package(s) to upgrade. Do it?\n%s" (length pkgs) pkgs)))
