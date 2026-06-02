@@ -147,6 +147,45 @@
   (setq dumb-jump-prefer-searcher 'rg)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
+(use-package citre
+  :init
+  ;; (add-hook 'find-file-hook #'citre-auto-enable-citre-mode)
+  (require 'citre-config)
+  :bind (("C-c c u" . citre-update-this-tags-file)
+         :map citre-mode-map
+         ;; ("C-c c j" . citre-jump)
+         ;; ("C-c c r" . citre-jump-to-reference)
+         ;; ("C-c c J" . citre-query-jump) ; @prefix Identifiers in the project is used as completion
+         ;; ("C-c c R" . citre-query-jump-to-reference) ; @prefix Identifiers in the project is used as completion
+         ("C-c c j" . citre-peek)
+         ("C-c c J" . citre-peek-reference)
+         ("C-c c /" . citre-query-peek)
+         ("C-c c ?" . citre-query-peek-reference)
+         ("C-c c p" . citre-ace-peek)
+         ("C-c c P" . citre-ace-peek-reference)
+         ("C-c c b" . citre-jump-back)
+         ;; @see https://github.com/universal-ctags/citre/blob/master/docs/user-manual/use-citre-peek.md
+         ;; `citre-peek-keymap'
+         ;; - M-n, M-p: Next/prev line
+         ;; - M-N, M-P: Next/prev definition
+         ;; - M-l j: Jump to the definition
+         ;; - M-l p: `citre-peek-through'
+         ;; - M-l r: `citre-peek-through-reference'
+         ;; - C-g: Close the peek window
+         ;; - <left> and <right>: navigate the function call chain history
+         ;; - S-<up> and S-<down>: move the current definition up and down
+         ("C-c c RET" . citre-peek-restore)
+         ;; citre-peek-save-session
+         ;; citre-peek-load-session
+         )
+  :config
+  (with-eval-after-load 'projectile
+    (setq citre-project-root-function #'projectile-project-root))
+  ;; Auto generate option file, you can edit it later by `citre-edit-tags-file-recipe'
+  (setq citre-edit-ctags-options-manually nil)
+  ;; Save the tags file to ~/.cache/tags/
+  (setq citre-default-create-tags-file-location 'global-cache))
+
 
 ;;; outline
 
